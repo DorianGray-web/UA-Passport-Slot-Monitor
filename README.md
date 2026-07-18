@@ -50,4 +50,4 @@ The first MVP is being designed. Initial development will focus on:
 Ideas, real-world use cases, documentation improvements, testing, security reviews, and code contributions are welcome.
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) before contributing.
-# UA-Passport-Slot-Monitor
+
