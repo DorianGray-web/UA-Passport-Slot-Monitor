@@ -17,7 +17,15 @@ The system does not automatically book appointments and does not solve
 CAPTCHA challenges. Final registration is always completed manually by
 the user.
 
-📢 We need your feedback! Before writing the first line of code, please take 2 minutes to fill out our [User Survey (Google Forms)](https://forms.gle/yXTAV1aAEh8Z84zN6) to help us prioritize features.
+📢 **We need your feedback!**
+
+This project is currently in its early design and validation stage.
+
+Please take 2 minutes to complete our **[User Survey (Google Forms)](https://forms.gle/yXTAV1aAEh8Z84zN6)** and help us prioritize the features that matter most to future users.
+
+We also welcome feedback from developers, security specialists, UX designers, and open-source contributors. Your ideas, suggestions, and technical reviews can help shape the project before the MVP is implemented.
+
+Feel free to open a GitHub Issue to share your thoughts.
 
 ## 2. Problem
 
