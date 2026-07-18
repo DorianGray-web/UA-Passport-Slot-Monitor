@@ -1,28 +1,28 @@
-Открытие сайта
+Opening the website
 
 ↓
 
-Выбор языка
+Select language
 
 ↓
 
-Определить местоположение
+Select location
 
-или
+or
 
-Ввести индекс
-
-↓
-
-Найдены ближайшие центры
+Enter postal code
 
 ↓
 
-Выбрать услуги
+Nearest centers found
 
 ↓
 
-Выбрать количество заявителей
+Select services
+
+↓
+
+Select number of applicants
 
 ↓
 
@@ -30,4 +30,4 @@ Telegram
 
 ↓
 
-Мониторинг
+Monitoring
