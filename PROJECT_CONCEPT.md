@@ -17,6 +17,8 @@ The system does not automatically book appointments and does not solve
 CAPTCHA challenges. Final registration is always completed manually by
 the user.
 
+📢 We need your feedback! Before writing the first line of code, please take 2 minutes to fill out our [User Survey (Google Forms)](https://forms.gle/yXTAV1aAEh8Z84zN6) to help us prioritize features.
+
 ## 2. Problem
 
 Ukrainians living abroad may need to renew or obtain:
