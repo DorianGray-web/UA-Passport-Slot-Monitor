@@ -16,6 +16,7 @@ Please take 2 minutes to complete our **[User Survey](https://forms.gle/yXTAV1aA
 
 Feedback from users, developers, security specialists, UX designers, and open-source contributors is welcome.
 
+
 ## Core principles
 
 - no automatic appointment booking;
@@ -27,13 +28,20 @@ Feedback from users, developers, security specialists, UX designers, and open-so
 
 ## Project documentation
 
-- [Project Concept](PROJECT_CONCEPT.md)
+- [Project Concept](docs/PROJECT_CONCEPT.md)
 - [Roadmap](ROADMAP.md)
 - [Architecture](docs/ARCHITECTURE.md)
+- [Project Decisions](docs/DECISIONS.md)
+- [Providers](docs/PROVIDERS.md)
+- [User Flow](docs/USER_FLOW.md)
+- [Research](research/README.md)
 - [Privacy](PRIVACY.md)
 - [Security](SECURITY.md)
 - [Contributing](CONTRIBUTING.md)
+- [Documentation Language Policy](docs/LANGUAGE_POLICY.md)
 
+Localized user documentation:
+[Русский](docs/ru/README.md) · [Українська](docs/uk/README.md)
 ## Current status
 
 The first MVP is being designed. Initial development will focus on:
