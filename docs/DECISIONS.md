@@ -6,19 +6,19 @@ Each decision captures the context, reasoning, and expected consequences to help
 
 ---
 
-# ADR-0001 — Privacy-first Architecture
+## ADR-0001 — Privacy-first Architecture
 
 **Status:** Accepted
 
 **Date:** 2026-07-19
 
-## Context
+### Context
 
 UA Passport Slot Monitor is intended to help users monitor appointment availability for Ukrainian document services without becoming another system that unnecessarily collects personal information.
 
 Many modern online services collect more information than is required for their primary function. Since this project is being designed from the ground up, privacy principles can be integrated into the architecture from the very beginning.
 
-## Decision
+### Decision
 
 The project adopts a **Privacy-first** architecture.
 
@@ -30,7 +30,7 @@ If the answer is yes, the feature should be implemented without collecting perso
 
 If personal data is genuinely required, the project should collect only the minimum amount necessary for the intended function.
 
-## Consequences
+### Consequences
 
 This decision affects the entire architecture of the project.
 
@@ -44,7 +44,7 @@ Examples include:
 - avoiding automatic appointment confirmation;
 - documenting all new data categories before implementation.
 
-## Rationale
+### Rationale
 
 The decision supports:
 
