@@ -1,0 +1,14 @@
+# Python virtual environments
+.venv/
+.venv-*/
+
+# Persistent browser profiles
+.browser-data/
+
+# Runtime captures and diagnostic output
+data/
+logs/
+
+# Python cache
+__pycache__/
+*.py[cod]
