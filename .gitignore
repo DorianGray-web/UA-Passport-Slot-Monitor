@@ -12,3 +12,5 @@ logs/
 # Python cache
 __pycache__/
 *.py[cod]
+
+bootstrap_ai_workflow.ps1
