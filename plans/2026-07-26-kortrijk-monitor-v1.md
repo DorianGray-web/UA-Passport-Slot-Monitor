@@ -237,3 +237,112 @@ tests/providers/dp-document/test_kortrijk_classifier.py
 tests/providers/dp-document/test_kortrijk_transitions.py
 tests/providers/dp-document/test_kortrijk_storage.py
 tests/fixtures/dp-document/kortrijk/
+```
+
+Exact structure may be simplified after reviewing the existing code.
+
+## Test strategy
+
+### Unit tests
+
+Test:
+
+- state-marker matching;
+- blocked-response detection;
+- unknown-state behavior;
+- HTML hash generation;
+- initial-state behavior;
+- state-transition detection;
+- unchanged-state behavior;
+- notification trigger rules;
+- sensitive-header sanitization;
+- randomized interval boundaries.
+
+### Fixture-based tests
+
+Create sanitized fixtures for:
+
+- no slots;
+- slots available;
+- CAPTCHA;
+- Cloudflare/403;
+- unknown page;
+- malformed or empty response.
+
+### Integration tests
+
+Test locally:
+
+- HTTP success without Playwright;
+- HTTP failure followed by Playwright fallback;
+- repeated NO_SLOTS;
+- transition NO_SLOTS -> SLOTS_AVAILABLE;
+- transition into UNKNOWN;
+- browser failure producing ERROR.
+
+## Manual verification
+
+Verify:
+
+- no form submission;
+- no navigation into booking flow;
+- no cookies/tokens in logs;
+- no runtime artifacts tracked by Git;
+- screenshots created only under defined conditions;
+- notification includes no sensitive data.
+
+## Acceptance-criteria traceability
+
+Acceptance criterion      Implementation slice     Verification
+AC-1                      Slice 9                  interval boundary tests
+AC-2                      Slice 2                  HTTP-only integration test
+AC-3                      Slice 4                  fallback integration test
+AC-4                      Slice 4                  code review and manual verification
+AC-5                      Slices 1, 2, 5           persistence tests
+AC-6                      Slices 5, 7              sanitization tests
+AC-7                      Slice 6                  transition tests
+AC-8                      Slice 6                  initial-state test
+AC-9                      Slice 7                  transition snapshot test
+AC-10                     Slice 7                  repeated-state test
+AC-11                     Slice 8                  notification test
+AC-12                     Slice 8                  CAPTCHA notification test
+AC-13                     Slices 3, 7, 8           unknown-state integration test
+AC-14                     Slices 1, 3              error classification test
+AC-15                     Slices 2, 3              blocked-response tests
+
+## Implementation order
+
+- review existing code;
+- freeze state model;
+- write classifier fixtures and tests;
+- implement HTTP observer;
+- implement transition persistence;
+- add Playwright fallback;
+- add diagnostic snapshots;
+- add notifications;
+- add scheduler and backoff;
+- run verification against all AC-N.
+
+## Open implementation decisions
+
+Before coding, resolve:
+
+- JSONL or SQLite for v1;
+- Telegram or console-first notification;
+- snapshot retention period;
+- exact blocked/error retry thresholds;
+- whether ERROR participates in business-state transitions;
+- whether Playwright should use a persistent or ephemeral context;
+- exact sanitization fields for network summaries.
+
+## Definition of done
+
+The implementation is complete when:
+
+- every AC-1–AC-15 has verification evidence;
+- all automated tests pass;
+- no sensitive runtime artifacts are tracked;
+- HTTP-first behavior is confirmed;
+- Playwright fallback is passive;
+- notification behavior is demonstrated;
+- a verification report exists under reports/verification/.

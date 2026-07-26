@@ -161,3 +161,170 @@ Example:
 ```text
 NO_SLOTS -> SLOTS_AVAILABLE
 
+```
+
+The first recorded observation establishes the initial state and is not treated
+as a transition.
+
+## Diagnostic snapshot policy
+
+When a state transition is detected, save a sanitized diagnostic snapshot
+containing, when available:
+
+- HTML;
+- screenshot;
+- extracted visible text;
+- sanitized network summary;
+- previous state;
+- current state;
+- transition timestamp;
+- observation method.
+
+Snapshots must not contain:
+
+- cookies;
+- authorization headers;
+- session tokens;
+- personal identifiers;
+- reusable browser-profile data.
+
+A repeated observation with the same state must not create another full
+diagnostic snapshot unless explicitly required for error investigation.
+
+## Notification policy
+
+Send an immediate notification when a completed observation results in:
+
+- SLOTS_AVAILABLE;
+- CAPTCHA_REQUIRED;
+- UNKNOWN.
+
+A notification should include:
+
+- timestamp;
+- provider and location;
+- current state;
+- previous state when available;
+- observation method;
+- short classifier reason;
+- local diagnostic reference when available.
+
+Notifications must not include raw cookies, tokens, authorization data, or
+personal data.
+
+Notification behavior for BLOCKED and ERROR is defined by the
+implementation plan and may use aggregation or thresholds to avoid excessive
+alerts.
+
+## Acceptance criteria
+
+### AC-1
+
+When an observation cycle completes successfully,
+the system shall schedule the next regular observation after a randomized
+delay between 7 and 12 minutes inclusive.
+
+### AC-2
+
+When the queue state can be classified from the HTTP response,
+the system shall classify and record the state without launching a browser.
+
+### AC-3
+
+When HTTP observation fails, is blocked, is challenged, or provides
+insufficient classification evidence,
+the system shall use Playwright as a passive fallback.
+
+### AC-4
+
+While performing either HTTP or browser observation,
+the system shall not submit booking forms, reserve slots, solve CAPTCHA,
+create accounts, perform payments, or enter personal data.
+
+### AC-5
+
+When an observation cycle completes,
+the system shall record the timestamp, observation method, response time,
+normalized state, and available HTML hash.
+
+### AC-6
+
+When observation metadata or diagnostic artifacts are persisted,
+the system shall exclude cookies, authorization credentials, session tokens,
+browser-profile data, and personal data.
+
+### AC-7
+
+When the current normalized state differs from the previous recorded
+normalized state,
+the system shall record a transition containing the previous state,
+current state, and timestamp.
+
+### AC-8
+
+When no previous observation exists,
+the system shall store the current state as the initial state without
+classifying it as a transition.
+
+### AC-9
+
+When a state transition is detected,
+the system shall save the available sanitized HTML, screenshot, extracted
+text, and network summary.
+
+### AC-10
+
+While consecutive completed observations produce the same normalized state,
+the system shall not create repeated full diagnostic snapshots for that state.
+
+### AC-11
+
+When the normalized state becomes SLOTS_AVAILABLE,
+the system shall send an immediate notification.
+
+### AC-12
+
+When the normalized state becomes CAPTCHA_REQUIRED,
+the system shall send an immediate notification without attempting to solve
+or bypass the CAPTCHA.
+
+### AC-13
+
+When a completed observation is classified as UNKNOWN,
+the system shall save diagnostic evidence and send an immediate notification.
+
+### AC-14
+
+When an observation cannot be completed because of a local or network
+failure,
+the system shall record ERROR together with a non-sensitive error category.
+
+### AC-15
+
+When the provider rejects, rate-limits, or challenges an observation,
+the system shall classify the result as BLOCKED rather than
+NO_SLOTS.
+
+## Success criteria
+
+The observer:
+
+- reliably classifies every completed observation into one normalized state;
+- records every detected transition between consecutive observations;
+- distinguishes absence of slots from blocked, unknown, and failed observations;
+- minimizes browser use and unnecessary diagnostic storage;
+- does not affect the booking process;
+- does not retain sensitive or personal data.
+
+## Open questions
+
+The implementation plan must resolve:
+
+- confirmed markers for each state;
+- hash normalization rules;
+- retry and backoff behavior;
+- notification transport;
+- notification deduplication;
+- snapshot retention period;
+- sanitization rules for the network summary;
+- whether transitions involving ERROR count as business-state transitions.
