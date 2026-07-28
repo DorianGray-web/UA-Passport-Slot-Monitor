@@ -21,7 +21,7 @@ You can help by:
 
 Please check the existing documentation:
 
-- [Project Concept](PROJECT_CONCEPT.md)
+- [Project Concept](docs/PROJECT_CONCEPT.md)
 - [Roadmap](ROADMAP.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Privacy](PRIVACY.md)
