@@ -14,3 +14,18 @@ __pycache__/
 *.py[cod]
 
 bootstrap_ai_workflow.ps1
+
+# Environment files and local secrets
+.env
+.env.*
+!.env.example
+
+# Local configuration
+*.local.env
+config.local.*
+secrets/
+credentials/
+
+# Common credential files
+*.pem
+*.key

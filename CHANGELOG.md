@@ -79,3 +79,17 @@ This changelog tracks implementation milestones and significant documentation, a
 ### Notes
 
 The project remained in the research and validation stage. No production implementation existed at this release.
+
+## [0.1.1] - 2026-07-28
+
+### Research
+
+- Completed a continuous 24-hour Kortrijk queue observation.
+- Confirmed that direct HTTP observation is intermittently available but
+  frequently challenged.
+- Confirmed the need for a passive Playwright fallback for reliable rendered
+  state classification.
+- Documented browser-observation boundaries: no fingerprint spoofing, proxy or
+  IP rotation, automated CAPTCHA solving, booking, or form submission.
+- Verified temporary `BLOCKED` detection, progressive backoff, and automatic
+  recovery to `NO_SLOTS`.

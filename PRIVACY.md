@@ -75,19 +75,39 @@ Where technically possible:
 - location information should not be retained after the requested function is completed;
 - location data should not be used for advertising, behavioural profiling, or unrelated analytics.
 
-## 5. Browser sessions and CAPTCHA
+## 5. Browser-based observation, sessions, and CAPTCHA
 
-The project may support persistent browser sessions to reduce repeated setup steps. Such sessions must remain under the user's control.
+Some providers do not expose reliable queue-state information to direct HTTP
+requests. In such cases, the project may use a local browser session to render
+and passively read the same public page that a user can open manually.
 
-UA Passport Slot Monitor does not:
+Browser-based observation does not by itself mean that a protection mechanism
+is being bypassed.
+
+The public monitor may use a persistent local browser profile when this is
+required for stable page rendering. Such profiles remain under the user's
+control and may contain cookies, local storage, or other session artifacts.
+They must not be committed to the public repository, uploaded with diagnostic
+reports, or included in release archives.
+
+The project does not:
 
 - automatically solve CAPTCHA;
-- bypass CAPTCHA or Cloudflare;
-- confirm appointments automatically;
-- submit final registration without the user;
+- programmatically complete anti-bot challenges;
+- modify or spoof the browser fingerprint;
+- rotate proxies or IP addresses;
+- create multiple browser identities to avoid provider restrictions;
+- submit booking forms automatically;
+- collect credentials entered on official websites;
 - collect information entered during final registration.
 
-The user must personally review availability, complete CAPTCHA, select an appointment, and confirm the booking on the official website.
+If a provider presents a CAPTCHA or browser challenge that prevents passive
+state determination, the monitor must stop classification for that cycle,
+report the corresponding state, and wait or request user action.
+
+The user must personally review availability, complete any required
+verification, select an appointment, and confirm the booking on the official
+website.
 
 ## 6. Purpose limitation and data minimisation
 
@@ -145,6 +165,14 @@ These may include encryption in transit, encryption at rest where appropriate, r
 Sensitive values, API keys, tokens, and user information must not be committed to the public repository.
 
 Application logs must not intentionally contain passport information, passwords, authentication tokens, CAPTCHA answers, complete notification credentials, or personal information entered on official websites.
+
+Diagnostic artifacts may include sanitized HTML, screenshots, response
+metadata, content hashes, or network summaries collected during controlled
+research.
+
+Such artifacts must remain local unless they have been reviewed and sanitized.
+Raw browser profiles, cookies, session tokens, authorization headers, complete
+request headers, and personal data must not be committed or shared.
 
 Security issues should be reported according to [SECURITY.md](SECURITY.md).
 
@@ -220,4 +248,4 @@ At the time of this draft, UA Passport Slot Monitor is in the design and validat
 
 This document defines the intended privacy boundaries of the project. It does not claim that every described feature has already been implemented.
 
-**Last updated:** 2026-07-19
+**Last updated:** 2026-07-28

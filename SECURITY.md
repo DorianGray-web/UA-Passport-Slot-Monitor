@@ -137,4 +137,57 @@ The project appreciates responsible security research.
 
 Security researchers acting in good faith, respecting applicable laws and the project's principles, are welcome to report vulnerabilities through the responsible disclosure process described above.
 
-**Last updated:** 2026-07-20
+## 10. Browser automation security boundary
+
+The project may use browser automation only for passive observation of a public
+provider page when direct HTTP observation is unavailable or insufficient.
+
+Allowed:
+
+- opening the public queue page;
+- waiting for normal rendering;
+- reading visible queue-state markers;
+- recording sanitized state metadata;
+- maintaining one local browser profile;
+- applying randomized observation intervals;
+- applying bounded backoff after failures or challenges.
+
+Not allowed:
+
+- fingerprint spoofing;
+- stealth plugins intended to conceal automation;
+- proxy or IP rotation;
+- distributed or parallel identities;
+- CAPTCHA solving services;
+- automated anti-bot challenge completion;
+- replaying or sharing authentication tokens;
+- form submission;
+- booking or slot reservation;
+- collection of personal booking data.
+
+A provider-side challenge must be treated as an observable access state. The
+monitor should report `BLOCKED` or `CAPTCHA_REQUIRED`, reduce request frequency,
+and wait. It must not respond by escalating evasion techniques.
+
+## 11. Local research and diagnostic tooling
+
+Security research may use richer local diagnostic tooling to understand page
+rendering, state transitions, network behaviour, and provider integration.
+
+Such tools are outside the public runtime architecture unless explicitly
+reviewed and adopted.
+
+Diagnostic tooling must:
+
+- run locally;
+- use controlled observation scope;
+- avoid booking and form submission;
+- avoid fingerprint or IP manipulation;
+- keep raw captures outside the repository;
+- sanitize any evidence before publication;
+- never expose cookies, tokens, identifiers, or personal data.
+
+The public monitor must not depend on an external diagnostic tool in order to
+continue operating.
+
+**Last updated:** 2026-07-28

@@ -131,3 +131,109 @@ The project monitors and reports availability changes only. Final appointment se
 - Passport numbers and document details are outside the monitoring scope.
 - Notifications must direct users to the official provider flow.
 - The architecture remains simpler and more privacy-preserving.
+
+## ADR-0005: Passive browser fallback for protected provider pages
+
+**Status:** Accepted
+
+**Date:** 2026-07-28
+
+### Context
+
+The Kortrijk queue page is publicly accessible through a normal browser.
+
+During provider research and a continuous 24-hour observation run, direct HTTP
+requests were frequently rejected or challenged by the provider-side
+protection layer. Direct HTTP access occasionally succeeded, but was not
+reliable enough to serve as the only observation method.
+
+The project requires a reliable way to determine only the publicly visible
+queue state without entering or automating the booking process.
+
+### Decision
+
+Provider adapters should prefer direct HTTP observation when it returns enough
+evidence for reliable classification.
+
+A provider may use a passive Playwright fallback when:
+
+- direct HTTP access fails;
+- the response is rejected or challenged;
+- the response does not contain enough evidence;
+- the required public state is available only after browser rendering.
+
+The browser fallback must preserve the behaviour of one ordinary local browser
+session.
+
+It must not use:
+
+- proxy or IP rotation;
+- distributed request sources;
+- browser fingerprint spoofing;
+- stealth plugins intended to conceal automation;
+- automated CAPTCHA solving;
+- challenge bypass;
+- account or identity automation;
+- automatic booking or form submission.
+
+If the browser session is challenged, the observer must report `BLOCKED`,
+apply bounded backoff, and wait for a later observation.
+
+### Consequences
+
+Positive:
+
+- the provider can be observed reliably when direct HTTP access is
+  intermittently blocked;
+- HTTP remains available as the lowest-overhead path;
+- the monitor does not require identity-disguising or challenge-bypass
+  mechanisms;
+- the approach remains compatible with manual completion of CAPTCHA and booking.
+
+Negative:
+
+- Playwright consumes more local resources than direct HTTP;
+- persistent browser profiles may contain sensitive session artifacts;
+- browser behaviour and provider-side protection rules may change;
+- `BLOCKED` must be treated as an expected observation condition, not as proof
+  of queue availability.
+
+### Security and privacy constraints
+
+Browser profiles, cookies, tokens, local storage, screenshots, network captures,
+and diagnostic artifacts must not be committed to Git or included in public
+release archives.
+
+Any external diagnostic tool must remain optional, local, and operationally
+separate from the public monitor.
+
+## ADR-0006: Separate runtime monitoring from local diagnostic tooling
+
+**Status:** Accepted
+
+**Date:** 2026-07-28
+
+### Context
+
+The public monitor requires minimal state classification, while controlled
+research may require richer HTML, screenshot, DOM, and network diagnostics.
+
+### Decision
+
+The public monitor and local diagnostic tooling remain operationally separate.
+
+```text
+Public monitor
+        |
+        +-- runtime observation
+        |
+        +-- optional local diagnostics
+```
+
+The monitor must continue operating without the diagnostic tool. Diagnostic
+capture must remain optional, local, sanitized, and outside version control.
+
+### Consequences
+
+- normal monitoring retains less data;
+- diagnostic collection can evolve independently;

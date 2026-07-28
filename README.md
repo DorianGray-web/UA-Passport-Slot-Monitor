@@ -19,7 +19,11 @@ Feedback from users, developers, security specialists, UX designers, and open-so
 ## Core principles
 
 - no automatic appointment booking;
-- no CAPTCHA or Cloudflare bypass;
+- does not automatically solve CAPTCHA or programmatically bypass anti-bot
+  challenges;
+- does not rotate proxies, IP addresses, or browser identities;
+- may use a passive local browser session when direct HTTP observation is
+  blocked or insufficient;
 - no passport-number collection;
 - privacy-first location handling;
 - responsible request rates;

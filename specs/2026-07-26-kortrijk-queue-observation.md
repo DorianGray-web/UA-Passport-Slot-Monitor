@@ -45,7 +45,8 @@ The observer must not perform:
 - payment;
 - form submission;
 - navigation beyond what is required to determine the observable queue state;
-- storage of cookies, authorization data, or personal data.
+- exporting, publishing, or committing cookies, authorization data, browser
+  profiles, or personal data;
 
 ## Queue states
 
@@ -328,3 +329,20 @@ The implementation plan must resolve:
 - snapshot retention period;
 - sanitization rules for the network summary;
 - whether transitions involving ERROR count as business-state transitions.
+
+### Browser identity and network constraints
+
+Browser fallback must use one ordinary local browser session.
+
+The observer must not:
+
+- spoof or randomize the browser fingerprint;
+- patch browser APIs to disguise automation;
+- rotate proxies or IP addresses;
+- distribute requests across multiple hosts;
+- run concurrent browser identities against the same provider;
+- automatically solve or continue through an anti-bot challenge.
+
+A normal provider-issued session cookie may be retained inside the local
+browser profile when required for ordinary browser operation. The profile and
+its contents are runtime data and must remain outside version control.
