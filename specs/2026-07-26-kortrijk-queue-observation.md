@@ -192,6 +192,11 @@ Snapshots must not contain:
 A repeated observation with the same state must not create another full
 diagnostic snapshot unless explicitly required for error investigation.
 
+The implementation may distinguish between:
+
+- `minimal` capture for normal observations;
+- `diagnostic` capture for state transitions and controlled investigations.
+
 ## Notification policy
 
 Send an immediate notification when a completed observation results in:

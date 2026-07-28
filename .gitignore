@@ -29,3 +29,9 @@ credentials/
 # Common credential files
 *.pem
 *.key
+
+# Kortrijk local browser runtime artifacts
+providers/dp-document/.browser-data/
+providers/dp-document/data/kortrijk-page.png
+providers/dp-document/data/kortrijk-page.html
+providers/dp-document/data/kortrijk-network.json
