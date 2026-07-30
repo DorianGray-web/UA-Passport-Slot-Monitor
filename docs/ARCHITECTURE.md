@@ -2,9 +2,13 @@
 
 ## Status
 
-This document describes the intended architecture. The production system and first provider adapter have not yet been implemented.
+This document separates the implemented local prototype from the intended
+service architecture. The Observation/outbox/diagnostic infrastructure,
+landing classifier, provider boundaries, three monitor entry points, and
+process runner are implemented. Subscriptions, notifications, and complete
+live-validated `days`/`times` discovery are not.
 
-## High-level flow
+## Intended service flow (planned)
 
 ```mermaid
 flowchart TD
@@ -46,6 +50,12 @@ Service -> days -> times
 
 MonitorProvider has no fingerprint, identity, OTP, BankID, Diia, reservation,
 or browser dependency.
+
+The HTTP adapter exposes landing, `days`, and `times` operations. The current
+city monitor loops use the landing classifier but do not yet execute the
+adapter's complete discovery sequence. Consequently, the existence of these
+methods is not evidence that day/time response normalization or live
+multi-centre discovery is complete.
 
 The provider protocol is an evidence-first state machine, not an unconditional
 request sequence:
@@ -101,7 +111,9 @@ Only a valid, recognized provider response may produce `NO_SLOTS`.
 
 ### Change detection and notifications
 
-Compares the current normalized state with the previous valid state. Notifications should be sent for meaningful changes while avoiding repeated alerts for the same result.
+Planned service behavior. The prototype records state transitions and
+diagnostic decisions, but no Telegram, email, or end-user notification sender
+is implemented.
 
 ## Safety boundaries
 

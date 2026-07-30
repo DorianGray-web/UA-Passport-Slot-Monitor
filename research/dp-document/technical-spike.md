@@ -1,5 +1,10 @@
 # Technical Feasibility Spike
 
+> **Status:** Historical research checklist. Confirmed frontend findings and
+> current implementation gaps are maintained in
+> [Queue Workflow Research](queue-workflow.md) and
+> [Provider Support](../../docs/PROVIDERS.md).
+
 ## Scope
 
 - One provider

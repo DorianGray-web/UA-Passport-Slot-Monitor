@@ -16,8 +16,10 @@
 - [x] Confirm that the general appointment workflow can be observed
 - [x] Define capture validation as a required processing step
 - [ ] Confirm live availability data for days and time slots
-- [ ] Determine stable session requirements
+- [ ] Determine stable HTTP session requirements for each centre
 - [x] Define the initial normalized monitoring metadata model
+- [x] Record user-provided Bratislava and Milan evidence supporting separate
+  date and time discovery stages
 - [x] Establish responsible polling and bounded backoff rules
 - [x] Add offline-validated Berlin and Bratislava monitor entrypoints
 - [x] Add concurrent multi-provider process supervision
@@ -25,20 +27,21 @@
 - [x] Add transactional diagnostic decisions and outbox delivery
 - [x] Add backend-agnostic queue, dispatcher, and diagnostic worker contracts
 - [x] Add SQLite priority, cooldown, deduplication, and lease recovery
-- [ ] Verify Berlin and Bratislava classification and fallback behavior live
+- [ ] Independently verify Berlin and Bratislava monitor classification live
 - [ ] Analyze time-of-day and cross-centre HTML-change correlations
 - [ ] Measure delay from HTML changes to confirmed slot availability
 - [ ] Document the manual challenge-intervention flow
 
 ## Phase 1 — MVP
 
-- [ ] Implement the core architecture
+- [x] Implement the local Observation, outbox, queue, worker, and runner foundation
 - [x] Exclude browser sessions and fingerprinting from MonitorProvider
 - [x] Implement evidence-first landing classification and transition guards
 - [x] Add typed discovery stages, evidence, and request traces to Observation
 - [ ] Validate HTTP session and CSRF handling for each DP Document centre
 - [ ] Add explicit days and times response classifiers from live-safe fixtures
-- [ ] Implement the provider abstraction
+- [x] Implement separate `MonitorProvider` and reserved `BookingProvider` boundaries
+- [ ] Integrate the HTTP `days` and `times` methods into the monitor runtime
 - [x] Implement the initial Kortrijk observation adapter
 - [x] Implement standardized local observation metadata
 - [x] Implement separate provider and orchestrator logs
@@ -46,7 +49,7 @@
 - [ ] Deduplicate identical monitoring requests
 - [ ] Detect availability changes without false `NO_SLOTS` results
 - [ ] Implement Telegram and email notifications
-- [ ] Implement the manual CAPTCHA workflow
+- [ ] Implement an operator-facing blocked/challenge workflow
 - [ ] Test notifications using real availability changes
 
 ## Phase 2 — Public Beta

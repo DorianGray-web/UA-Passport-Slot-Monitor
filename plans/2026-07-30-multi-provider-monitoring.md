@@ -14,8 +14,8 @@ small process supervisor for combined operation.
 ## Implemented scope
 
 - independent Kortrijk, Berlin, and Bratislava monitor entrypoints;
-- provider-specific URL, identifier, environment-variable namespace, browser
-  profile, state file, captures, and log file;
+- provider-specific URL, identifier, environment-variable namespace, state
+  file, metadata stream, and log file;
 - HTTP-only normal observation with separate browser diagnostics;
 - randomized 7–12 minute polling and bounded failure backoff;
 - optional external diagnostic requests without importing investigator
@@ -41,11 +41,16 @@ logs/
     berlin.log
     bratislava.log
     orchestrator.log
+    diagnostic-worker.log
 
 metadata/
     kortrijk.jsonl
     berlin.jsonl
     bratislava.jsonl
+
+data/
+    observations.sqlite3
+    diagnostic-queue.sqlite3
 ```
 
 Each metadata record contains:
@@ -54,7 +59,7 @@ Each metadata record contains:
 - provider identifier;
 - normalized state;
 - HTTP transport for normal observations;
-- whether an optional diagnostic investigation was requested;
+- diagnostic decision and correlation data are authoritative in SQLite;
 - whether the normalized HTML hash changed;
 - response time in milliseconds;
 - HTTP status, when available.
@@ -66,7 +71,8 @@ Each metadata record contains:
 - different HTML produces `html_changed=true` after an initial observation;
 - Berlin and Bratislava expose distinct provider identifiers and URLs;
 - the existing Kortrijk diagnostic regression suite remains passing;
-- all 16 repository tests pass;
+- the repository's offline `unittest` suite passed at the time of the latest
+  verification; the current count is intentionally not frozen in this plan;
 - `git diff --check` passes.
 
 No live request to Berlin or Bratislava was part of this verification.
@@ -76,7 +82,8 @@ No live request to Berlin or Bratislava was part of this verification.
 - confirm provider-specific no-slots markers;
 - observe HTTP 200, blocked, throttled, and challenge responses;
 - verify HTTP days/times discovery and separate diagnostic recovery;
-- confirm persistent-profile behavior without bypassing access controls;
+- confirm centre-specific HTTP session and CSRF behavior without bypassing
+  access controls;
 - confirm that metadata remains append-only during long-running operation;
 - exercise orchestrator restart and Ctrl+C shutdown during a monitored session.
 

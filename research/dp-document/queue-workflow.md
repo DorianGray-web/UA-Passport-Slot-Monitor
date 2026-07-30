@@ -4,7 +4,7 @@
 
 **Status:** Provider feasibility research
 
-**Last updated:** 2026-07-21
+**Last updated:** 2026-07-30
 
 ## Purpose
 
@@ -20,6 +20,19 @@ This study evaluates whether appointment availability can be monitored responsib
 - The publicly delivered client application exposes the general appointment workflow.
 - The observed workflow contains separate stages for service selection, available days, available times, and manual registration.
 - Access restrictions, CAPTCHA pages, incomplete captures, and application errors require states distinct from `NO_SLOTS`.
+
+## User-provided live observation
+
+On 2026-07-30, the project owner passively observed separate date and time
+request steps in Bratislava and Milan, with time discovery following selection
+of a date. This supports the high-level `dates -> times` abstraction but does
+not confirm identical endpoints, fields, CSRF behavior, parameters, schemas,
+or availability semantics.
+
+The provenance, session window, and evidence limits are recorded in
+[Bratislava and Milan Live Observation](2026-07-30-bratislava-milan-live-observation.md).
+This evidence is distinct from repository tests and independently repeated
+live validation.
 
 ## Generalized workflow
 
@@ -38,11 +51,16 @@ flowchart TD
 - defining a normalized provider response;
 - determining responsible polling, backoff, and pause behavior.
 
-## Not yet implemented
+## Implementation status
 
-- a production provider adapter;
-- persistent session management;
-- automated availability-change detection;
+- an HTTP provider boundary with landing, `days`, and `times` methods exists;
+- the three local monitor loops classify landing responses and record state
+  changes, but do not yet execute or normalize the complete `days`/`times`
+  sequence;
+- Observation, diagnostic decision, outbox, queue, worker, and process
+  supervision infrastructure exists;
+- production subscriptions and end-user notifications are not implemented;
+- centre-specific session and CSRF behavior still requires live validation;
 - user challenge-intervention flow;
 - notification delivery based on real provider changes.
 

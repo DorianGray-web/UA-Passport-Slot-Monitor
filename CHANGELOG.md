@@ -16,8 +16,8 @@ This changelog tracks implementation milestones and significant documentation, a
 - Began analysis of the publicly delivered client application and its appointment workflow stages.
 - Documented the first provider research scope and the generalized DP Document queue workflow.
 - Added independent queue monitors for Berlin, Germany, and Bratislava,
-  Slovakia, using the same HTTP-first and passive Playwright-fallback model as
-  the Kortrijk research monitor.
+  Slovakia, using the same HTTP-only landing-page classification model as the
+  Kortrijk prototype.
 - Added `monitor_runner.py` to start, supervise, restart, and stop the
   Kortrijk, Berlin, and Bratislava monitors as separate processes.
 - Added separate provider logs and a system-only orchestrator log.
@@ -63,26 +63,24 @@ This changelog tracks implementation milestones and significant documentation, a
 - Confirmed that the public client application exposes the general workflow for service selection, available days, available times, and manual registration.
 - Identified capture validation as a required boundary before availability data can be normalized.
 - Established an offline-validated multi-centre observation baseline for later
-  timing and correlation analysis. Live Berlin and Bratislava behavior remains
-  unverified.
+  timing and correlation analysis. Automated live behavior remains unverified.
 - Confirmed in DP Document frontend 7.34.2 that pre-authentication queue
   discovery uses `form=days` and `form=times` without browser fingerprinting.
 - Confirmed that embedded ThumbmarkJS module 708 is used only by booking
   submission methods and makes no observed API call during queue discovery.
+- Recorded user-provided passive live observations from Bratislava and Milan
+  on 2026-07-30. They support separate date and time discovery stages but do
+  not establish identical deployment contracts or automated monitor
+  validation.
 
-### Planned
+### Documentation
 
-- Confirm live availability responses.
-- Define the normalized provider response model.
-- Complete live verification of the initial Kortrijk observation adapter.
-- Implement duplicate-subscription handling on top of the existing polling and
-  backoff behavior.
-- Implement manual challenge-intervention and notification flows.
-- Run authorized live verification for the Berlin and Bratislava monitors,
-  including HTTP days/times classification, blocked-state recovery, and
-  provider-specific page markers.
-- Add analysis tooling for time-of-day HTML changes, simultaneous centre
-  updates, and delays between HTML changes and confirmed slot availability.
+- Reconciled architecture, provider, roadmap, concept, and user-flow documents
+  with the implemented landing-only monitor runtime and the separate HTTP
+  `days`/`times` adapter boundary.
+- Marked subscriptions, notifications, booking, fingerprinting, complete
+  discovery normalization, and centre-specific live validation according to
+  their actual status.
 
 ## [0.1.0] - 2026-07-20
 

@@ -2,7 +2,9 @@
 
 A privacy-focused open-source service for monitoring appointment availability at Ukrainian document service centers abroad.
 
-> 🚧 **Current status:** Research, user validation, and provider integration prototyping. No production implementation is available yet.
+> 🚧 **Current status:** Research and provider-integration prototyping. Local
+> monitoring and diagnostic infrastructure exists, but it is not a
+> production-ready notification service.
 
 ## Why this project exists
 
@@ -44,17 +46,20 @@ Belgium. Analysis of frontend 7.34.2 has confirmed that:
 - embedded ThumbmarkJS fingerprinting belongs only to booking submission;
 - challenge pages, CAPTCHA, access restrictions, and incomplete captures must be detected separately from valid availability responses.
 
-The HTTP MonitorProvider boundary is implemented. Live response normalization
-for every configured centre remains under validation.
+The HTTP `MonitorProvider` boundary and its `days`/`times` request methods are
+implemented. The current Kortrijk, Berlin, and Bratislava monitor processes
+classify the landing response only; they do not yet run or normalize the full
+`days`/`times` discovery flow. That flow and every centre still require
+authorized live validation.
 
-Initial development will focus on:
+Still planned:
 
 - one document center;
 - one document service;
-- HTTP session and CSRF management;
-- reliable availability-state detection;
+- full runtime integration of HTTP session, CSRF, `days`, and `times`;
+- live-validated availability-state detection;
 - safe polling and backoff rules;
-- manual CAPTCHA handling;
+- an operator-facing blocked/challenge workflow;
 - Telegram and email notifications.
 
 ## Project documentation
@@ -76,10 +81,20 @@ Localized user documentation:
 
 ## Running the local provider monitors
 
-Start Kortrijk, Berlin, and Bratislava concurrently:
+Create an environment and install dependencies.
 
 ```powershell
-.\.venv\Scripts\python.exe .\monitor_runner.py
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m monitor_runner
+```
+
+On Linux or macOS:
+
+```bash
+python3 -m venv .venv
+./.venv/bin/python -m pip install -r requirements.txt
+./.venv/bin/python -m monitor_runner
 ```
 
 Each provider remains a separate process. A separately supervised diagnostic
@@ -95,6 +110,9 @@ decision and, when accepted, an outbox command. Per-provider
 `data/diagnostic-queue.sqlite3` stores queued jobs, leases, and safe results.
 Runtime databases, logs, metadata, browser profiles, page captures, and state
 files are ignored by Git.
+
+These entry points are local research/prototyping tools. They do not send
+Telegram or email notifications and they do not book appointments.
 
 ## Contributing
 

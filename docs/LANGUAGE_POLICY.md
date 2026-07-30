@@ -3,7 +3,7 @@
 > **Status: Draft**
 >
 > This document describes the current language policy of UA Passport Slot Monitor.
-> The project is still in the design and validation stage, so this policy may be
+> The project is in research and provider-integration prototyping, so this policy may be
 > refined as the contributor base, translation tooling, and user-facing surfaces
 > (web app, notifications, documentation) are implemented.
 
@@ -98,4 +98,4 @@ This policy may be updated as the contributor base grows or as new
 user-facing surfaces are introduced. Material changes should be documented in
 the repository history and, where relevant, in `CHANGELOG.md`.
 
-**Last updated:** 2026-07-20
+**Last updated:** 2026-07-30

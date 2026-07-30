@@ -1,5 +1,13 @@
 # Verification Report: Kortrijk 24-Hour Queue Observation
 
+> **Historical architecture note:** This report accurately records the
+> page-level implementation tested on 2026-07-26/27. Its Playwright fallback
+> conclusion was later superseded for normal monitoring by frontend 7.34.2
+> call-site evidence and [ADR-0007/ADR-0008](../../docs/DECISIONS.md).
+> Current monitors are HTTP-only; browser automation is confined to separate
+> diagnostics and research. The original observations below are preserved as
+> historical evidence.
+
 **Observation period:** 2026-07-26 23:55:15 — 2026-07-27 23:56:09
 
 **Duration:** approximately 24 hours and 54 seconds

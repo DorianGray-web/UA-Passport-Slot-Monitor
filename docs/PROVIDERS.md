@@ -17,7 +17,7 @@ Before an adapter is added, the project should confirm that:
 
 ## DP Document
 
-**Research status:** Active feasibility study
+**Research status:** Active feasibility study and local integration prototype
 
 **First research location:** Kortrijk, Belgium
 
@@ -64,6 +64,24 @@ The following items are not yet confirmed or implemented:
 - confirmed CSRF field names and response schemas for every deployment;
 - safe polling limits;
 - live validation of the HTTP days/times adapter for each configured centre.
+
+## Centre implementation status
+
+| Centre | Implemented locally | Live evidence |
+|---|---|---|
+| Kortrijk | Landing-page monitor, Observation persistence, diagnostic outbox integration; separate HTTP `days`/`times` adapter methods exist but are not wired into the monitor loop | A historical 24-hour page-level study exists; the current HTTP-only full discovery flow still needs live validation |
+| Berlin | Independent landing-page entry point using the shared city monitor | Offline tests only; centre-specific live classification is pending |
+| Bratislava | Independent landing-page entry point using the shared city monitor | The owner observed separate date/time steps in a passive browser session on 2026-07-30; monitor classification and exact HTTP contract remain unvalidated |
+| Milan | No repository monitor entry point | The owner observed comparable separate date/time steps on 2026-07-30; no implementation or deployment-specific HTTP contract is established |
+
+The frontend findings describe the observed DP Document application. They do
+not prove identical deployment details, markers, CSRF field names, or response
+schemas at every centre.
+
+The Bratislava/Milan evidence is
+[user-provided live observation](../research/dp-document/2026-07-30-bratislava-milan-live-observation.md),
+not repository-derived evidence or independently repeatable monitor
+validation.
 
 Until a deployment-specific CSRF input name is confirmed it remains explicit
 configuration through `<PROVIDER>_CSRF_FIELD`; the monitor does not guess it.

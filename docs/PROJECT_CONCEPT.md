@@ -1,5 +1,10 @@
 # UA Passport Slot Monitor — Project Concept
 
+> **Document type:** Product vision. The flows in this document are proposed,
+> not implemented. For current technical status see
+> [Architecture](ARCHITECTURE.md), [Providers](PROVIDERS.md), and the
+> [Roadmap](../ROADMAP.md).
+
 ## 1. Overview
 
 UA Passport Slot Monitor is a web-based service that monitors
@@ -68,7 +73,7 @@ passport expiration date.
 This demonstrated that the same problem could affect many Ukrainians
 living abroad.
 
-## 4. Proposed solution
+## 4. Proposed solution (not implemented)
 
 The service allows a user to:
 
@@ -111,7 +116,7 @@ The monitoring engine distinguishes between:
 An unknown or incomplete response must never be interpreted as
 confirmation that no appointments are available.
 
-## 7. CAPTCHA handling
+## 7. Proposed challenge handling
 
 Some registration systems periodically display graphical CAPTCHA
 challenges.
@@ -122,9 +127,10 @@ When a CAPTCHA is detected:
 
 1. Monitoring is paused.
 2. The user receives a notification.
-3. The user opens the browser session.
-4. The CAPTCHA is completed manually.
-5. Monitoring resumes using the existing session.
+3. The user follows an approved manual intervention path on the official site.
+4. Monitoring resumes only after the provider can again be observed safely.
+
+The current HTTP-only monitor does not open or retain a browser session.
 
 ## 8. Notifications
 
@@ -179,13 +185,13 @@ The project:
 
 ## 11. Initial MVP
 
-The first version will support:
+The product MVP is intended to support:
 
 - one document center;
 - one document service;
 - availability state detection;
-- persistent browser session;
-- manual CAPTCHA handling;
+- HTTP-first provider discovery;
+- an operator-facing blocked/challenge workflow;
 - Telegram notifications;
 - local event history.
 

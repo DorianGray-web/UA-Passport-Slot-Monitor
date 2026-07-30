@@ -2,7 +2,9 @@
 
 ## Status
 
-Approved
+Approved; partially implemented. This specification remains the requirement
+baseline, not a statement that every acceptance criterion is complete. See the
+implementation plan and verification reports for current evidence.
 
 ## Goal
 
@@ -345,6 +347,6 @@ The observer must not:
 - run concurrent browser identities against the same provider;
 - automatically solve or continue through an anti-bot challenge.
 
-A normal provider-issued session cookie may be retained inside the local
-browser profile when required for ordinary browser operation. The profile and
-its contents are runtime data and must remain outside version control.
+Separate diagnostic or research tooling may manage its own browser profile
+under its own privacy controls. MonitorProvider must not create, retain, or
+depend on that profile.

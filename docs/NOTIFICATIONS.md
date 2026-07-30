@@ -8,6 +8,10 @@ This document describes the notification requirements and candidate delivery cha
 
 No final notification provider has been selected yet. The initial implementation decision will be based on user survey results, technical feasibility, privacy, reliability, and operating cost.
 
+No notification sender is currently implemented. Diagnostic decisions and
+outbox commands belong to the diagnostic subsystem and must not be described
+as user notifications.
+
 ## Core requirements
 
 - fast delivery;

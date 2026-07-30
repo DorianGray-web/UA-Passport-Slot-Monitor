@@ -18,7 +18,7 @@ Implement the first passive Kortrijk queue observer that:
 - records minimal metadata;
 - detects state transitions;
 - stores sanitized diagnostics only when required;
-- sends selected notifications.
+- leaves notification delivery as an open slice.
 
 ## Constraints
 
@@ -286,7 +286,7 @@ Verify:
 Acceptance criterion      Implementation slice     Verification
 AC-1                      Slice 9                  interval boundary tests
 AC-2                      Slice 2                  HTTP-only integration test
-AC-3                      Slice 4                  fallback integration test
+AC-3                      Slice 4                  blocked-state integration test
 AC-4                      Slice 4                  code review and manual verification
 AC-5                      Slices 1, 2, 5           persistence tests
 AC-6                      Slices 5, 7              sanitization tests
