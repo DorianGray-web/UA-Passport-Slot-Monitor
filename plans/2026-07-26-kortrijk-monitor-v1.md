@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft
+Partially implemented; live verification and notification slices remain open.
 
 ## Source specification
 
@@ -13,7 +13,7 @@ Draft
 Implement the first passive Kortrijk queue observer that:
 
 - uses HTTP-first observation;
-- falls back to Playwright when required;
+- requests operationally separate browser diagnostics when required;
 - classifies normalized queue states;
 - records minimal metadata;
 - detects state transitions;
@@ -33,7 +33,7 @@ Implement the first passive Kortrijk queue observer that:
 ## Existing implementation to review
 
 - `providers/dp-document/kortrijk_monitor.py`
-- `providers/dp-document/kortrijk_browser_spike.py`
+- `research/dp-document/tools/kortrijk_browser_spike.py`
 - existing research documents;
 - existing runtime ignore rules;
 - existing notification documentation.
@@ -100,21 +100,11 @@ Covers:
 - `AC-14`
 - `AC-15`
 
-### Slice 4 — Playwright fallback
+### Slice 4 — Separate diagnostics
 
-Implement passive browser fallback only when:
-
-- HTTP request fails;
-- response is blocked;
-- response is challenged;
-- response is insufficient for classification.
-
-The browser flow must not:
-
-- submit forms;
-- enter personal data;
-- solve CAPTCHA;
-- continue into booking.
+Normal monitoring remains HTTP-only. On blocked, challenged, or insufficient
+evidence it records an unresolved state and may enqueue a diagnostic snapshot.
+Playwright belongs only to the separately supervised diagnostic backend.
 
 Covers:
 
@@ -138,7 +128,7 @@ Recommended format for v1:
 
 - JSON Lines or SQLite.
 
-Decision required before implementation.
+JSON Lines was selected for the initial monitoring metadata implementation.
 
 Covers:
 
@@ -228,7 +218,7 @@ Possible files:
 
 ```text
 providers/dp-document/kortrijk_monitor.py
-providers/dp-document/kortrijk_browser_spike.py
+research/dp-document/tools/kortrijk_browser_spike.py
 providers/dp-document/kortrijk_states.py
 providers/dp-document/kortrijk_classifier.py
 providers/dp-document/kortrijk_storage.py
@@ -274,11 +264,11 @@ Create sanitized fixtures for:
 Test locally:
 
 - HTTP success without Playwright;
-- HTTP failure followed by Playwright fallback;
+- HTTP failure followed by an unresolved state and optional diagnostic request;
 - repeated NO_SLOTS;
 - transition NO_SLOTS -> SLOTS_AVAILABLE;
 - transition into UNKNOWN;
-- browser failure producing ERROR.
+- diagnostic failure without interruption of monitoring.
 
 ## Manual verification
 
@@ -317,7 +307,7 @@ AC-15                     Slices 2, 3              blocked-response tests
 - write classifier fixtures and tests;
 - implement HTTP observer;
 - implement transition persistence;
-- add Playwright fallback;
+- add separate diagnostic requests;
 - add diagnostic snapshots;
 - add notifications;
 - add scheduler and backoff;
@@ -327,12 +317,11 @@ AC-15                     Slices 2, 3              blocked-response tests
 
 Before coding, resolve:
 
-- JSONL or SQLite for v1;
 - Telegram or console-first notification;
 - snapshot retention period;
 - exact blocked/error retry thresholds;
 - whether ERROR participates in business-state transitions;
-- whether Playwright should use a persistent or ephemeral context;
+- diagnostic browser profile policy outside MonitorProvider;
 - exact sanitization fields for network summaries.
 
 ## Definition of done
@@ -343,6 +332,6 @@ The implementation is complete when:
 - all automated tests pass;
 - no sensitive runtime artifacts are tracked;
 - HTTP-first behavior is confirmed;
-- Playwright fallback is passive;
+- any browser diagnostics remain operationally separate;
 - notification behavior is demonstrated;
 - a verification report exists under reports/verification/.

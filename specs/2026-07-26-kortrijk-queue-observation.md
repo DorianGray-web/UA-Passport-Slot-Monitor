@@ -29,7 +29,7 @@ This specification covers passive observation of:
 - the state visible during a completed observation;
 - transitions between consecutive observations;
 - HTTP-first observation;
-- browser fallback when HTTP observation is insufficient;
+- separate diagnostics when HTTP observation is insufficient;
 - local metadata recording;
 - notifications for selected states.
 
@@ -110,25 +110,20 @@ defined in the implementation plan.
 Use direct HTTP observation when the response provides enough evidence to
 classify the queue state.
 
-### Browser fallback
+### HTTP queue discovery
 
-Use Playwright only when:
+Normal monitoring uses the confirmed pre-authentication DP Document flow:
 
-- the HTTP request fails;
-- the HTTP response is blocked or challenged;
-- the HTTP response does not contain enough evidence for reliable
-  classification;
-- browser-rendered content is required to determine the state.
+```text
+Service -> form=days -> form=times
+```
 
-Browser fallback must remain passive.
+Days requires `ServiceCenterId`, `ServiceId`, and CSRF. Times additionally
+requires `Date`. Fingerprint generation and Playwright are not dependencies.
 
-It must not:
-
-- submit forms;
-- solve CAPTCHA;
-- enter personal data;
-- reserve a slot;
-- continue into the booking workflow.
+Blocked, challenged, or insufficient HTTP evidence must produce `BLOCKED`,
+`UNKNOWN`, or `ERROR`. It may enqueue separate diagnostics, but the monitor
+must not launch browser automation.
 
 ## Normal observation record
 
@@ -238,12 +233,13 @@ the system shall classify and record the state without launching a browser.
 ### AC-3
 
 When HTTP observation fails, is blocked, is challenged, or provides
-insufficient classification evidence,
-the system shall use Playwright as a passive fallback.
+insufficient classification evidence, the system shall record a safe
+unresolved state and may request operationally separate diagnostics without
+launching Playwright inside the monitor.
 
 ### AC-4
 
-While performing either HTTP or browser observation,
+While performing HTTP observation or separate diagnostics,
 the system shall not submit booking forms, reserve slots, solve CAPTCHA,
 create accounts, perform payments, or enter personal data.
 
@@ -337,7 +333,8 @@ The implementation plan must resolve:
 
 ### Browser identity and network constraints
 
-Browser fallback must use one ordinary local browser session.
+Normal monitoring must not create or use a browser identity. Any browser used
+by separate diagnostics remains outside MonitorProvider.
 
 The observer must not:
 

@@ -21,23 +21,52 @@ Before an adapter is added, the project should confirm that:
 
 **First research location:** Kortrijk, Belgium
 
-The initial study has confirmed that the public client application exposes the general appointment sequence:
+Frontend version 7.34.2 confirms this public, pre-authentication flow:
 
-1. service selection;
-2. available-day lookup;
-3. available-time lookup;
-4. manual registration.
+```text
+Service -> form=days -> form=times
+```
 
-Direct HTTP access may be rejected while the public appointment application remains accessible through a normal browser session. This makes browser-assisted research and reliable capture validation relevant to the adapter design.
+The days request requires `ServiceCenterId`, `ServiceId`, and a CSRF token.
+The times request adds `Date`. Neither requires fingerprint generation,
+authentication, personal data, OTP, BankID, Diia, or reservation submission.
+
+Booking is separate:
+
+```text
+submitForm* -> browser fingerprint -> OTP / BankID / Diia -> reservation
+```
+
+Embedded ThumbmarkJS module 708 belongs to that booking flow and is
+intentionally excluded from MonitorProvider. Normal monitoring is HTTP-only.
+Browser automation is reserved for diagnostics, controlled reverse
+engineering, or future booking research. A blocked request remains `BLOCKED`;
+the monitor does not launch Playwright.
+
+Discovery is evidence-first:
+
+```text
+LANDING
+├── confirmed no-slots HTML -> NO_SLOTS, stop
+├── blocked/error/unknown   -> unresolved state, stop
+└── queue form + CSRF       -> guarded days transition
+                                └── dates -> guarded times transition
+```
+
+The classifier emits typed evidence such as `HTTP_200`,
+`HTML_NO_SLOTS_MARKER`, `QUEUE_FORM_FOUND`, and `CSRF_FOUND`. Absence of a form
+alone is never evidence for `NO_SLOTS`.
 
 The following items are not yet confirmed or implemented:
 
 - stable capture of live availability data;
 - normalized day and time-slot responses;
-- persistent session requirements;
+- confirmed CSRF field names and response schemas for every deployment;
 - safe polling limits;
-- a production Kortrijk adapter;
-- support for other DP Document locations.
+- live validation of the HTTP days/times adapter for each configured centre.
+
+Until a deployment-specific CSRF input name is confirmed it remains explicit
+configuration through `<PROVIDER>_CSRF_FIELD`; the monitor does not guess it.
 
 ## Public documentation boundary
 

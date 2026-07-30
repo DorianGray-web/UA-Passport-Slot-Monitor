@@ -17,16 +17,31 @@
 - [x] Define capture validation as a required processing step
 - [ ] Confirm live availability data for days and time slots
 - [ ] Determine stable session requirements
-- [ ] Define the normalized provider response model
-- [ ] Establish responsible polling and backoff rules
+- [x] Define the initial normalized monitoring metadata model
+- [x] Establish responsible polling and bounded backoff rules
+- [x] Add offline-validated Berlin and Bratislava monitor entrypoints
+- [x] Add concurrent multi-provider process supervision
+- [x] Define Observation as the immutable source-of-truth event
+- [x] Add transactional diagnostic decisions and outbox delivery
+- [x] Add backend-agnostic queue, dispatcher, and diagnostic worker contracts
+- [x] Add SQLite priority, cooldown, deduplication, and lease recovery
+- [ ] Verify Berlin and Bratislava classification and fallback behavior live
+- [ ] Analyze time-of-day and cross-centre HTML-change correlations
+- [ ] Measure delay from HTML changes to confirmed slot availability
 - [ ] Document the manual challenge-intervention flow
 
 ## Phase 1 — MVP
 
 - [ ] Implement the core architecture
-- [ ] Implement browser-session management
+- [x] Exclude browser sessions and fingerprinting from MonitorProvider
+- [x] Implement evidence-first landing classification and transition guards
+- [x] Add typed discovery stages, evidence, and request traces to Observation
+- [ ] Validate HTTP session and CSRF handling for each DP Document centre
+- [ ] Add explicit days and times response classifiers from live-safe fixtures
 - [ ] Implement the provider abstraction
-- [ ] Implement the first Kortrijk provider adapter
+- [x] Implement the initial Kortrijk observation adapter
+- [x] Implement standardized local observation metadata
+- [x] Implement separate provider and orchestrator logs
 - [ ] Implement subscription and state storage
 - [ ] Deduplicate identical monitoring requests
 - [ ] Detect availability changes without false `NO_SLOTS` results

@@ -61,7 +61,7 @@ This decision is expected to remain one of the core principles of the project.
 
 ## ADR-0002 — Browser-assisted Provider Adapters
 
-**Status:** Accepted
+**Status:** Accepted generally; DP Document monitoring is governed by ADR-0007
 
 **Date:** 2026-07-21
 
@@ -134,7 +134,7 @@ The project monitors and reports availability changes only. Final appointment se
 
 ## ADR-0005: Passive browser fallback for protected provider pages
 
-**Status:** Accepted
+**Status:** Superseded by ADR-0007 for DP Document runtime monitoring
 
 **Date:** 2026-07-28
 
@@ -237,3 +237,109 @@ capture must remain optional, local, sanitized, and outside version control.
 
 - normal monitoring retains less data;
 - diagnostic collection can evolve independently;
+
+## ADR-0007: Exclude browser fingerprinting and automation from DP Document monitoring
+
+**Status:** Accepted
+
+**Date:** 2026-07-30
+
+### Context
+
+Reverse-engineering of DP Document frontend version 7.34.2 confirmed two
+independent workflows. Public, pre-authentication queue discovery uses:
+
+```text
+Service -> form=days -> form=times
+```
+
+The requests require `ServiceCenterId`, `ServiceId`, a CSRF token, and `Date`
+for times. They do not require a browser fingerprint.
+
+Fingerprint generation is initialized by the booking frontend and appended
+only by `submitFormClassic`, `submitFormCombo`, `submitFormBankID`, and
+`submitFormDiia`. Module 708 contains an embedded ThumbmarkJS implementation
+that collects browser characteristics and hashes them locally. No ThumbmarkJS
+API request was observed during queue discovery.
+
+### Decision
+
+DP Document monitoring is HTTP-only and follows the public
+`Service -> days -> times` flow.
+
+Fingerprint generation is not a monitoring dependency and must not be
+implemented, invoked, emulated, spoofed, persisted, or transmitted by a
+MonitorProvider.
+
+Playwright is excluded from normal queue discovery. Browser automation may be
+used only by operationally separate diagnostics, controlled reverse
+engineering, or separately approved future booking research.
+
+Monitoring and any future booking implementation use independent boundaries:
+
+```text
+MonitorProvider              BookingProvider
+get_days()                   separately approved scope
+get_times()                  no current implementation
+```
+
+No booking provider or fingerprint implementation is introduced by this
+decision.
+
+### Consequences
+
+- normal monitoring no longer launches Chromium or maintains a browser
+  profile;
+- HTTP requests remain suitable for constrained hosts;
+- CAPTCHA, HTTP protection, or unexpected responses produce `BLOCKED`,
+  `UNKNOWN`, or `ERROR` and may enqueue separate diagnostics;
+- Site Investigator remains outside the provider runtime;
+- future booking research cannot add fingerprint dependencies to
+  MonitorProvider.
+
+## ADR-0008: Evidence-first provider protocol
+
+**Status:** Accepted
+
+**Date:** 2026-07-30
+
+### Context
+
+DP Document can terminate discovery at different protocol stages. When no
+dates are available, landing HTML can contain the confirmed
+`Наразі всі місця зайняті` marker and no AJAX follows. When a queue form is
+available, the frontend proceeds through days and times.
+
+Landing HTML is therefore provider evidence, not merely an application shell.
+
+### Decision
+
+Monitoring uses an evidence-first guarded state machine:
+
+```text
+LANDING
+  | confirmed terminal evidence -> stop
+  | valid form and CSRF          -> SERVICE_VALIDATION
+                                       |
+                                       v
+                                     DAYS
+                                       |
+                                       v
+                                     TIMES
+```
+
+`LandingPageClassifier` is independent from MonitorProvider and returns a
+typed `LandingPageResult` containing state, extracted CSRF, optional queue
+form, and Evidence codes. Every transition requires positive evidence.
+
+Observation persists DiscoveryStage, accumulated Evidence, and a sanitized
+RequestTrace. Request count is derived from trace length.
+
+### Consequences
+
+- confirmed no-slots HTML requires only one GET;
+- AJAX runs only when transition guards allow it;
+- blocked or unfamiliar HTML cannot become `NO_SLOTS`;
+- traces support latency, response-size, retry, and request-load analysis;
+- days/times transitions remain disabled until explicit response classifiers
+  exist.

@@ -139,16 +139,16 @@ Security researchers acting in good faith, respecting applicable laws and the pr
 
 ## 10. Browser automation security boundary
 
-The project may use browser automation only for passive observation of a public
-provider page when direct HTTP observation is unavailable or insufficient.
+Normal DP Document monitoring is HTTP-only. Browser automation may be used only
+by the separate diagnostic and controlled reverse-engineering subsystem.
 
 Allowed:
 
-- opening the public queue page;
+- opening the public queue page during controlled diagnostics;
 - waiting for normal rendering;
 - reading visible queue-state markers;
 - recording sanitized state metadata;
-- maintaining one local browser profile;
+- maintaining one local diagnostic browser profile;
 - applying randomized observation intervals;
 - applying bounded backoff after failures or challenges.
 
@@ -167,7 +167,8 @@ Not allowed:
 
 A provider-side challenge must be treated as an observable access state. The
 monitor should report `BLOCKED` or `CAPTCHA_REQUIRED`, reduce request frequency,
-and wait. It must not respond by escalating evasion techniques.
+and optionally enqueue diagnostics. It must not launch a browser or respond by
+escalating evasion techniques.
 
 ## 11. Local research and diagnostic tooling
 

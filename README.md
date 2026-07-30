@@ -22,8 +22,8 @@ Feedback from users, developers, security specialists, UX designers, and open-so
 - does not automatically solve CAPTCHA or programmatically bypass anti-bot
   challenges;
 - does not rotate proxies, IP addresses, or browser identities;
-- may use a passive local browser session when direct HTTP observation is
-  blocked or insufficient;
+- uses HTTP for normal DP Document queue discovery;
+- reserves browser automation for separate diagnostics and controlled research;
 - no passport-number collection;
 - privacy-first location handling;
 - responsible request rates;
@@ -35,19 +35,23 @@ Feedback from users, developers, security specialists, UX designers, and open-so
 
 The project has completed its initial conceptual and documentation foundation and has moved into provider feasibility research.
 
-The first technical study uses the DP Document service center in Kortrijk, Belgium. Research has confirmed that:
+The first technical study uses the DP Document service center in Kortrijk,
+Belgium. Analysis of frontend 7.34.2 has confirmed that:
 
-- direct HTTP access may be rejected while the public appointment application remains accessible in a normal browser session;
-- the public client application exposes the general appointment flow from service selection to available days, available times, and manual registration;
+- pre-authentication discovery uses HTTP `form=days` and `form=times` requests;
+- those requests require service centre, service, CSRF, and date where
+  applicable, but no browser fingerprint;
+- embedded ThumbmarkJS fingerprinting belongs only to booking submission;
 - challenge pages, CAPTCHA, access restrictions, and incomplete captures must be detected separately from valid availability responses.
 
-Live availability data has not yet been confirmed or normalized, and the first provider adapter has not yet been implemented.
+The HTTP MonitorProvider boundary is implemented. Live response normalization
+for every configured centre remains under validation.
 
 Initial development will focus on:
 
 - one document center;
 - one document service;
-- browser-session management;
+- HTTP session and CSRF management;
 - reliable availability-state detection;
 - safe polling and backoff rules;
 - manual CAPTCHA handling;
@@ -69,6 +73,28 @@ Initial development will focus on:
 
 Localized user documentation:
 [Русский](docs/ru/README.md) · [Українська](docs/uk/README.md)
+
+## Running the local provider monitors
+
+Start Kortrijk, Berlin, and Bratislava concurrently:
+
+```powershell
+.\.venv\Scripts\python.exe .\monitor_runner.py
+```
+
+Each provider remains a separate process. A separately supervised diagnostic
+worker drains the persistent priority queue. Provider activity is written to
+`logs/kortrijk.log`, `logs/berlin.log`, and `logs/bratislava.log`; runner
+lifecycle events are written to `logs/orchestrator.log`, and worker events to
+`logs/diagnostic-worker.log`.
+
+Every check stores an immutable, schema-versioned Observation in
+`data/observations.sqlite3`. The transaction also stores its diagnostic
+decision and, when accepted, an outbox command. Per-provider
+`metadata/<city>.jsonl` files remain disposable analysis mirrors.
+`data/diagnostic-queue.sqlite3` stores queued jobs, leases, and safe results.
+Runtime databases, logs, metadata, browser profiles, page captures, and state
+files are ignored by Git.
 
 ## Contributing
 

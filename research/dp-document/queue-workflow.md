@@ -13,7 +13,10 @@ This study evaluates whether appointment availability can be monitored responsib
 ## Confirmed observations
 
 - A standard direct HTTP request may receive `403 Forbidden`.
-- The public appointment application can be reached through a normal browser session.
+- Frontend 7.34.2 exposes pre-authentication HTTP queue discovery through
+  `form=days` and `form=times`.
+- Queue discovery requires service centre, service, CSRF, and date for times;
+  it does not require a browser fingerprint.
 - The publicly delivered client application exposes the general appointment workflow.
 - The observed workflow contains separate stages for service selection, available days, available times, and manual registration.
 - Access restrictions, CAPTCHA pages, incomplete captures, and application errors require states distinct from `NO_SLOTS`.
@@ -31,7 +34,7 @@ flowchart TD
 
 - capturing a valid live response for available days;
 - capturing a valid live response for time slots;
-- identifying the minimum stable browser-session requirements;
+- validating centre-specific HTTP session, CSRF, and response schemas;
 - defining a normalized provider response;
 - determining responsible polling, backoff, and pause behavior.
 
@@ -45,6 +48,9 @@ flowchart TD
 
 ## Safety boundary
 
-This public note intentionally excludes internal module identifiers, operation names, form-field inventories, request payloads, session values, fingerprints, CAPTCHA tokens, raw captures, and detailed request-reproduction instructions.
+This public note excludes secrets, session values, generated fingerprints,
+CAPTCHA tokens, raw captures, and booking-reproduction instructions. The
+minimal public monitoring contract is documented because it contains no
+authentication, personal data, or fingerprint parameter.
 
 The research describes what has been established, not a recipe for interacting with undocumented provider internals.

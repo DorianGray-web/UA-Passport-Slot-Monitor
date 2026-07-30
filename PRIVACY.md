@@ -75,18 +75,17 @@ Where technically possible:
 - location information should not be retained after the requested function is completed;
 - location data should not be used for advertising, behavioural profiling, or unrelated analytics.
 
-## 5. Browser-based observation, sessions, and CAPTCHA
+## 5. Browser diagnostics, sessions, and CAPTCHA
 
-Some providers do not expose reliable queue-state information to direct HTTP
-requests. In such cases, the project may use a local browser session to render
-and passively read the same public page that a user can open manually.
+DP Document queue monitoring uses public pre-authentication HTTP requests and
+does not require a browser fingerprint or browser session. Browser automation
+is reserved for separate local diagnostics and controlled research.
 
 Browser-based observation does not by itself mean that a protection mechanism
 is being bypassed.
 
-The public monitor may use a persistent local browser profile when this is
-required for stable page rendering. Such profiles remain under the user's
-control and may contain cookies, local storage, or other session artifacts.
+Diagnostic tooling may use a local browser profile. Such profiles remain under
+the user's control and may contain cookies, local storage, or other session artifacts.
 They must not be committed to the public repository, uploaded with diagnostic
 reports, or included in release archives.
 
@@ -102,8 +101,9 @@ The project does not:
 - collect information entered during final registration.
 
 If a provider presents a CAPTCHA or browser challenge that prevents passive
-state determination, the monitor must stop classification for that cycle,
-report the corresponding state, and wait or request user action.
+state determination, the monitor must report the corresponding unresolved
+state and may enqueue separate diagnostics. It must not launch a browser or
+generate a fingerprint.
 
 The user must personally review availability, complete any required
 verification, select an appointment, and confirm the booking on the official

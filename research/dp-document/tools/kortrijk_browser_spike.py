@@ -1,3 +1,17 @@
+"""
+Research artifact.
+
+This prototype was used during the initial feasibility study
+of the DP Document provider.
+
+It is intentionally kept for historical reference only.
+
+Superseded by:
+
+providers/dp-document/provider_protocol.py
+providers/dp-document/city_monitor.py
+"""
+
 from __future__ import annotations
 
 import asyncio
@@ -13,6 +27,9 @@ from playwright.async_api import Response, async_playwright
 
 
 QUEUE_URL = "https://kortrijk.pasport.org.ua/solutions/e-queue"
+
+# Controlled reverse-engineering utility only. Runtime MonitorProvider code
+# must not import this module or use browser fingerprinting.
 
 BASE_DIR = Path(__file__).resolve().parent
 PROFILE_DIR = Path(
