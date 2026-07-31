@@ -389,6 +389,15 @@ def check_once(
 
 def run_monitor() -> None:
     logging.info("Starting Kortrijk queue monitor.")
+    initial_delay = max(
+        0, int(os.getenv("PROVIDER_INITIAL_DELAY_SECONDS", "0"))
+    )
+    if initial_delay:
+        logging.info(
+            "Initial provider check delayed by %s seconds.",
+            initial_delay,
+        )
+        time.sleep(initial_delay)
     logging.info(
         "Random check interval: %s-%s seconds.",
         MIN_INTERVAL_SECONDS,
@@ -413,6 +422,17 @@ def run_monitor() -> None:
         base_interval = next_interval_seconds()
         backoff_multiplier = min(2 ** max(consecutive_failures - 1, 0), 4)
         sleep_seconds = base_interval * backoff_multiplier
+        if state.status == "BLOCKED" and consecutive_failures >= 4:
+            blocked_cooldown = max(
+                0,
+                int(os.getenv("BLOCKED_COOLDOWN_SECONDS", str(60 * 60))),
+            )
+            sleep_seconds = max(sleep_seconds, blocked_cooldown)
+            logging.warning(
+                "HTTP transport remains blocked; applying cooldown of at "
+                "least %s seconds.",
+                blocked_cooldown,
+            )
         logging.info(
             "Next check in %s seconds (failure streak: %s).",
             sleep_seconds,

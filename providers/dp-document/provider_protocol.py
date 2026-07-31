@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+from datetime import date, datetime
 from dataclasses import dataclass
 from enum import StrEnum
 
@@ -40,6 +42,12 @@ class EvidenceCode(StrEnum):
     MAINTENANCE_MARKER = "MAINTENANCE_MARKER"
     CHALLENGE_MARKER = "CHALLENGE_MARKER"
     UNRECOGNIZED_HTML = "UNRECOGNIZED_HTML"
+    AVAILABLE_DATES_FOUND = "AVAILABLE_DATES_FOUND"
+    NO_AVAILABLE_DATES = "NO_AVAILABLE_DATES"
+    AVAILABLE_TIMES_FOUND = "AVAILABLE_TIMES_FOUND"
+    NO_AVAILABLE_TIMES = "NO_AVAILABLE_TIMES"
+    DAYS_PAYLOAD_UNRECOGNIZED = "DAYS_PAYLOAD_UNRECOGNIZED"
+    TIMES_PAYLOAD_UNRECOGNIZED = "TIMES_PAYLOAD_UNRECOGNIZED"
 
 
 @dataclass(frozen=True, slots=True)
@@ -56,6 +64,119 @@ class LandingPageResult:
     evidence: tuple[EvidenceCode, ...]
 
 
+@dataclass(frozen=True, slots=True)
+class DaysResult:
+    dates: tuple[str, ...]
+    evidence: tuple[EvidenceCode, ...]
+    recognized: bool
+
+
+@dataclass(frozen=True, slots=True)
+class TimesResult:
+    times: tuple[str, ...]
+    evidence: tuple[EvidenceCode, ...]
+    recognized: bool
+
+
+class ConfirmedDaysClassifier:
+    """Strict classifier for the confirmed DP Document `days` schema."""
+
+    _FIELDS = {"datePart", "date", "isAllowed"}
+
+    def classify(self, status_code: int, payload: object) -> DaysResult:
+        if status_code != 200 or not isinstance(payload, dict):
+            return self._unknown()
+        if set(payload) != {"days"} or not isinstance(payload["days"], list):
+            return self._unknown()
+
+        dates: list[str] = []
+        for item in payload["days"]:
+            if not isinstance(item, dict) or set(item) != self._FIELDS:
+                return self._unknown()
+            date_part = item["datePart"]
+            display_date = item["date"]
+            allowed = item["isAllowed"]
+            if (
+                not isinstance(date_part, str)
+                or not isinstance(display_date, str)
+                or type(allowed) is not bool
+            ):
+                return self._unknown()
+            try:
+                parsed = date.fromisoformat(date_part)
+                rendered = datetime.strptime(display_date, "%d.%m.%Y").date()
+            except ValueError:
+                return self._unknown()
+            if parsed != rendered:
+                return self._unknown()
+            if allowed:
+                dates.append(date_part)
+
+        evidence = (
+            EvidenceCode.AVAILABLE_DATES_FOUND
+            if dates
+            else EvidenceCode.NO_AVAILABLE_DATES
+        )
+        return DaysResult(tuple(dates), (EvidenceCode.HTTP_200, evidence), True)
+
+    @staticmethod
+    def _unknown() -> DaysResult:
+        return DaysResult(
+            (), (EvidenceCode.DAYS_PAYLOAD_UNRECOGNIZED,), False
+        )
+
+
+class ConfirmedTimesClassifier:
+    """Strict classifier for the confirmed DP Document `times` schema."""
+
+    _FIELDS = {"startTime", "slot", "isAllowed"}
+
+    def classify(self, status_code: int, payload: object) -> TimesResult:
+        if status_code != 200 or not isinstance(payload, dict):
+            return self._unknown()
+        if (
+            set(payload) != {"timeSlots"}
+            or not isinstance(payload["timeSlots"], list)
+        ):
+            return self._unknown()
+
+        times: list[str] = []
+        for item in payload["timeSlots"]:
+            if not isinstance(item, dict) or set(item) != self._FIELDS:
+                return self._unknown()
+            start_time = item["startTime"]
+            slot = item["slot"]
+            allowed = item["isAllowed"]
+            if (
+                not isinstance(start_time, str)
+                or not isinstance(slot, str)
+                or type(allowed) is not bool
+            ):
+                return self._unknown()
+            try:
+                parsed = datetime.strptime(start_time, "%H:%M:%S")
+            except ValueError:
+                return self._unknown()
+            normalized = parsed.strftime("%H:%M:%S")
+            if normalized != start_time or not slot.startswith(start_time[:5]):
+                return self._unknown()
+            if allowed:
+                times.append(start_time)
+
+        evidence = (
+            EvidenceCode.AVAILABLE_TIMES_FOUND
+            if times
+            else EvidenceCode.NO_AVAILABLE_TIMES
+        )
+        return TimesResult(tuple(times), (EvidenceCode.HTTP_200, evidence), True)
+
+    @staticmethod
+    def _unknown() -> TimesResult:
+        return TimesResult(
+            (), (EvidenceCode.TIMES_PAYLOAD_UNRECOGNIZED,), False
+        )
+
+
 class LandingPageClassifier:
     """Classify landing HTML before any days/times transition is allowed."""
 
@@ -63,13 +184,13 @@ class LandingPageClassifier:
         "Наразі всі місця зайняті",
         "Будь ласка, спробуйте в інший час або день",
     )
-    CHALLENGE_MARKERS = (
-        "captcha",
-        "recaptcha",
-        "hcaptcha",
-        "cloudflare",
-        "turnstile",
+    BLOCKING_CHALLENGE_MARKERS = (
         "checking your browser",
+        "verify you are human",
+        "перевірка безпеки",
+        "cf-chl-",
+        "/cdn-cgi/challenge-platform/",
+        'id="challenge-form"',
     )
     AUTH_MARKERS = ("авторизац", "увійдіть", "sign in", "log in")
     MAINTENANCE_MARKERS = (
@@ -105,11 +226,6 @@ class LandingPageClassifier:
         soup = BeautifulSoup(html, "html.parser")
         normalized = " ".join(soup.get_text(" ", strip=True).split())
         lowered = html.lower()
-        if any(marker in lowered for marker in self.CHALLENGE_MARKERS):
-            evidence.append(EvidenceCode.CHALLENGE_MARKER)
-            return LandingPageResult(
-                LandingState.BLOCKED, None, None, tuple(evidence)
-            )
         if self.NO_SLOTS_PHRASES[0] in normalized:
             evidence.append(EvidenceCode.HTML_NO_SLOTS_MARKER)
             return LandingPageResult(
@@ -127,8 +243,16 @@ class LandingPageClassifier:
             )
 
         csrf = self._csrf_token(soup)
-        centre = self._field_value(soup, "ServiceCenterId")
-        service = self._field_value(soup, "ServiceId")
+        embedded = self._embedded_queue_config(soup)
+        centre = (
+            self._field_value(soup, "ServiceCenterId")
+            or self._field_value(soup, "center")
+            or self._string_value(embedded.get("center"))
+        )
+        service = (
+            self._field_value(soup, "ServiceId")
+            or self._field_value(soup, "service")
+        )
         form = soup.select_one("form")
         if form is not None:
             evidence.append(EvidenceCode.QUEUE_FORM_FOUND)
@@ -146,6 +270,13 @@ class LandingPageClassifier:
                 QueueForm(centre, service),
                 tuple(evidence),
             )
+        if any(
+            marker in lowered for marker in self.BLOCKING_CHALLENGE_MARKERS
+        ):
+            evidence.append(EvidenceCode.CHALLENGE_MARKER)
+            return LandingPageResult(
+                LandingState.BLOCKED, None, None, tuple(evidence)
+            )
 
         evidence.append(EvidenceCode.UNRECOGNIZED_HTML)
         return LandingPageResult(
@@ -162,6 +293,106 @@ class LandingPageClassifier:
                 value = element.get("value") or element.get("content")
                 if value:
                     return str(value)
+        embedded = self._embedded_queue_config(soup)
+        return self._string_value(embedded.get("csrf"))
+
+    @classmethod
+    def confirmed_public_form_csrf_field(
+        cls,
+        html: str,
+        *,
+        service_center_id: str,
+        service_id: str,
+    ) -> str | None:
+        """Return the opaque field only for an explicitly confirmed form."""
+        soup = BeautifulSoup(html, "html.parser")
+        embedded = cls._embedded_queue_config(soup)
+        centre = cls._string_value(embedded.get("center"))
+        service = soup.select_one(
+            f'select[name="service"] option[value="{service_id}"]'
+        )
+        csrf_field = cls._string_value(embedded.get("csrf"))
+        if (
+            centre != service_center_id
+            or service is None
+            or csrf_field is None
+        ):
+            return None
+        return csrf_field
+
+    @classmethod
+    def confirmed_public_browser_form(
+        cls,
+        html: str,
+        *,
+        service_center_id: str,
+        service_id: str,
+    ) -> bool:
+        """Validate browser-rendered public selectors without reading CSRF."""
+        soup = BeautifulSoup(html, "html.parser")
+        embedded = cls._embedded_queue_config(soup)
+        centre = (
+            cls._field_value(soup, "ServiceCenterId")
+            or cls._field_value(soup, "center")
+            or cls._string_value(embedded.get("center"))
+        )
+        service = soup.select_one(
+            f'select[name="service"] option[value="{service_id}"]'
+        )
+        date_select = soup.select_one(
+            'select[name="date"], select[name="Date"]'
+        )
+        return (
+            centre == service_center_id
+            and service is not None
+            and date_select is not None
+        )
+
+    @classmethod
+    def public_browser_form_identifiers(
+        cls, html: str
+    ) -> tuple[str, str] | None:
+        """Return unambiguous public centre/service identifiers or fail closed."""
+        soup = BeautifulSoup(html, "html.parser")
+        embedded = cls._embedded_queue_config(soup)
+        centre = (
+            cls._field_value(soup, "ServiceCenterId")
+            or cls._field_value(soup, "center")
+            or cls._string_value(embedded.get("center"))
+        )
+        services = {
+            str(option.get("value"))
+            for option in soup.select('select[name="service"] option[value]')
+            if str(option.get("value") or "").strip()
+        }
+        date_select = soup.select_one(
+            'select[name="date"], select[name="Date"]'
+        )
+        if centre and len(services) == 1 and date_select is not None:
+            return centre, services.pop()
+        return None
+
+    @staticmethod
+    def _embedded_queue_config(soup: BeautifulSoup) -> dict[str, object]:
+        for element in soup.select("[x-data]"):
+            value = str(element.get("x-data") or "").strip()
+            prefix = "qlogicFormTotoro("
+            if not value.startswith(prefix) or not value.endswith(")"):
+                continue
+            try:
+                payload = json.loads(value[len(prefix) : -1])
+            except (json.JSONDecodeError, TypeError):
+                continue
+            if isinstance(payload, dict):
+                return payload
+        return {}
+
+    @staticmethod
+    def _string_value(value: object) -> str | None:
+        if value is None:
+            return None
+        rendered = str(value)
+        return rendered if rendered else None
         return None
 
     @staticmethod
@@ -170,6 +401,10 @@ class LandingPageClassifier:
         if element is None:
             return None
         value = element.get("value")
+        if value is None and element.name == "select":
+            selected = element.select_one("option[selected]")
+            if selected is not None:
+                value = selected.get("value")
         return str(value) if value else None
 
 

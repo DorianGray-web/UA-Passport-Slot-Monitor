@@ -1,20 +1,12 @@
 from __future__ import annotations
 
 import sys
-from pathlib import Path
 
-from city_monitor import CityMonitor, ProviderConfig
+from city_monitor import CityMonitor
+from provider_registry import load_city_provider
 
 
-MONITOR = CityMonitor(
-    ProviderConfig(
-        city="Berlin",
-        provider="dp-document-berlin",
-        queue_url="https://berlin.pasport.org.ua/solutions/e-queue",
-        env_prefix="BERLIN",
-        base_dir=Path(__file__).resolve().parent,
-    )
-)
+MONITOR = CityMonitor(load_city_provider("berlin").monitor)
 
 
 if __name__ == "__main__":

@@ -21,18 +21,35 @@ if str(PROJECT_DIR) not in sys.path:
 from diagnostics.domain import RequestTraceEntry, make_run_id
 from diagnostics.event_store import SQLiteEventStore
 from diagnostics.monitoring import ObservationService
+from browser_discovery import PlaywrightDiscoveryTransport
+from dp_document_http import DPDocumentHTTPMonitorProvider
 from monitor_metadata import utc_timestamp
-from provider_protocol import DiscoveryStage, LandingPageClassifier, LandingState
+from provider_boundaries import DaysRequest, TimesRequest
+from provider_protocol import (
+    DiscoveryStage,
+    LandingPageClassifier,
+    LandingState,
+    ConfirmedDaysClassifier,
+    ConfirmedTimesClassifier,
+    TransitionGuard,
+)
 
 
 MIN_INTERVAL_SECONDS = 7 * 60
 MAX_INTERVAL_SECONDS = 12 * 60
 REQUEST_TIMEOUT_SECONDS = 30
+DEFAULT_BLOCKED_COOLDOWN_SECONDS = 60 * 60
 DEFAULT_DIAGNOSTIC_EVENTS = {
     "BLOCKED",
     "UNKNOWN",
     "HTML_STRUCTURE_CHANGED",
     "QUEUE_SECTION_CHANGED",
+}
+CONFIRMED_PUBLIC_DISCOVERY_PROFILES = {
+    "madrid-v1",
+    "barcelona-v1",
+    "london-research-v1",
+    "milan-research-v1",
 }
 
 
@@ -44,6 +61,10 @@ class ProviderConfig:
     env_prefix: str
     base_dir: Path
     project_dir: Path | None = None
+    public_discovery_profile: str | None = None
+    service_center_id: str | None = None
+    service_id: str | None = None
+    csrf_value: str | None = None
 
     @property
     def slug(self) -> str:
@@ -62,6 +83,11 @@ class QueueState:
     source: str
     evidence: tuple[str, ...] = ()
     discovery_stage: str = DiscoveryStage.LANDING
+    available_dates_count: int | None = None
+    available_time_slots_count: int | None = None
+    earliest_available_time: str | None = None
+    latest_available_time: str | None = None
+    request_trace: tuple[RequestTraceEntry, ...] = ()
 
 
 class CityMonitor:
@@ -92,6 +118,8 @@ class CityMonitor:
         self.landing_classifier = LandingPageClassifier(
             os.getenv(f"{config.env_prefix}_CSRF_FIELD") or None
         )
+        self.session = requests.Session()
+        self.project_dir = project_dir
 
     def configure_logging(self) -> None:
         self.log_file.parent.mkdir(parents=True, exist_ok=True)
@@ -106,7 +134,7 @@ class CityMonitor:
         )
 
     def fetch_page(self) -> tuple[int, str]:
-        response = requests.get(
+        response = self.session.get(
             self.config.queue_url,
             headers={
                 "User-Agent": (
@@ -118,6 +146,262 @@ class CityMonitor:
             timeout=REQUEST_TIMEOUT_SECONDS,
         )
         return response.status_code, response.text
+
+    def playwright_fallback_enabled(self) -> bool:
+        if (
+            self.config.public_discovery_profile
+            not in CONFIRMED_PUBLIC_DISCOVERY_PROFILES
+        ):
+            return False
+        value = os.getenv(
+            f"{self.config.env_prefix}_PLAYWRIGHT_FALLBACK_ENABLED",
+            os.getenv("PLAYWRIGHT_DISCOVERY_FALLBACK_ENABLED", "false"),
+        )
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+
+    def run_browser_fallback(
+        self,
+        http_state: QueueState,
+    ) -> tuple[QueueState, int | None]:
+        centre = self.config.service_center_id
+        service = self.config.service_id
+        profile_dir = self.config.env_path(
+            "PLAYWRIGHT_PROFILE_DIR",
+            self.project_dir / ".browser-data" / self.config.slug,
+        )
+        headless_value = os.getenv(
+            "PLAYWRIGHT_DISCOVERY_HEADLESS", "false"
+        )
+        transport = PlaywrightDiscoveryTransport(
+            city=self.config.city,
+            queue_url=self.config.queue_url,
+            service_center_id=centre,
+            service_id=service,
+            profile_dir=profile_dir,
+            headless=headless_value.strip().lower()
+            in {"1", "true", "yes", "on"},
+        )
+        result = transport.discover()
+        return (
+            QueueState(
+                result.state,
+                utc_timestamp(),
+                result.page_hash or http_state.page_hash,
+                result.message,
+                "playwright",
+                result.evidence,
+                result.discovery_stage,
+                result.available_dates_count,
+                result.available_time_slots_count,
+                result.earliest_available_time,
+                result.latest_available_time,
+                (*http_state.request_trace, *result.request_trace),
+            ),
+            result.http_status,
+        )
+
+    def _post_public_discovery(
+        self,
+        *,
+        form: str,
+        fields: dict[str, str],
+    ) -> tuple[int, object, int, int]:
+        csrf_fields = set(fields) - {
+            "ServiceCenterId",
+            "ServiceId",
+            "Date",
+        }
+        if len(csrf_fields) != 1:
+            raise ValueError("Public discovery requires one CSRF field.")
+        csrf_field = csrf_fields.pop()
+        provider = DPDocumentHTTPMonitorProvider(
+            provider_id=self.config.provider,
+            queue_url=self.config.queue_url,
+            csrf_field=csrf_field,
+            session=self.session,
+            timeout_seconds=REQUEST_TIMEOUT_SECONDS,
+        )
+        if form == "days":
+            result = provider.get_days(
+                DaysRequest(
+                    fields["ServiceCenterId"],
+                    fields["ServiceId"],
+                    fields[csrf_field],
+                )
+            )
+        elif form == "times":
+            result = provider.get_times(
+                TimesRequest(
+                    fields["ServiceCenterId"],
+                    fields["ServiceId"],
+                    fields["Date"],
+                    fields[csrf_field],
+                )
+            )
+        else:
+            raise ValueError(f"Unsupported public discovery form: {form}")
+        return (
+            result.status_code,
+            result.payload,
+            result.duration_ms,
+            result.response_bytes,
+        )
+
+    def discover_public_availability(
+        self,
+        *,
+        landing_status: int,
+        landing_html: str,
+        landing_trace: RequestTraceEntry,
+    ) -> QueueState:
+        """Run a confirmed public protocol profile and stop after TIMES."""
+        landing = self.landing_classifier.classify(
+            landing_status, landing_html
+        )
+        base = self.classify_state(landing_status, landing_html)
+        base.request_trace = (landing_trace,)
+        if (
+            self.config.public_discovery_profile
+            not in CONFIRMED_PUBLIC_DISCOVERY_PROFILES
+        ):
+            return base
+        if landing.state is not LandingState.DISCOVERY_READY:
+            return base
+
+        centre = self.config.service_center_id
+        service = self.config.service_id
+        if not centre or not service:
+            identifiers = self.landing_classifier.public_browser_form_identifiers(
+                landing_html
+            )
+            if identifiers is None:
+                base.status = "UNKNOWN"
+                base.message = (
+                    f"{self.config.city} public form identifiers were not "
+                    "unambiguous; discovery stopped."
+                )
+                return base
+            centre, service = identifiers
+        csrf_field = (
+            self.landing_classifier.confirmed_public_form_csrf_field(
+            landing_html,
+            service_center_id=str(centre or ""),
+            service_id=str(service or ""),
+        )
+        )
+        csrf_value = self.config.csrf_value
+        if not all((centre, service, csrf_field, csrf_value)):
+            base.status = "UNKNOWN"
+            base.message = (
+                f"{self.config.city} discovery configuration is incomplete "
+                "or does not match the confirmed landing form."
+            )
+            return base
+
+        common = {
+            "ServiceCenterId": str(centre),
+            "ServiceId": str(service),
+            str(csrf_field): str(csrf_value),
+        }
+        days_status, days_payload, days_ms, days_bytes = (
+            self._post_public_discovery(form="days", fields=common)
+        )
+        traces = [
+            landing_trace,
+            RequestTraceEntry(
+                method="POST",
+                operation="days",
+                status_code=days_status,
+                duration_ms=days_ms,
+                response_bytes=days_bytes,
+            ),
+        ]
+        days = ConfirmedDaysClassifier().classify(days_status, days_payload)
+        if not days.recognized:
+            return QueueState(
+                "UNKNOWN",
+                utc_timestamp(),
+                base.page_hash,
+                f"{self.config.city} days response did not match the "
+                "confirmed schema.",
+                "http",
+                tuple(item.value for item in days.evidence),
+                DiscoveryStage.DAYS,
+                request_trace=tuple(traces),
+            )
+        if not TransitionGuard.allows_times(dates=days.dates):
+            return QueueState(
+                "NO_SLOTS",
+                utc_timestamp(),
+                base.page_hash,
+                f"No publicly available {self.config.city} dates were "
+                "returned.",
+                "http",
+                tuple(item.value for item in days.evidence),
+                DiscoveryStage.DAYS,
+                available_dates_count=0,
+                available_time_slots_count=0,
+                request_trace=tuple(traces),
+            )
+
+        all_times: list[str] = []
+        evidence = [item.value for item in days.evidence]
+        for available_date in days.dates:
+            times_status, times_payload, times_ms, times_bytes = (
+                self._post_public_discovery(
+                    form="times",
+                    fields={**common, "Date": available_date},
+                )
+            )
+            traces.append(
+                RequestTraceEntry(
+                    method="POST",
+                    operation="times",
+                    status_code=times_status,
+                    duration_ms=times_ms,
+                    response_bytes=times_bytes,
+                )
+            )
+            times = ConfirmedTimesClassifier().classify(
+                times_status, times_payload
+            )
+            if not times.recognized:
+                return QueueState(
+                    "UNKNOWN",
+                    utc_timestamp(),
+                    base.page_hash,
+                    f"{self.config.city} times response did not match the "
+                    "confirmed schema.",
+                    "http",
+                    tuple(item.value for item in times.evidence),
+                    DiscoveryStage.TIMES,
+                    available_dates_count=len(days.dates),
+                    request_trace=tuple(traces),
+                )
+            evidence.extend(item.value for item in times.evidence)
+            all_times.extend(times.times)
+
+        earliest = min(all_times) if all_times else None
+        latest = max(all_times) if all_times else None
+        state = "SLOTS_AVAILABLE" if all_times else "POSSIBLE_SLOTS"
+        return QueueState(
+            state,
+            utc_timestamp(),
+            base.page_hash,
+            (
+                f"Available dates: {len(days.dates)}; "
+                f"available time slots: {len(all_times)}; "
+                f"earliest: {earliest or 'none'}; latest: {latest or 'none'}."
+            ),
+            "http",
+            tuple(dict.fromkeys(evidence)),
+            DiscoveryStage.TIMES,
+            available_dates_count=len(days.dates),
+            available_time_slots_count=len(all_times),
+            earliest_available_time=earliest,
+            latest_available_time=latest,
+            request_trace=tuple(traces),
+        )
 
     @staticmethod
     def normalize_text(html: str) -> str:
@@ -182,8 +466,11 @@ class CityMonitor:
     def save_state(self, state: QueueState) -> None:
         self.state_file.parent.mkdir(parents=True, exist_ok=True)
         temporary = self.state_file.with_suffix(".tmp")
+        payload = asdict(state)
+        # Traces belong to immutable Observations, not mutable current state.
+        payload.pop("request_trace", None)
         temporary.write_text(
-            json.dumps(asdict(state), ensure_ascii=False, indent=2),
+            json.dumps(payload, ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
         temporary.replace(self.state_file)
@@ -229,16 +516,42 @@ class CityMonitor:
         previous = self.load_previous_state()
         started = time.perf_counter()
         http_status: int | None = None
+        observed_status: int | None = None
         response_bytes = 0
         try:
             http_status, html = self.fetch_page()
             response_bytes = len(html.encode("utf-8"))
-            current = self.classify_state(http_status, html)
+            landing_duration_ms = round(
+                (time.perf_counter() - started) * 1000
+            )
+            current = self.discover_public_availability(
+                landing_status=http_status,
+                landing_html=html,
+                landing_trace=RequestTraceEntry(
+                    method="GET",
+                    operation="landing",
+                    status_code=http_status,
+                    duration_ms=landing_duration_ms,
+                    response_bytes=response_bytes,
+                ),
+            )
+            observed_status = http_status
             if current.status == "BLOCKED":
-                logging.warning(
-                    "HTTP monitoring is blocked. Browser execution is reserved "
-                    "for the separate diagnostic worker."
-                )
+                if self.playwright_fallback_enabled():
+                    logging.warning(
+                        "HTTP blocked → switching to Playwright"
+                    )
+                    current, browser_status = self.run_browser_fallback(
+                        current
+                    )
+                    observed_status = browser_status
+                else:
+                    logging.warning(
+                        "HTTP monitoring is blocked. Experimental Playwright "
+                        "fallback is disabled."
+                    )
+            else:
+                logging.info("HTTP transport selected")
         except requests.RequestException as error:
             current = QueueState(
                 "ERROR",
@@ -293,7 +606,7 @@ class CityMonitor:
             transport=current.source,
             state=current.status,
             duration_ms=round((time.perf_counter() - started) * 1000),
-            http_status=http_status,
+            http_status=observed_status,
             page_hash=current.page_hash,
             html_changed=html_changed,
             classifier_reason=current.message,
@@ -302,16 +615,14 @@ class CityMonitor:
             mode=os.getenv("SITE_INVESTIGATOR_MODE", "research"),
             discovery_stage=current.discovery_stage,
             evidence=current.evidence,
-            request_trace=(
-                RequestTraceEntry(
-                    method="GET",
-                    operation="landing",
-                    status_code=http_status,
-                    duration_ms=round((time.perf_counter() - started) * 1000),
-                    response_bytes=response_bytes,
-                ),
-            ),
+            request_trace=current.request_trace,
+            available_dates_count=current.available_dates_count,
+            available_time_slots_count=current.available_time_slots_count,
+            earliest_available_time=current.earliest_available_time,
+            latest_available_time=current.latest_available_time,
         )
+        if current.discovery_stage == DiscoveryStage.TIMES:
+            logging.info(current.message)
         logging.info(
             "Observation recorded. observation_id=%s run_id=%s "
             "diagnostic_decision=%s investigation_id=%s",
@@ -324,6 +635,15 @@ class CityMonitor:
 
     def run(self) -> None:
         logging.info("Starting %s queue monitor.", self.config.city)
+        initial_delay = max(
+            0, int(os.getenv("PROVIDER_INITIAL_DELAY_SECONDS", "0"))
+        )
+        if initial_delay:
+            logging.info(
+                "Initial provider check delayed by %s seconds.",
+                initial_delay,
+            )
+            time.sleep(initial_delay)
         diagnostic_events = self.configured_diagnostic_events()
         consecutive_failures = 0
         while True:
@@ -338,6 +658,22 @@ class CityMonitor:
             )
             multiplier = min(2 ** max(consecutive_failures - 1, 0), 4)
             sleep_seconds = base_interval * multiplier
+            if state.status == "BLOCKED" and consecutive_failures >= 4:
+                blocked_cooldown = max(
+                    0,
+                    int(
+                        os.getenv(
+                            "BLOCKED_COOLDOWN_SECONDS",
+                            str(DEFAULT_BLOCKED_COOLDOWN_SECONDS),
+                        )
+                    ),
+                )
+                sleep_seconds = max(sleep_seconds, blocked_cooldown)
+                logging.warning(
+                    "HTTP transport remains blocked; applying cooldown of "
+                    "at least %s seconds.",
+                    blocked_cooldown,
+                )
             logging.info(
                 "Next check in %s seconds (failure streak: %s).",
                 sleep_seconds,

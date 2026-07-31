@@ -27,6 +27,8 @@ class TimesRequest:
 class ProviderHTTPResult:
     status_code: int
     payload: Any
+    duration_ms: int = 0
+    response_bytes: int = 0
 
 
 class MonitorProvider(Protocol):

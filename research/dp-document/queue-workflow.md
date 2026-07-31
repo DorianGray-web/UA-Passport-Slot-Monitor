@@ -6,6 +6,15 @@
 
 **Last updated:** 2026-07-30
 
+> **Supersession note — 2026-07-31:** The “In progress” and implementation
+> status sections below describe the earlier landing-only stage. Strict
+> days/times classifiers and terminal `TIMES` discovery are now implemented
+> for Madrid, Barcelona, London, and Milan. HTTP remains the preferred first
+> transport; an explicitly enabled experimental Playwright fallback may run
+> after HTTP `BLOCKED` for those confirmed profiles only. Other centres remain
+> evidence-gated. The historical text is retained to preserve research
+> chronology.
+
 ## Purpose
 
 This study evaluates whether appointment availability can be monitored responsibly without automatic booking, CAPTCHA bypass, or collection of passport details.
@@ -40,13 +49,16 @@ live validation.
 flowchart TD
     S["Select service"] --> D["Check available days"]
     D --> T["Check available times"]
-    T --> R["Manual registration"]
+    T --> I["Identity-verification boundary: monitor stops"]
 ```
 
 ## In progress
 
 - capturing a valid live response for available days;
 - capturing a valid live response for time slots;
+- capturing the first identity-verification boundary without interacting with
+  it;
+- determining whether an explicit appointment count is public;
 - validating centre-specific HTTP session, CSRF, and response schemas;
 - defining a normalized provider response;
 - determining responsible polling, backoff, and pause behavior.
@@ -54,7 +66,7 @@ flowchart TD
 ## Implementation status
 
 - an HTTP provider boundary with landing, `days`, and `times` methods exists;
-- the three local monitor loops classify landing responses and record state
+- the configured local monitor loops classify landing responses and record state
   changes, but do not yet execute or normalize the complete `days`/`times`
   sequence;
 - Observation, diagnostic decision, outbox, queue, worker, and process
@@ -72,3 +84,7 @@ minimal public monitoring contract is documented because it contains no
 authentication, personal data, or fingerprint parameter.
 
 The research describes what has been established, not a recipe for interacting with undocumented provider internals.
+
+The current evidence table and stage-dependent A/B conclusion are documented
+in
+[Pre-identity Appointment Calendar Research](2026-07-31-pre-identity-calendar-research.md).

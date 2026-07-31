@@ -7,6 +7,7 @@ No browser fingerprint is generated or transmitted by this provider.
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
 import requests
@@ -53,6 +54,7 @@ class DPDocumentHTTPMonitorProvider(MonitorProvider):
         return result.csrf_token
 
     def _post(self, form: str, fields: dict[str, str]) -> ProviderHTTPResult:
+        started = time.perf_counter()
         response = self.session.post(
             self.queue_url,
             data={"form": form, **fields},
@@ -66,7 +68,12 @@ class DPDocumentHTTPMonitorProvider(MonitorProvider):
             payload: Any = response.json()
         except ValueError:
             payload = response.text
-        return ProviderHTTPResult(response.status_code, payload)
+        return ProviderHTTPResult(
+            response.status_code,
+            payload,
+            round((time.perf_counter() - started) * 1000),
+            len(response.content),
+        )
 
     def get_days(self, request: DaysRequest) -> ProviderHTTPResult:
         return self._post(

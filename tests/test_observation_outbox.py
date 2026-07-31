@@ -60,7 +60,7 @@ class ObservationOutboxTests(unittest.TestCase):
             ).fetchone()[0]
         self.assertEqual((observation_count, decision_count, outbox_count), (1, 1, 1))
         self.assertEqual(recorded.decision.outcome, "ACCEPTED")
-        self.assertEqual(recorded.observation.schema_version, 2)
+        self.assertEqual(recorded.observation.schema_version, 3)
 
     def test_not_required_decision_has_no_outbox_record(self) -> None:
         recorded = self.record([])

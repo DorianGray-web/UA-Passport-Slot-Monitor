@@ -7,7 +7,23 @@ Research artifacts are not production implementations. A documented observation 
 ## Current studies
 
 - [DP Document queue workflow](dp-document/queue-workflow.md)
-- [Notification-channel survey](user-surveys/notification-channels.md)
+
+## Run summaries
+
+Long orchestrated runs produce local Markdown summaries in `dp-document/`.
+These generated reports are runtime output and are ignored by Git. The
+generator reads only the immutable Observation payloads;
+it does not read browser profiles, raw HTML, cookies, headers, or captures.
+Each report is scoped to one `run_id` and separates observed facts from
+interpretation.
+Only manually reviewed, sanitized conclusions should be promoted into
+committed research notes.
+
+Manual generation:
+
+```powershell
+.\.venv-2\Scripts\python.exe .\research\dp-document\tools\generate_research_summary.py --run-id RUN-...
+```
 
 ## Evidence levels
 

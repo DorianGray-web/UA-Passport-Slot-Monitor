@@ -1,0 +1,137 @@
+{
+  "providers": [
+    {
+      "city": "berlin",
+      "provider": "dp-document-berlin",
+      "queue_url": "https://berlin.pasport.org.ua/solutions/e-queue",
+      "env_prefix": "BERLIN",
+      "entrypoint": "berlin_monitor.py",
+      "enabled": true,
+      "priority": "normal",
+      "startup_delay_seconds": 0,
+      "research": {
+        "observation_group": "control"
+      }
+    },
+    {
+      "city": "bratislava",
+      "provider": "dp-document-bratislava",
+      "queue_url": "https://bratislava.pasport.org.ua/solutions/e-queue",
+      "env_prefix": "BRATISLAVA",
+      "entrypoint": "bratislava_monitor.py",
+      "enabled": true,
+      "priority": "high",
+      "startup_delay_seconds": 30,
+      "research": {
+        "observation_group": "active"
+      }
+    },
+    {
+      "city": "kortrijk",
+      "provider": "dp-document-kortrijk",
+      "queue_url": "https://kortrijk.pasport.org.ua/solutions/e-queue",
+      "env_prefix": "KORTRIJK",
+      "entrypoint": "kortrijk_monitor.py",
+      "enabled": true,
+      "priority": "normal",
+      "startup_delay_seconds": 60,
+      "research": {
+        "observation_group": "control"
+      }
+    },
+    {
+      "city": "madrid",
+      "provider": "dp-document-madrid",
+      "queue_url": "https://madrid.pasport.org.ua/solutions/e-queue",
+      "env_prefix": "MADRID",
+      "entrypoint": "madrid_monitor.py",
+      "enabled": true,
+      "priority": "high",
+      "startup_delay_seconds": 90,
+      "public_discovery_profile": "madrid-v1",
+      "service_center_id": "6",
+      "service_id": "4",
+      "csrf_value": "1",
+      "research": {
+        "observation_group": "active"
+      }
+    },
+    {
+      "city": "london",
+      "provider": "dp-document-london",
+      "queue_url": "https://london.pasport.org.ua/solutions/e-queue",
+      "env_prefix": "LONDON",
+      "entrypoint": "london_monitor.py",
+      "enabled": true,
+      "priority": "high",
+      "startup_delay_seconds": 120,
+      "public_discovery_profile": "london-research-v1",
+      "service_center_id": "47",
+      "service_id": "4",
+      "csrf_value": "1",
+      "research": {
+        "observation_group": "active"
+      }
+    },
+    {
+      "city": "milan",
+      "provider": "dp-document-milan",
+      "queue_url": "https://milan.pasport.org.ua/solutions/e-queue",
+      "env_prefix": "MILAN",
+      "entrypoint": "milan_monitor.py",
+      "enabled": true,
+      "priority": "high",
+      "startup_delay_seconds": 150,
+      "public_discovery_profile": "milan-research-v1",
+      "service_center_id": "4",
+      "service_id": "4",
+      "csrf_value": "1",
+      "research": {
+        "observation_group": "active"
+      }
+    },
+    {
+      "city": "toronto",
+      "provider": "dp-document-toronto",
+      "queue_url": "https://toronto.pasport.org.ua/solutions/e-queue",
+      "env_prefix": "TORONTO",
+      "entrypoint": "toronto_monitor.py",
+      "enabled": true,
+      "priority": "normal",
+      "startup_delay_seconds": 180,
+      "research": {
+        "observation_group": "control"
+      }
+    },
+    {
+      "city": "chisinau",
+      "provider": "dp-document-chisinau",
+      "queue_url": "https://chisinau.pasport.org.ua/solutions/e-queue",
+      "env_prefix": "CHISINAU",
+      "entrypoint": "chisinau_monitor.py",
+      "enabled": true,
+      "priority": "normal",
+      "startup_delay_seconds": 210,
+      "research": {
+        "observation_group": "control"
+      }
+    },
+    {
+      "city": "barcelona",
+      "provider": "dp-document-barcelona",
+      "queue_url": "https://barcelona.pasport.org.ua/solutions/e-queue",
+      "env_prefix": "BARCELONA",
+      "entrypoint": "barcelona_monitor.py",
+      "enabled": true,
+      "priority": "high",
+      "startup_delay_seconds": 240,
+      "public_discovery_profile": "barcelona-v1",
+      "service_center_id": "41",
+      "service_id": "4",
+      "csrf_value": "1",
+      "research": {
+        "observation_group": "active"
+      }
+    }
+  ]
+}
