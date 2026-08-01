@@ -4,9 +4,10 @@
 
 This document separates the implemented local prototype from the intended
 service architecture. The Observation/outbox/diagnostic infrastructure,
-landing classifier, provider boundaries, three monitor entry points, and
-process runner are implemented. Subscriptions, notifications, and complete
-live-validated `days`/`times` discovery are not.
+landing classifier, provider boundaries, nine independent monitor entry
+points, process runner, and four evidence-gated public-discovery profiles are
+implemented. Subscriptions, notifications, and live-validated `days`/`times`
+discovery for the remaining centres are not.
 
 ## Intended service flow (planned)
 
@@ -51,11 +52,10 @@ Service -> days -> times
 MonitorProvider has no fingerprint, identity, OTP, BankID, Diia, reservation,
 or browser dependency.
 
-The HTTP adapter exposes landing, `days`, and `times` operations. The current
-city monitor loops use the landing classifier but do not yet execute the
-adapter's complete discovery sequence. Consequently, the existence of these
-methods is not evidence that day/time response normalization or live
-multi-centre discovery is complete.
+The HTTP adapter exposes landing, `days`, and `times` operations. The
+evidence-gated Madrid, Barcelona, London, and Milan profiles execute the
+complete public sequence. Other city monitors remain landing-only until
+equivalent centre-specific evidence exists.
 
 The provider protocol is an evidence-first state machine, not an unconditional
 request sequence:
@@ -78,18 +78,36 @@ CSRF permit `SERVICE_VALIDATION` and `DAYS`; only confirmed dates permit
 `TIMES`. Unknown, blocked, maintenance, or authentication evidence terminates
 safely without additional requests.
 
+The evidence-gated runtime path is:
+
+```text
+LANDING -> DAYS -> TIMES -> STOP
+```
+
+Each enabled profile uses only its confirmed centre, service, opaque
+CSRF-field semantics, and strict response schemas. Any unexpected status,
+HTML, JSON shape, field type, or date/time representation terminates discovery
+as `UNKNOWN`.
+At `TIMES`, normalized counts and earliest/latest allowed public time entries
+are recorded, then monitoring stops. There is no transition into identity,
+CAPTCHA, fingerprinting, reservation, or booking.
+
 ### BookingProvider
 
 Reserved for separately approved future work. No implementation exists. It
 must remain independent so booking-specific fingerprint or identity
 requirements can never become monitoring dependencies.
 
-### Browser diagnostics
+### Browser transport and diagnostics
 
-Browser automation is not part of normal provider discovery. Site Investigator
-may use a browser only in the separately queued diagnostic and
-reverse-engineering subsystem. A challenge is evidence for `BLOCKED`, not
-permission to bypass provider controls.
+HTTP remains preferred. An opt-in research fallback allows Madrid, Barcelona,
+London, and Milan to use a persistent Playwright context only after HTTP is
+`BLOCKED`. It follows the same confirmed state machine and stops at `TIMES`.
+A browser challenge remains `BLOCKED`; it is never interacted with or
+bypassed.
+
+Site Investigator remains separately queued diagnostics and does not produce
+the fallback Observation.
 
 ### Capture validation
 
@@ -97,12 +115,12 @@ Confirms that a response belongs to the intended appointment application and is 
 
 ### State normalization
 
-Converts valid provider data into a common model. The initial model is expected to distinguish at least:
+Converts valid provider data into the implemented common runtime states:
 
 - `SLOTS_AVAILABLE`
+- `POSSIBLE_SLOTS`
 - `NO_SLOTS`
 - `CAPTCHA_REQUIRED`
-- `RATE_LIMITED`
 - `BLOCKED`
 - `UNKNOWN`
 - `ERROR`
@@ -201,6 +219,14 @@ When an operator stops the monitor with `Ctrl+C`, the process records
 `Monitoring stopped manually` with `reason=manual_interrupt` and exits with
 status `130`. This creates an explicit session boundary in the log before the
 next monitor start.
+
+After all supervised processes stop, the orchestrator invokes the local
+Research Summary Generator for the shared `run_id`. By default, runs shorter
+than one hour are skipped. The generator reads immutable Observations from
+SQLite and writes a Git-ignored Markdown runtime report; it does not read
+browser profiles, raw HTML, cookies, headers, or captures. Generation can be
+disabled with `RESEARCH_SUMMARY_ENABLED=false`, and the threshold can be
+changed with `RESEARCH_SUMMARY_MINIMUM_HOURS`.
 
 The immutable records form a correlation chain through `run_id`,
 `observation_id`, `decision_id`, and `investigation_id`. The accepted decision

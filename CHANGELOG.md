@@ -10,6 +10,14 @@ This changelog tracks implementation milestones and significant documentation, a
 
 ### Added
 
+- Added a run-scoped Research Summary Generator that derives transport,
+  availability, timeline, behaviour, and per-provider statistics from the
+  immutable Observation store.
+- Added automatic Markdown report generation when the orchestrator is stopped
+  after a long run, with a configurable minimum-duration threshold.
+- Kept observed facts separate from interpretation and explicitly reports the
+  enforced identity, CAPTCHA, and booking boundary.
+
 - Started the first provider feasibility study using the DP Document service center in Kortrijk, Belgium.
 - Started browser-assisted capture for provider research.
 - Added research requirements for detecting access restrictions, CAPTCHA, challenge pages, and incomplete captures.
@@ -33,6 +41,32 @@ This changelog tracks implementation milestones and significant documentation, a
 - Added a separately supervised diagnostic worker with priority ordering,
   cooldown, deduplication, bounded leases, stale-worker protection, and
   expired-lease recovery.
+- Added configuration-driven Madrid, London, Milan, Toronto, and Chisinau
+  monitor entrypoints using the existing shared city monitor.
+- Added per-city research priority, enablement, and active/control observation
+  group configuration for the multi-centre research sample.
+- Extended the orchestrator to supervise all eight configured centres as
+  independent processes.
+- Added strict Madrid classifiers for the confirmed public `days` and
+  `timeSlots` JSON schemas.
+- Added Madrid-only runtime discovery through `LANDING -> DAYS -> TIMES`,
+  terminating immediately after public time-slot collection.
+- Added Observation schema v3 fields for date count, allowed time-entry
+  count, and earliest/latest available time.
+- Added Barcelona as the ninth independently supervised provider with
+  separate log, state, and JSONL Observation output.
+- Added the evidence-gated `barcelona-v1` profile for confirmed public
+  `LANDING -> DAYS -> TIMES -> STOP` discovery using centre `41` and service
+  `4`.
+- Added an opt-in persistent Playwright discovery transport for Madrid and
+  Barcelona research runs after HTTP `BLOCKED`.
+- Extended the explicitly enabled experimental Playwright discovery transport
+  to the evidence-confirmed London and Milan research profiles, while
+  preserving HTTP-first selection and the terminal `TIMES` boundary.
+- Added confirmed London centre `47` and Milan centre `4` configurations for
+  service `4` without adding identity, CAPTCHA, or booking behavior.
+- Added sanitized mixed-transport request traces for HTTP/Playwright
+  completion and timing analysis without changing Observation schema v3.
 
 ### Changed
 
@@ -45,25 +79,60 @@ This changelog tracks implementation milestones and significant documentation, a
 - Added local `metadata/` output to the Git ignore policy.
 - Replaced synchronous monitor-to-backend calls with asynchronous outbox
   dispatch so diagnostic execution cannot block provider monitoring.
-- Removed Playwright from normal DP Document monitoring. Blocked HTTP
-  observations remain `BLOCKED` and may request separate diagnostics.
+- Removed implicit and synchronous Playwright execution from normal DP
+  Document monitoring. Browser execution remains disabled by default;
+  explicitly enabled confirmed research profiles may use the separate
+  experimental fallback after HTTP `BLOCKED`.
 - Added independent MonitorProvider and future BookingProvider boundaries so
   fingerprint generation cannot become a monitoring dependency.
 - Added an evidence-first landing state machine with typed Evidence,
   DiscoveryStage, transition guards, and sanitized RequestTrace.
+- Refined landing classification so an embedded booking hCaptcha does not
+  block public queue discovery when positive form and CSRF evidence exists.
+- Added support for the confirmed `qlogicFormTotoro` form configuration,
+  `center` field, and selected `service` option without persisting CSRF data.
+- Added configurable 30-second provider startup offsets to avoid an
+  eight-centre initial request burst.
+- Added `MONITOR_PROVIDER_CITIES` for temporary research cohorts without
+  editing the provider registry.
+- Added a one-hour minimum cooldown after four consecutive HTTP `BLOCKED`
+  observations.
 - Upgraded immutable Observation to schema v2; request count is derived from
   trace length rather than persisted separately.
+- Upgraded immutable Observation to schema v3 for normalized public
+  availability while retaining analysis-safe request traces.
+- Generalized the strict Madrid response classifiers into confirmed DP
+  Document days/times classifiers shared only by explicitly approved evidence
+  profiles.
+- Enabled full public discovery for `madrid-v1`, `barcelona-v1`,
+  `london-research-v1`, and `milan-research-v1`; the remaining centres stay
+  landing-only.
+- Made unexpected Madrid days/times statuses, payload shapes, fields, and
+  values fail closed as `UNKNOWN`.
+- Kept HTTP preferred while allowing one non-retrying persistent-browser
+  attempt per blocked cycle when the experimental fallback is enabled.
 - Expanded Git exclusions for browser state, captures, network artifacts,
   cookies, tokens, storage, HAR/trace/log files, runtime databases, sessions,
   environment files, caches, and Site Investigator runtime output.
 
 ### Research
 
+- Validated passive public availability discovery across Madrid, Barcelona,
+  London, and Milan during a 3h 57m run: all 79 Playwright fallbacks reached
+  the confirmed `TIMES` boundary and reported `SLOTS_AVAILABLE`, with zero
+  browser errors, unexpected browser `UNKNOWN` results, CAPTCHA interactions,
+  identity-data interactions, or booking actions.
+- Recorded that 23 HTTP `200` observations remained `UNKNOWN` in the current
+  runtime while 79 HTTP `403` observations triggered successful browser
+  fallback. This is evidence about current transport/classifier coverage, not
+  proof that public `days`/`times` requests are inherently impossible via HTTP.
+
 - Confirmed that direct HTTP requests may be rejected while the public appointment page remains accessible through a normal browser session.
 - Confirmed that the public client application exposes the general workflow for service selection, available days, available times, and manual registration.
 - Identified capture validation as a required boundary before availability data can be normalized.
 - Established an offline-validated multi-centre observation baseline for later
-  timing and correlation analysis. Automated live behavior remains unverified.
+  timing and correlation analysis; subsequent entries below record the later
+  bounded live validations.
 - Confirmed in DP Document frontend 7.34.2 that pre-authentication queue
   discovery uses `form=days` and `form=times` without browser fingerprinting.
 - Confirmed that embedded ThumbmarkJS module 708 is used only by booking
@@ -72,6 +141,36 @@ This changelog tracks implementation milestones and significant documentation, a
   on 2026-07-30. They support separate date and time discovery stages but do
   not establish identical deployment contracts or automated monitor
   validation.
+- Recorded owner-reported findings that London and Madrid expose comparable
+  queue stages while Toronto and Chisinau expose `NO_SLOTS` landing pages.
+- Added an active/control multi-centre observation plan for comparative
+  platform research.
+- Compared the landing-only runtime with the documented pre-identity
+  `service -> dates -> times` workflow.
+- Added a passive public-page browser probe that performs no clicks, form
+  submissions, identity actions, or booking actions.
+- Recorded a 2026-07-31 Bratislava `BLOCKED` capture and documented that it
+  cannot prove the presence or absence of calendar data.
+- Proposed fixture-gated days/times classifiers and an optional immutable
+  Observation schema v3 extension without implementing booking or identity
+  verification.
+- Documented an approximately eight-hour Madrid, London, and Milan HTTP
+  runtime validation with stable process supervision, Observation recording,
+  startup delays, and repeated-block cooldown behavior.
+- Confirmed that unchanged `BLOCKED -> BLOCKED` observations with identical
+  Cloudflare evidence do not generate additional diagnostic events.
+- Recorded intermittent Madrid and Milan HTTP `200` responses containing
+  `QUEUE_FORM_FOUND`, `SERVICE_CENTER_FOUND`, and `UNRECOGNIZED_HTML`
+  evidence. These successful public-form responses remain correctly
+  classified as `UNKNOWN` pending confirmed classifier coverage.
+- Confirmed that the next monitoring research milestone is fixture-backed
+  `DAYS` and `TIMES` classification; identity verification, CAPTCHA
+  interaction, and booking remain out of scope.
+- Independently validated one bounded Barcelona fallback cycle: HTTP landing
+  `403`, persistent Playwright landing `200`, confirmed `DAYS`, confirmed
+  `TIMES`, then immediate stop.
+- Recorded 12 available Barcelona dates and 325 allowed public time entries
+  between 10:00 and 18:30 in an immutable `transport=playwright` Observation.
 
 ### Documentation
 
@@ -81,6 +180,8 @@ This changelog tracks implementation milestones and significant documentation, a
 - Marked subscriptions, notifications, booking, fingerprinting, complete
   discovery normalization, and centre-specific live validation according to
   their actual status.
+- Added ADR-0009 to retain independent city entrypoints during live research
+  and define the criteria for a later registry-driven generic monitor.
 
 ## [0.1.0] - 2026-07-20
 

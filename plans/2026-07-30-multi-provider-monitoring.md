@@ -2,8 +2,14 @@
 
 ## Status
 
-Implemented and offline-validated, including asynchronous diagnostic queue
-infrastructure. Authorized live verification is pending.
+**Historical; implemented and superseded in part — 2026-07-31.**
+
+The three-centre orchestration plan below was implemented and later expanded
+to the registry-driven nine-centre research sample. Observation schema v3,
+four explicitly enabled experimental browser-fallback profiles, long-running
+runtime validation, and SQLite-based research summaries now exist. Berlin and
+Bratislava centre-specific live validation and the correlation analyses listed
+below remain open.
 
 ## Objective
 

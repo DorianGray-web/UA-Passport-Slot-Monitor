@@ -66,6 +66,10 @@ class ObservationService:
         discovery_stage: str = "LANDING",
         evidence: Iterable[str] = (),
         request_trace: Iterable[RequestTraceEntry] = (),
+        available_dates_count: int | None = None,
+        available_time_slots_count: int | None = None,
+        earliest_available_time: str | None = None,
+        latest_available_time: str | None = None,
     ) -> RecordedObservation:
         observation = Observation(
             observation_id=make_observation_id(provider_id),
@@ -83,6 +87,10 @@ class ObservationService:
             discovery_stage=discovery_stage,
             evidence=tuple(evidence),
             request_trace=tuple(request_trace),
+            available_dates_count=available_dates_count,
+            available_time_slots_count=available_time_slots_count,
+            earliest_available_time=earliest_available_time,
+            latest_available_time=latest_available_time,
         )
 
         events = sorted(

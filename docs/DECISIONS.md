@@ -240,7 +240,8 @@ capture must remain optional, local, sanitized, and outside version control.
 
 ## ADR-0007: Exclude browser fingerprinting and automation from DP Document monitoring
 
-**Status:** Accepted
+**Status:** Superseded in part by ADR-0010 for explicitly enabled, confirmed
+research profiles. Fingerprinting and booking exclusions remain accepted.
 
 **Date:** 2026-07-30
 
@@ -264,16 +265,17 @@ API request was observed during queue discovery.
 
 ### Decision
 
-DP Document monitoring is HTTP-only and follows the public
-`Service -> days -> times` flow.
+DP Document monitoring is HTTP-first and follows the public
+`Service -> days -> times` flow. The HTTP MonitorProvider remains independent
+from browser fingerprinting and booking behavior.
 
 Fingerprint generation is not a monitoring dependency and must not be
 implemented, invoked, emulated, spoofed, persisted, or transmitted by a
 MonitorProvider.
 
-Playwright is excluded from normal queue discovery. Browser automation may be
-used only by operationally separate diagnostics, controlled reverse
-engineering, or separately approved future booking research.
+Playwright is not the default transport. It may be used only by operationally
+separate diagnostics, controlled reverse engineering, or the explicitly
+enabled experimental transport defined by ADR-0010.
 
 Monitoring and any future booking implementation use independent boundaries:
 
@@ -343,3 +345,158 @@ RequestTrace. Request count is derived from trace length.
 - traces support latency, response-size, retry, and request-load analysis;
 - days/times transitions remain disabled until explicit response classifiers
   exist.
+
+## ADR-0009: Transition from City Entry Points to a Registry-driven Generic DP Document Monitor
+
+**Status:** Accepted; implementation deferred
+
+**Date:** 2026-07-31
+
+### Context
+
+The first DP Document centres were implemented as separate executable
+entrypoints such as `berlin_monitor.py`, `bratislava_monitor.py`, and
+`kortrijk_monitor.py`.
+
+That structure was intentional during early provider research:
+
+- each centre could be started, stopped, and diagnosed independently;
+- a centre-specific experiment could be isolated from the other monitors;
+- configuration and logging boundaries remained obvious;
+- adding Berlin and Bratislava did not require an early abstraction over an
+  unstable protocol;
+- failures in one entrypoint did not prevent the orchestrator from supervising
+  the others.
+
+The current nine-centre research sample still uses independent processes and
+entrypoints. City-specific values have moved into
+`providers/dp-document/providers.json`, but each process continues to start
+through a city-named script. This implementation is working and covered by
+offline tests.
+
+The number of expected DP Document centres may grow to 18 or more. At that
+scale, maintaining a nearly identical entrypoint file for every city would add
+repetitive files without adding isolation beyond the process boundary already
+provided by the orchestrator.
+
+### Decision
+
+Keep the existing city entrypoints for the current live-research stage.
+
+After the DP Document monitoring protocol and deployment configuration have
+stabilized, replace the duplicated city scripts with one generic executable,
+conceptually:
+
+```text
+monitor_runner
+    |
+    +-- DPDocumentMonitor --city berlin
+    +-- DPDocumentMonitor --city bratislava
+    +-- DPDocumentMonitor --city madrid
+    +-- ...
+```
+
+Each invocation will remain an independent operating-system process. The
+generic monitor will resolve its city exclusively through the provider
+registry and will continue to produce city-specific logs, state, and metadata.
+
+The transition must not merge provider processes or move protocol behavior
+into the registry. `LandingPageClassifier`, `DiscoveryEngine`,
+`TransitionGuard`, Observation, and the diagnostic subsystem remain shared
+runtime contracts rather than configuration.
+
+### Transition criteria
+
+The refactor may begin when all of the following are true:
+
+1. the multi-centre research observation stage is complete;
+2. landing, days, and times protocol stages have stable classifiers and
+   transition rules;
+3. required deployment-specific configuration fields are known;
+4. the registry can represent all supported centre differences without
+   executable city-specific logic;
+5. regression tests can prove equivalent process supervision, logging,
+   metadata, environment overrides, and manual-stop behavior;
+6. the expected provider set or maintenance cost justifies removing the
+   wrappers, with expansion toward 18 or more centres being the current
+   planning signal.
+
+If a centre requires genuine protocol behavior that cannot be represented by
+configuration, it must use an explicit adapter or strategy boundary. The
+generic monitor must not accumulate city-name conditionals.
+
+### Consequences
+
+- the tested city-entrypoint implementation remains unchanged during live
+  research;
+- the registry is the migration boundary for future centre expansion;
+- adding centres before the transition may still require a small wrapper;
+- after the transition, adding a normal DP Document centre should require only
+  a registry entry;
+- process isolation, per-city logs, per-city JSONL mirrors, and shared
+  `run_id` correlation remain intact;
+- the future refactor has explicit readiness criteria instead of being
+  triggered only by file count;
+- a one-off centre difference will be modeled as an adapter capability, not as
+  branching inside a universal monitor.
+
+## ADR-0010: Experimental Playwright Discovery Transport Fallback
+
+**Status:** Experimental; opt-in research only
+
+**Date:** 2026-07-31
+
+### Context
+
+Runtime evidence shows that direct HTTP access may alternate between confirmed
+public responses and HTTP `403` protection pages. Passive browser observations
+confirm that an ordinary browser session can expose the public
+`LANDING -> DAYS -> TIMES` workflow for Madrid, Barcelona, London, and Milan
+without identity verification or booking.
+
+### Decision
+
+Introduce an opt-in `PlaywrightDiscoveryTransport` for Madrid, Barcelona,
+London, and Milan only. Every cycle remains HTTP-first:
+
+```text
+HTTP confirmed discovery -> Observation(transport=http)
+HTTP BLOCKED             -> Playwright persistent context
+Playwright TIMES         -> Observation(transport=playwright) -> STOP
+```
+
+The feature is disabled by default and requires
+`PLAYWRIGHT_DISCOVERY_FALLBACK_ENABLED=true`. The browser uses one persistent
+local profile per provider under Git-ignored `.browser-data/`. It performs one
+navigation, changes only confirmed public service/date selectors, and reads
+`days`/`times` through the same strict classifiers as HTTP.
+
+It must not interact with CAPTCHA, identity fields, continuation controls, or
+booking. It must not use fingerprint spoofing, stealth plugins, proxies, IP
+rotation, challenge bypass, artificial retries, screenshots, HAR, or payload
+persistence. A challenge remains `BLOCKED`; unexpected DOM or JSON becomes
+`UNKNOWN`.
+
+Observation schema v3 remains unchanged. A successful fallback records
+`transport=playwright`; its sanitized trace retains the initial HTTP attempt
+and subsequent browser stages.
+
+### Consequences
+
+- HTTP remains the preferred low-overhead transport;
+- browser execution is limited to four evidence-confirmed profiles;
+- persistent state remains local and excluded from source control;
+- existing polling intervals bound browser frequency to one attempt per
+  blocked cycle;
+- Site Investigator remains a separate optional diagnostic subsystem;
+- adoption outside these profiles requires separate evidence and validation.
+
+### Subsequent validation
+
+On 2026-07-31, a bounded 3h57m run across the four confirmed profiles recorded
+79 browser fallbacks after HTTP `403`. All 79 reached `TIMES` and produced
+`SLOTS_AVAILABLE`; no browser errors, unexpected browser `UNKNOWN`, CAPTCHA
+interactions, identity-data interactions, or booking actions were recorded.
+This validates the experimental transport for those four profiles only. It
+does not establish equivalent behavior for other centres or prove that the
+public `days`/`times` protocol is fundamentally inaccessible over HTTP.

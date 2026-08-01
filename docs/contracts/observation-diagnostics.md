@@ -6,7 +6,7 @@
 check: at a specific time, the monitor observed exactly this result. It is
 never updated with later diagnostic, notification, or analytics state.
 
-Every persisted contract has an explicit `schema_version`. Observation v2 is
+Every persisted contract has an explicit `schema_version`. Observation v3 is
 current; diagnostic contracts remain v1.
 
 ## Causal model
@@ -27,7 +27,7 @@ InvestigationResult
 Notifications and analytics are independent reactions linked to the same
 `observation_id`.
 
-## Observation v2
+## Observation v3
 
 Required fields:
 
@@ -47,11 +47,21 @@ Required fields:
 - `discovery_stage`;
 - typed `evidence`;
 - sanitized `request_trace`.
+- `available_dates_count`;
+- `available_time_slots_count`;
+- `earliest_available_time`;
+- `latest_available_time`.
 
 `discovery_stage` is one of `LANDING`, `SERVICE_VALIDATION`, `DAYS`, or
 `TIMES`. Trace items contain method, logical operation, status, duration,
 response size, attempt, and transport. They never contain CSRF, headers,
 request bodies, cookies, tokens, fingerprints, or personal data.
+
+Availability fields remain `null` until the runtime reaches a
+provider-specific, confirmed public response schema.
+`available_time_slots_count` counts allowed time entries returned by the
+public protocol. It does not infer appointment capacity from localized display
+labels. Exact dates and raw availability payloads are not persisted.
 
 `request_count` is computed as `len(request_trace)` and is not persisted.
 

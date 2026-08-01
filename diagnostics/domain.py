@@ -13,7 +13,7 @@ from typing import Any
 
 
 SCHEMA_VERSION = 1
-OBSERVATION_SCHEMA_VERSION = 2
+OBSERVATION_SCHEMA_VERSION = 3
 
 
 def utc_now() -> str:
@@ -55,6 +55,10 @@ class Observation:
     discovery_stage: str = "LANDING"
     evidence: tuple[str, ...] = ()
     request_trace: tuple[RequestTraceEntry, ...] = ()
+    available_dates_count: int | None = None
+    available_time_slots_count: int | None = None
+    earliest_available_time: str | None = None
+    latest_available_time: str | None = None
     schema_version: int = OBSERVATION_SCHEMA_VERSION
 
     @property

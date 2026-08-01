@@ -12,12 +12,17 @@ playwright/
 data/
 logs/
 metadata/
+observations/
+research-output/
 screenshots/
 captures/
 network/
 cookies/
 tokens/
 storage/
+local-storage/
+session-storage/
+csrf-snapshots/
 analysis/
 artifacts/
 reports/runtime/
@@ -27,17 +32,28 @@ reports/runtime/
 **/cookies/
 **/tokens/
 **/storage/
+**/local-storage/
+**/session-storage/
+**/csrf-snapshots/
 **/analysis/
 **/artifacts/
 **/reports/runtime/
 *.har
 *.trace
 *.log
+*.jsonl
 *.sqlite
 *.sqlite3
 *.db
 *.session
 *.session.*
+*storage-state*.json
+*storage_state*.json
+*csrf-snapshot*
+*csrf_snapshot*
+
+# Generated live-run summaries; keep curated research notes, not runtime output
+research/dp-document/*-playwright-fallback-*-report.md
 
 # Python cache
 __pycache__/
