@@ -77,9 +77,11 @@ Where technically possible:
 
 ## 5. Browser diagnostics, sessions, and CAPTCHA
 
-DP Document queue monitoring uses public pre-authentication HTTP requests and
-does not require a browser fingerprint or browser session. Browser automation
-is reserved for separate local diagnostics and controlled research.
+DP Document queue monitoring remains HTTP-first and does not require browser
+fingerprinting. An explicitly enabled, bounded Playwright transport may use a
+local persistent browser session for an evidence-confirmed research profile
+after HTTP is blocked. It follows the same public discovery contract and stops
+at `TIMES`; browser execution does not extend the provider capability.
 
 Browser-based observation does not by itself mean that a protection mechanism
 is being bypassed.
@@ -102,8 +104,10 @@ The project does not:
 
 If a provider presents a CAPTCHA or browser challenge that prevents passive
 state determination, the monitor must report the corresponding unresolved
-state and may enqueue separate diagnostics. It must not launch a browser or
-generate a fingerprint.
+state. An explicitly enabled confirmed profile may attempt one bounded normal
+browser discovery execution, and the monitor may enqueue separate diagnostics.
+It must not generate a fingerprint, interact with CAPTCHA, submit identity
+data, or continue into booking.
 
 The user must personally review availability, complete any required
 verification, select an appointment, and confirm the booking on the official
@@ -141,6 +145,20 @@ Before a third-party service is introduced, the project should evaluate what dat
 Third-party services must be documented in this policy before they are used in a public production version.
 
 The project will not sell personal data or share it with data brokers or advertising networks.
+
+The proposed evidence-first notification Output Pipeline is documented in
+[`docs/NOTIFICATION_ARCHITECTURE.md`](docs/NOTIFICATION_ARCHITECTURE.md). It is
+not implemented at this milestone. Telegram is the first planned delivery
+adapter, but no bot token, destination identifier, subscription, queue,
+external message, or third-party notification data flow currently exists.
+
+Any future implementation must construct outbound payloads from an explicit
+public-data allowlist. Notification contracts, queues, logs, audit records,
+and messages must not contain cookies, CSRF values, headers, raw HTML, browser
+storage, browser-profile paths, captures, phone numbers, OTP, CAPTCHA,
+identity data, booking payloads, complete credentials, or resolved recipient
+identifiers. Recipient opt-in, retention, deletion, and third-party processing
+require a separate review before public notifications are enabled.
 
 ## 9. Analytics and telemetry
 
@@ -261,4 +279,4 @@ At the time of this draft, UA Passport Slot Monitor is in the design and validat
 
 This document defines the intended privacy boundaries of the project. It does not claim that every described feature has already been implemented.
 
-**Last updated:** 2026-07-28
+**Last updated:** 2026-08-02

@@ -180,6 +180,23 @@
       "research": {
         "observation_group": "active"
       }
+    },
+    {
+      "city": "prague",
+      "provider": "dp-document-prague",
+      "queue_url": "https://prague.pasport.org.ua/solutions/e-queue",
+      "env_prefix": "PRAGUE",
+      "entrypoint": "prague_monitor.py",
+      "enabled": true,
+      "priority": "high",
+      "startup_delay_seconds": 330,
+      "public_discovery_profile": "prague-v1",
+      "service_center_id": "8",
+      "service_id": "4",
+      "csrf_value": "1",
+      "research": {
+        "observation_group": "active"
+      }
     }
   ]
 }

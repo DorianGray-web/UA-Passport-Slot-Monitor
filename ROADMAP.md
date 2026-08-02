@@ -71,6 +71,10 @@
 - [x] Start the bounded Berlin/Kortrijk candidate-landing comparison alongside
   the five enabled public-discovery profiles; Berlin evidence was confirmed
   during the run, while Kortrijk remains landing-only
+- [x] Capture sanitized Kortrijk candidate form evidence for centre `48`,
+  service option `4`, and date/time selectors without selecting the service
+- [ ] Confirm Kortrijk service selection and the complete bounded
+  `LANDING -> DAYS -> TIMES -> STOP` contract before capability review
 - [ ] Analyze time-of-day and cross-centre HTML-change correlations
 - [ ] Measure delay from HTML changes to confirmed slot availability
 - [ ] Document the manual challenge-intervention flow
@@ -82,7 +86,7 @@
 - [x] Implement evidence-first landing classification and transition guards
 - [x] Add typed discovery stages, evidence, and request traces to Observation
 - [ ] Validate HTTP session and CSRF handling for each DP Document centre
-- [x] Add strict confirmed days/times classifiers used by nine governed
+- [x] Add strict confirmed days/times classifiers used by ten governed
   evidence profiles
 - [ ] Validate or add centre-specific days and times classifiers for the
   remaining centres
@@ -94,6 +98,10 @@
   bounded comparative runtime validation
 - [x] Admit the evidence-confirmed Berlin, Toronto, Cologne, and Bratislava
   contracts through four explicit governance-reviewed registry changes
+- [x] Confirm Prague centre `8`, service `4`, one allowed date, four allowed
+  public time entries, and the bounded public discovery contract
+- [x] Record the independent Prague governance decision and add `prague-v1`
+- [ ] Complete bounded post-promotion runtime validation for Prague
 - [x] Complete bounded runtime validation of the four newly promoted profiles
 - [ ] After the ADR-0009 transition criteria are met, replace city wrappers
   with one registry-driven generic DP Document monitor
@@ -104,7 +112,22 @@
 - [ ] Implement subscription and state storage
 - [ ] Deduplicate identical monitoring requests
 - [ ] Detect availability changes without false `NO_SLOTS` results
-- [ ] Implement Telegram and email notifications
+- [ ] Complete the ADR-0012 documentation milestone:
+  - [x] complete conceptual design, architecture review, and governance
+    proposal;
+  - [x] author proposed ADR-0012;
+  - [x] author Notification Architecture, event contracts, configuration
+    schema, and notification test strategy;
+  - [x] integrate documentation references and release traceability;
+  - [ ] record governance approval and change ADR-0012 to `Accepted`.
+- [ ] Implement the offline notification domain only after ADR-0012 approval:
+  immutable contracts, Policy Set validation, Decision Trace, replay tests,
+  and architecture tests
+- [ ] Implement SQLite NotificationQueue, worker, and developer-only Telegram
+  adapter after the offline milestone passes
+- [ ] Perform bounded notification validation before any runtime integration
+- [ ] Review opt-in, retention, deletion, and privacy requirements before
+  enabling public notifications or additional delivery channels
 - [ ] Implement an operator-facing blocked/challenge workflow
 - [ ] Test notifications using real availability changes
 

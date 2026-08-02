@@ -4,8 +4,8 @@
 
 This document separates the implemented local prototype from the intended
 service architecture. The Observation/outbox/diagnostic infrastructure,
-landing classifier, provider boundaries, eleven independent monitor entry
-points, process runner, and nine registry-enabled public-discovery profiles
+landing classifier, provider boundaries, twelve independent monitor entry
+points, process runner, and ten registry-enabled public-discovery profiles
 are implemented. Subscriptions, notifications, and live-validated `days`/`times`
 discovery for the remaining centres are not.
 
@@ -53,7 +53,7 @@ MonitorProvider is the protocol contract and has no fingerprint, identity,
 OTP, BankID, Diia, reservation, or browser dependency. `CityMonitor` performs
 transport orchestration without broadening that contract.
 
-The HTTP adapter exposes landing, `days`, and `times` operations. Nine
+The HTTP adapter exposes landing, `days`, and `times` operations. Ten
 governance-approved profiles execute the complete public sequence. Kortrijk
 and Chisinau remain landing-only until equivalent centre-specific evidence
 and governance approval exist.
@@ -97,7 +97,7 @@ Later Berlin evidence for the same allowed date reached `TIMES` with nine
 entries and `SLOTS_AVAILABLE`, confirming that a post-discovery state may
 change without changing the public state-machine boundary.
 
-Across the nine currently evidence-confirmed deployments, a cycle may stop at
+Across the ten currently evidence-confirmed deployments, a cycle may stop at
 a recognized landing-level `NO_SLOTS` marker or continue through the guarded
 public contract. When `TIMES` is reached, its recognized contents determine
 `NO_SLOTS` or `SLOTS_AVAILABLE`. This is an evidence-bounded comparison, not a
@@ -132,7 +132,7 @@ requirements can never become monitoring dependencies.
 
 ### Browser transport and diagnostics
 
-HTTP remains preferred. An opt-in research fallback allows the nine currently
+HTTP remains preferred. An opt-in research fallback allows the ten currently
 registry-enabled research profiles to use a persistent Playwright context
 only after HTTP is `BLOCKED`.
 It follows the same confirmed state machine and stops at `TIMES`.
@@ -169,7 +169,39 @@ Only a valid, recognized provider response may produce `NO_SLOTS`.
 
 Planned service behavior. The prototype records state transitions and
 diagnostic decisions, but no Telegram, email, or end-user notification sender
-is implemented.
+is implemented. The proposed one-way Output Pipeline is specified by
+[ADR-0012](DECISIONS.md#adr-0012-evidence-first-notification-derivation-and-output-isolation)
+and [Notification Architecture](NOTIFICATION_ARCHITECTURE.md).
+
+```mermaid
+flowchart LR
+    subgraph INPUT["Input Pipeline"]
+        P["Provider"] --> T["Transport"]
+        T --> G["Runtime Guard"]
+        G --> O["Immutable Observation"]
+    end
+
+    subgraph OUTPUT["Proposed Output Pipeline"]
+        O --> C["Notification Candidate"]
+        C --> D["Versioned Decision Trace"]
+        D --> E["Confirmed Event"]
+        E --> Q["Notification Queue"]
+        Q --> A["Delivery Adapter"]
+    end
+
+    A -. "no control path" .-> P
+```
+
+The proposal keeps notification derivation outside provider processes.
+Policies consume committed Observations but never schedule observations. The
+Coordinator performs orchestration only; priority and audience remain
+independent; adapters receive privacy-validated envelopes rather than
+Observation or provider objects. Notification decisions and delivery audit
+are separate immutable records.
+
+No component in this proposed Output Pipeline is implemented at the current
+milestone. Observation v3, provider runtime, diagnostics, and trusted
+capabilities remain unchanged.
 
 ## Safety boundaries
 

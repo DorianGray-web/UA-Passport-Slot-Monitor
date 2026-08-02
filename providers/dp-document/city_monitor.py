@@ -56,6 +56,7 @@ CONFIRMED_PUBLIC_DISCOVERY_PROFILES = {
     "bratislava-v1",
     "toronto-v1",
     "cologne-v1",
+    "prague-v1",
 }
 
 

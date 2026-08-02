@@ -195,4 +195,24 @@ Diagnostic tooling must:
 The public monitor must not depend on an external diagnostic tool in order to
 continue operating.
 
-**Last updated:** 2026-07-28
+## 12. Proposed notification output boundary
+
+The proposed notification architecture is documented in
+[`docs/NOTIFICATION_ARCHITECTURE.md`](./docs/NOTIFICATION_ARCHITECTURE.md) and
+proposed ADR-0012. No notification sender or Telegram integration is currently
+implemented.
+
+If accepted and implemented, the Output Pipeline must remain one-way and
+read-only with respect to monitoring. Delivery credentials must be resolved
+outside persisted notification contracts and must not appear in source
+control, logs, queues, audit records, Decision Traces, or outbound message
+content. Delivery adapters receive only normalized, privacy-validated
+envelopes and cannot access Observations, provider internals, browser state,
+Runtime Guard, or governance configuration.
+
+Unsupported schemas, Policy Sets, routes, credentials, or outbound fields
+must fail closed without an external call. A delivery failure must never
+trigger a provider check, change monitoring cadence, or alter trusted
+capabilities.
+
+**Last updated:** 2026-08-02

@@ -40,9 +40,9 @@ submitForm* -> browser fingerprint -> OTP / BankID / Diia -> reservation
 ```
 
 Embedded ThumbmarkJS module 708 belongs to that booking flow and is
-intentionally excluded from MonitorProvider. HTTP remains preferred. The nine
+intentionally excluded from MonitorProvider. HTTP remains preferred. The ten
 currently registry-enabled research profiles—Madrid, Barcelona, London,
-Milan, Valencia, Berlin, Toronto, Cologne, and Bratislava—may use an explicitly enabled experimental
+Milan, Valencia, Berlin, Toronto, Cologne, Bratislava, and Prague—may use an explicitly enabled experimental
 persistent-browser fallback after HTTP `BLOCKED`; it stops at public `TIMES`
 and never interacts with CAPTCHA, identity, or booking. Kortrijk and Chisinau
 remain landing-only.
@@ -61,7 +61,7 @@ The classifier emits typed evidence such as `HTTP_200`,
 `HTML_NO_SLOTS_MARKER`, `QUEUE_FORM_FOUND`, and `CSRF_FOUND`. Absence of a form
 alone is never evidence for `NO_SLOTS`.
 
-Nine deployments now have evidence-confirmed and governance-approved public
+Ten deployments now have evidence-confirmed and governance-approved public
 date/time contracts. The following items remain incomplete:
 
 - confirmed CSRF field names and response schemas for every deployment;
@@ -72,7 +72,7 @@ date/time contracts. The following items remain incomplete:
 
 | Centre | Implemented locally | Live evidence |
 |---|---|---|
-| Kortrijk | Shared `CityMonitor` landing-only entry point plus opt-in ADR-0011 candidate landing probe; no service is selected automatically | A historical 24-hour study, a 12-hour comparison, and the 2026-08-02 six-hour release validation exist. The latest candidate probe found no queue form or identifiers; service selection and full discovery remain unconfirmed |
+| Kortrijk | Shared `CityMonitor` landing-only entry point plus opt-in ADR-0011 candidate landing probe; no service is selected automatically | A later bounded probe detected the public queue form, centre `48`, service option `4`, and date/time selectors. It stopped at `LANDING` without selecting a service or executing `DAYS` or `TIMES`; service selection and the full public contract remain unconfirmed |
 | Berlin | Evidence-gated `berlin-v1` discovery profile (centre `2`, service `4`) | Owner-provided live evidence confirms `LANDING -> DAYS -> TIMES -> STOP`; the six-hour validation observed both `NO_SLOTS` and `SLOTS_AVAILABLE`, with no browser error or browser `UNKNOWN` |
 | Bratislava | Evidence-gated `bratislava-v1` discovery profile (centre `9`, service `4`) | Owner-provided live evidence confirms the bounded public contract; the six-hour validation observed both `NO_SLOTS` and `SLOTS_AVAILABLE` |
 | Milan | Experimental HTTP-first browser-fallback profile (`ServiceCenterId=4`, `ServiceId=4`) | Owner-provided passive browser evidence confirmed the public `form=days` request on 2026-07-31; the bounded runtime stops at `TIMES` |
@@ -83,6 +83,7 @@ date/time contracts. The following items remain incomplete:
 | Barcelona | Independent entry point plus evidence-gated `barcelona-v1` HTTP discovery and opt-in persistent-browser fallback; stops at `TIMES` | Owner evidence confirms the contract; a bounded 2026-07-31 runtime check independently completed HTTP `403` -> Playwright `TIMES` and recorded `SLOTS_AVAILABLE` |
 | Valencia | Independent entry point plus evidence-gated `valencia-v1` HTTP discovery and opt-in persistent-browser fallback; centre `7`, service `4`; stops at `TIMES` | Owner-provided passive browser evidence confirms the public days/times request sequence; the earlier 12-hour bounded runtime validation completed without browser error or browser `UNKNOWN` |
 | Cologne | Evidence-gated `cologne-v1` discovery profile (centre `3`, service `4`) | Owner-provided live evidence confirms the bounded public contract and seven allowed time entries; the later six-hour validation remained `NO_SLOTS` in all 38 observations |
+| Prague | Evidence-gated `prague-v1` discovery profile (centre `8`, service `4`) | Owner-provided live evidence confirms one allowed date, four allowed time entries, and the bounded public contract; bounded post-promotion runtime validation is pending |
 
 The frontend findings describe the observed DP Document application. They do
 not prove identical deployment details, markers, CSRF field names, or response
@@ -107,7 +108,7 @@ The earlier
 remains evidence about HTTP behavior before the experimental browser transport
 was enabled.
 
-All nine enabled profiles reuse the strict confirmed response classifiers,
+All ten enabled profiles reuse the strict confirmed response classifiers,
 fail closed as `UNKNOWN` on protocol deviation, and terminate at `TIMES`. See the
 [Barcelona live-observation report](../research/dp-document/2026-07-31-barcelona-live-observation.md),
 the
@@ -118,6 +119,7 @@ the
 [Toronto live-observation report](../research/dp-document/2026-08-01-toronto-live-observation.md),
 the [Cologne live-observation report](../research/dp-document/2026-08-01-cologne-live-observation.md),
 the [Bratislava live-observation report](../research/dp-document/2026-08-01-bratislava-live-observation.md),
+the [Prague live-observation report](../research/dp-document/2026-08-02-prague-live-observation.md),
 the
 [cross-deployment comparison](../research/dp-document/2026-08-01-cross-deployment-public-discovery-comparison.md),
 and the local run-summary workflow documented in the project README.

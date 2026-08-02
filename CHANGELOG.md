@@ -8,7 +8,45 @@ This changelog tracks implementation milestones and significant documentation, a
 
 ## [Unreleased]
 
-No unreleased changes.
+### Documentation
+
+- Added proposed ADR-0012, defining evidence-first notification derivation,
+  versioned Policy Sets, immutable Decision Traces, decision reproducibility,
+  privacy validation, output isolation, and the orchestration-only Coordinator
+  invariant.
+- Added the proposed Notification Architecture for a one-way
+  `Observation -> Candidate -> Decision -> Confirmed Event -> Delivery -> Audit`
+  Output Pipeline with Telegram as a future replaceable adapter rather than a
+  runtime dependency.
+- Added independently versioned notification event contracts and explicit
+  separation between logical Notification Decisions, provenance, delivery
+  jobs/results, and operational audit records.
+- Added a draft JSON Schema for credential-free Policy Sets, confirmation and
+  deduplication policies, provider-specific notification overrides, privacy
+  allowlists, and audience/channel routing profiles.
+- Added the Notification Test Strategy covering contract, policy, Decision
+  Replay, integration, architecture, and privacy-regression tests.
+- Extended the Release Policy Traceability gate so any future externally
+  deliverable event must be reproducible from retained facts, logical decision
+  state, and the referenced versioned Policy Set.
+- Documented that the notification package is architecture-only: no runtime
+  integration, queue, worker, adapter, Telegram API call, provider change, or
+  external message has been implemented.
+- Recorded owner-provided Prague live evidence confirming centre `8`, service
+  `4`, one allowed date, four allowed time entries from `11:45:00` through
+  `12:45:00`, and the bounded `LANDING -> DAYS -> TIMES -> STOP` contract.
+- Recorded the project-owner governance decision approving the independently
+  reviewed `prague-v1` public-discovery capability.
+- Recorded sanitized Kortrijk candidate evidence from a later bounded probe:
+  public queue form, centre `48`, service option `4`, and date/time selectors.
+  The probe stopped at `LANDING`; no service was selected and no capability was
+  promoted.
+
+### Added
+
+- Added Prague as the twelfth independently supervised deployment and the
+  tenth evidence-gated discovery profile, reusing the shared `CityMonitor`
+  protocol without adding identity, CAPTCHA, fingerprint, or booking logic.
 
 ## [0.3.0] - 2026-08-02
 

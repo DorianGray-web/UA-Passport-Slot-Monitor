@@ -12,6 +12,8 @@ Research artifacts are not production implementations. A documented observation 
 - [Toronto public discovery live observation](dp-document/2026-08-01-toronto-live-observation.md)
 - [Cologne public discovery live observation](dp-document/2026-08-01-cologne-live-observation.md)
 - [Bratislava public discovery live observation](dp-document/2026-08-01-bratislava-live-observation.md)
+- [Prague public discovery live observation](dp-document/2026-08-02-prague-live-observation.md)
+- [Kortrijk candidate form observation](dp-document/2026-08-02-kortrijk-candidate-form-observation.md)
 - [Seven-centre 12-hour runtime validation](dp-document/2026-08-02-seven-centre-12h-runtime-validation.md)
 - [Seven-centre six-hour release validation](dp-document/2026-08-02-seven-centre-6h-release-validation.md)
 - [Cross-deployment public discovery comparison](dp-document/2026-08-01-cross-deployment-public-discovery-comparison.md)
