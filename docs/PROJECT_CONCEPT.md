@@ -130,7 +130,9 @@ When a CAPTCHA is detected:
 3. The user follows an approved manual intervention path on the official site.
 4. Monitoring resumes only after the provider can again be observed safely.
 
-The current HTTP-only monitor does not open or retain a browser session.
+The initial HTTP-only prototype did not open or retain a browser session.
+Current research runtime remains HTTP-first and may use an explicitly enabled,
+bounded Playwright transport for a confirmed profile after HTTP is blocked.
 
 ## 8. Notifications
 

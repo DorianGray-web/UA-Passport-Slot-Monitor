@@ -56,6 +56,11 @@ def load_provider_registry(
                 service_center_id=item.get("service_center_id"),
                 service_id=item.get("service_id"),
                 csrf_value=item.get("csrf_value"),
+                candidate_evidence_probe=bool(
+                    item.get("research", {}).get(
+                        "candidate_evidence_probe", False
+                    )
+                ),
             ),
             entrypoint=PROVIDER_DIR / str(item["entrypoint"]),
             enabled=bool(item["enabled"]),

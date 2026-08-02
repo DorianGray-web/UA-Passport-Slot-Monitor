@@ -7,6 +7,15 @@ Research artifacts are not production implementations. A documented observation 
 ## Current studies
 
 - [DP Document queue workflow](dp-document/queue-workflow.md)
+- [Valencia live observation](dp-document/2026-08-01-valencia-live-observation.md)
+- [Berlin public discovery live observation](dp-document/2026-08-01-berlin-live-observation.md)
+- [Toronto public discovery live observation](dp-document/2026-08-01-toronto-live-observation.md)
+- [Cologne public discovery live observation](dp-document/2026-08-01-cologne-live-observation.md)
+- [Bratislava public discovery live observation](dp-document/2026-08-01-bratislava-live-observation.md)
+- [Seven-centre 12-hour runtime validation](dp-document/2026-08-02-seven-centre-12h-runtime-validation.md)
+- [Seven-centre six-hour release validation](dp-document/2026-08-02-seven-centre-6h-release-validation.md)
+- [Cross-deployment public discovery comparison](dp-document/2026-08-01-cross-deployment-public-discovery-comparison.md)
+- [Seven-centre candidate evidence plan](dp-document/2026-08-01-seven-centre-candidate-evidence-plan.md)
 
 ## Run summaries
 

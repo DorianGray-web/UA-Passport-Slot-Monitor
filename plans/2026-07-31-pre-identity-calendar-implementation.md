@@ -6,10 +6,12 @@
 
 The original proposal below is retained as an implementation-planning record.
 Strict days/times classifiers, guarded discovery, Observation schema v3, and a
-terminal `TIMES` boundary are implemented for Madrid, Barcelona, London, and
-Milan. The runtime remains HTTP-first; those confirmed research profiles may
-use an explicitly enabled experimental Playwright fallback after HTTP
-`BLOCKED`.
+terminal `TIMES` boundary are implemented for nine governed profiles. The
+runtime remains HTTP-first; those confirmed research profiles may use an
+explicitly enabled experimental Playwright fallback after HTTP `BLOCKED`.
+
+> **Supersession note — 2026-08-02:** Bounded validation now covers all nine
+> governed profiles. Kortrijk and Chisinau remain landing-only.
 
 The identity-boundary classifier, sanitized identity-boundary fixtures, and
 production notification behavior remain unimplemented. The original

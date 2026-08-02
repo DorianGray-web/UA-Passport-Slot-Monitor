@@ -6,6 +6,12 @@ Approved; partially implemented. This specification remains the requirement
 baseline, not a statement that every acceptance criterion is complete. See the
 implementation plan and verification reports for current evidence.
 
+> **Historical evidence note — 2026-08-01:** This specification continues to
+> describe the original Kortrijk landing-only research scope. Subsequent
+> confirmation of Berlin's public discovery contract does not establish the
+> same centre identifiers or capability for Kortrijk, which remains
+> landing-only in the current evidence corpus.
+
 ## Goal
 
 Passively observe the Kortrijk electronic queue state without modifying,

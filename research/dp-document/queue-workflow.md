@@ -15,6 +15,14 @@
 > evidence-gated. The historical text is retained to preserve research
 > chronology.
 
+> **Supersession note — 2026-08-01:** Subsequent reviewed evidence confirms
+> the same high-level public contract for Valencia and Berlin. Berlin centre
+> `2`, service `4`, reached `DAYS(1) -> TIMES(0) -> NO_SLOTS -> STOP`, proving
+> that `NO_SLOTS` may also be a valid post-discovery result. Five profiles are
+> currently registry-enabled; Berlin capability remains a separate governance
+> decision under ADR-0011. No inference is made for Kortrijk or other
+> deployments.
+
 ## Purpose
 
 This study evaluates whether appointment availability can be monitored responsibly without automatic booking, CAPTCHA bypass, or collection of passport details.

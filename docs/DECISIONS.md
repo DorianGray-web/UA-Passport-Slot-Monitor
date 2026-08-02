@@ -368,7 +368,7 @@ That structure was intentional during early provider research:
 - failures in one entrypoint did not prevent the orchestrator from supervising
   the others.
 
-The current nine-centre research sample still uses independent processes and
+The current eleven-centre research sample still uses independent processes and
 entrypoints. City-specific values have moved into
 `providers/dp-document/providers.json`, but each process continues to start
 through a city-named script. This implementation is working and covered by
@@ -451,13 +451,14 @@ generic monitor must not accumulate city-name conditionals.
 Runtime evidence shows that direct HTTP access may alternate between confirmed
 public responses and HTTP `403` protection pages. Passive browser observations
 confirm that an ordinary browser session can expose the public
-`LANDING -> DAYS -> TIMES` workflow for Madrid, Barcelona, London, and Milan
+`LANDING -> DAYS -> TIMES` workflow for Madrid, Barcelona, London, Milan, and Valencia
 without identity verification or booking.
 
 ### Decision
 
-Introduce an opt-in `PlaywrightDiscoveryTransport` for Madrid, Barcelona,
-London, and Milan only. Every cycle remains HTTP-first:
+Introduce an opt-in `PlaywrightDiscoveryTransport` only for explicitly
+governed, evidence-confirmed registry profiles. The initial scope was Madrid,
+Barcelona, London, Milan, and Valencia. Every cycle remains HTTP-first:
 
 ```text
 HTTP confirmed discovery -> Observation(transport=http)
@@ -484,7 +485,8 @@ and subsequent browser stages.
 ### Consequences
 
 - HTTP remains the preferred low-overhead transport;
-- browser execution is limited to four evidence-confirmed profiles;
+- browser execution is limited to registry-enabled, evidence-confirmed
+  profiles admitted through ADR-0011 governance;
 - persistent state remains local and excluded from source control;
 - existing polling intervals bound browser frequency to one attempt per
   blocked cycle;
@@ -500,3 +502,301 @@ interactions, identity-data interactions, or booking actions were recorded.
 This validates the experimental transport for those four profiles only. It
 does not establish equivalent behavior for other centres or prove that the
 public `days`/`times` protocol is fundamentally inaccessible over HTTP.
+
+On 2026-08-01, owner-provided passive browser evidence confirmed Valencia
+centre `7`, service `4`, the public days/times request sequence, and compatible
+response schemas. Valencia was therefore admitted as a fifth evidence-gated
+profile. Its transport reliability remains subject to a separate bounded
+runtime validation.
+
+Also on 2026-08-01, owner-provided passive browser evidence confirmed Berlin
+centre `2`, service `4`, and the same bounded public sequence. Berlin reached
+`DAYS` with one allowed date (`2026-08-31`) and then `TIMES` with an empty
+`timeSlots` array, producing the valid terminal result
+`DAYS(1) -> TIMES(0) -> NO_SLOTS -> STOP`. This extends the evidence corpus;
+under ADR-0011 it does not automatically add Berlin to the five
+registry-enabled fallback profiles. Such admission requires an explicit
+governance-reviewed configuration change and runtime validation.
+
+A later review on the same day observed the same Berlin date with nine allowed
+time entries (`15:15:00`–`17:15:00`) and `SLOTS_AVAILABLE`. The two retained
+observations establish temporal variability, but do not identify its
+provider-side cause.
+
+Across the currently evidence-confirmed deployments—Madrid, Barcelona,
+London, Milan, Valencia, and Berlin—successful HTTP `200` landing responses
+exposed the public queue form and discovery proceeded through `DAYS` and
+`TIMES`. This is a bounded evidence statement, not a protocol guarantee for
+other deployments.
+
+Later on 2026-08-01, owner-provided passive browser evidence confirmed
+Toronto centre `46`, service `4`, one allowed date, and 11 allowed time
+entries from `08:15:00` through `13:00:00` through the same terminal
+`TIMES -> STOP` boundary. Frontend-source
+evidence also identifies `form=check_services` as a public service preflight;
+the supplied screenshots do not independently establish its live response.
+This evidence expands the corpus without automatically changing Toronto's
+registry capability or extending ADR-0010 browser enablement.
+
+At that evidence checkpoint, the reviewed corpus contained seven deployments with the same
+high-level bounded discovery sequence. Berlin is the retained reference case
+showing that `NO_SLOTS` and `SLOTS_AVAILABLE` can both arise from the contents
+of recognized `TIMES` responses without a different public execution branch.
+This interpretation is limited to the reviewed evidence set.
+
+On 2026-08-01, subsequent owner-provided reviews added Cologne centre `3`,
+service `4`, and Bratislava centre `9`, service `4`, bringing the reviewed
+public-contract corpus to nine deployments. On 2026-08-02, Berlin, Cologne,
+Bratislava, and Toronto were promoted independently through an explicit
+[governance review](governance/2026-08-02-public-discovery-profile-promotions.md).
+This is a governed capability change, not an automatic consequence of the
+observations.
+
+On 2026-08-02, a six-hour bounded release validation exercised Berlin,
+Cologne, Bratislava, and Toronto alongside Madrid and Barcelona controls. The
+confirmed browser-discovery executions either reached `TIMES` or stopped at a
+recognized earlier `NO_SLOTS` boundary. No browser error or browser `UNKNOWN`
+was recorded. Cologne remained `NO_SLOTS` throughout this window; this does
+not contradict its earlier time-specific live availability evidence.
+Kortrijk's separate candidate probe found no queue form or identifiers and did
+not change capabilities. See the
+[six-hour release validation](../research/dp-document/2026-08-02-seven-centre-6h-release-validation.md).
+
+## ADR-0011: Trust Model for Evidence Collection and Capability Governance
+
+**Status:** Accepted; normative
+
+**Date:** 2026-08-01
+
+### Context
+
+The project collects runtime observations and research material from public
+provider deployments. Automatically collected evidence can reveal candidate
+service identifiers, selectors, response shapes, transports, or other
+potential capabilities. Such evidence may be incomplete, temporary,
+contradictory, or specific to one deployment version.
+
+Treating automatically discovered evidence as authorization to change runtime
+behavior would violate the evidence-first model. The project therefore needs
+a stable trust boundary between facts, research material, interpretation,
+trusted configuration, and runtime execution.
+
+### Decision
+
+> **Trust is declared, not inferred.**
+
+The normative rules in this ADR are complemented by the
+[Evidence Matrix](EVIDENCE_MATRIX.md), which records current deployment state
+without becoming a source of runtime capabilities.
+
+Trusted capabilities are declared explicitly through governance-controlled
+configuration. Runtime observations and automatically collected evidence may
+inform governance decisions, but they must never modify trusted capabilities
+directly.
+
+> Automatic collection may increase the evidence corpus, but it must never
+> modify trusted provider capabilities.
+
+### Trust layers
+
+| Layer | Responsibility |
+|---|---|
+| Observation | Records immutable runtime facts |
+| Candidate Artifact | Stores local, disposable material for investigation |
+| Evidence Corpus | Preserves the logical body of retained evidence and interpretations |
+| Governance Review | Evaluates evidence and authorizes capability changes |
+| `providers.json` | Declares trusted provider capabilities |
+| `provider_registry.py` | Loads and validates trusted configuration |
+| Runtime Guard | Enforces the currently trusted contract and fails closed |
+
+Observation and Candidate Artifact are separate outputs of a bounded runtime
+observation. A Candidate Artifact does not extend Observation and is not
+domain state or a source of truth.
+
+### Evidence Corpus
+
+**Evidence Corpus** is the logical body of retained observations, local
+candidate artifacts, confirmed research records, and documented
+interpretations available to governance review. It may contain evidence
+collected at different times that supports mutually contradictory
+interpretations.
+
+The logical corpus is distributed by responsibility:
+
+```text
+Observations
+    local immutable runtime store
+
+Candidate Artifacts
+    local disposable research-output
+
+Confirmed Research Records
+    sanitized repository documentation
+
+Interpretations and Decisions
+    ADRs, reviews, and registry history
+```
+
+Retained facts are not rewritten to make later interpretations appear
+consistent. Important candidate evidence must receive a sanitized research
+record through governance review before it becomes a durable basis for a
+trusted capability.
+
+### Governance Review and CI
+
+Capability changes require an explicit and attributable governance decision:
+
+```text
+Governance Review
+├── maintainer approval
+├── reviewed PR
+├── accepted RFC
+└── documented project-owner decision
+
+CI
+└── verifies that the approved change satisfies policy
+```
+
+CI may validate configuration shape, evidence references, permitted
+capabilities, and regression tests. CI does not interpret candidate evidence
+or independently promote or demote capabilities.
+
+### Governed Capability Evolution
+
+Trusted provider capabilities evolve only through explicit governance
+decisions. Automatically collected evidence may support those decisions but
+never replaces them.
+
+```text
+Automatic process:
+    EvidenceCorpus := EvidenceCorpus ∪ NewEvidence
+    TrustedCapabilities := unchanged
+
+Governance process:
+    review(EvidenceCorpus)
+    TrustedCapabilities := approved configuration
+```
+
+Promotion, revision, and demotion are all governance-controlled changes.
+Neither repeated observations nor a frequently observed identifier such as a
+service value can update `providers.json` automatically.
+
+### Runtime Conservatism
+
+Runtime Guard validates every execution against the currently trusted
+provider contract and fails closed whenever that contract cannot be confirmed
+from the current runtime response.
+
+```text
+Trusted capability
+    ↓
+Runtime validation
+    ↓
+Contract satisfied?
+├── yes → continue within the confirmed boundary
+└── no  → UNKNOWN or BLOCKED → STOP
+```
+
+An operational refusal does not revoke a capability. It stops only the current
+execution and makes the contradictory or incomplete result available for
+review.
+
+| Runtime refusal | Governance change |
+|---|---|
+| Automatic | Explicit |
+| Immediate | Reviewed |
+| Fail-closed | Governance-controlled |
+| Execution-scoped | Persistent configuration change |
+| Does not edit capabilities | Promotes, revises, or removes capabilities |
+| Produces Observation | Produces reviewed configuration history |
+
+### Candidate Evidence Collection
+
+Candidate evidence collection is one application of this trust model. A
+provider without `public_discovery_profile` remains landing-only.
+
+```text
+HTTP 200
+├── confirmed no-slots evidence → Observation → STOP
+├── QUEUE_FORM_FOUND            → Candidate Artifact → STOP
+└── maintenance or unknown HTML → UNKNOWN → STOP
+
+HTTP BLOCKED
+└── explicitly enabled bounded landing probe
+    ├── QUEUE_FORM_FOUND → Candidate Artifact → STOP
+    └── no confirmed form → Observation → STOP
+```
+
+`HTTP_200` alone never triggers candidate collection. The positive trigger is
+`QUEUE_FORM_FOUND`. A blocked landing probe may run at most once for a new
+`(provider_id, transport, page_hash)` key under a bounded cooldown. It may
+inspect public landing-form structure but must not select a service or request
+days or times.
+
+Candidate details belong only under Git-ignored
+`research-output/candidate-evidence/`. They must not contain CSRF values,
+cookies, headers, raw HTML, screenshots, browser storage, CAPTCHA data,
+fingerprints, or personal information.
+
+### Evidence promotion
+
+```text
+Candidate Evidence
+    ↓
+Governance Review
+    ↓
+Documented Confirmation
+    ↓
+Explicit providers.json Change
+    ↓
+Discovery Profile
+```
+
+Every confirmed capability may be supported by earlier candidate evidence;
+not every candidate becomes a confirmed capability.
+
+### Non-goals
+
+This decision does not introduce or permit:
+
+- automatic capability promotion;
+- automatic capability demotion;
+- automatic registry modification;
+- automatic service selection from candidate evidence;
+- expansion of Observation into a research dump;
+- booking or reservation;
+- identity verification;
+- CAPTCHA interaction;
+- fingerprint generation;
+- an additional database, event bus, plugin system, or distributed service.
+
+### Consequences
+
+- `providers.json` remains the declarative source of trusted provider
+  capabilities;
+- `provider_registry.py` remains a loader and validator, not a source of
+  inferred capabilities;
+- runtime may always stop when current evidence does not satisfy a confirmed
+  contract;
+- candidate artifacts remain local, disposable, and excluded from source
+  control;
+- future provider, transport, notification, and adapter decisions must refer
+  to this trust model rather than define automatic promotion rules;
+- this ADR should change only if a logical contradiction is found or a new
+  class of architectural decision cannot be expressed by its principles.
+
+### Axioms
+
+> **Trust is declared, not inferred.**
+
+```text
+Evidence accumulates.
+
+Interpretations evolve.
+
+Trusted capabilities are governed.
+
+Runtime validates every execution.
+
+Runtime fails closed whenever validation fails.
+```

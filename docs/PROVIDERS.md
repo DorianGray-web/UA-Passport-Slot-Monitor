@@ -3,6 +3,8 @@
 Provider support is implemented through adapters. Each adapter translates one public appointment system into the project's normalized availability states.
 
 Listing a provider in this document does not mean that production support is available.
+The governance state of every configured deployment is tracked in the
+[Evidence Matrix](EVIDENCE_MATRIX.md).
 
 ## Provider acceptance principles
 
@@ -38,11 +40,12 @@ submitForm* -> browser fingerprint -> OTP / BankID / Diia -> reservation
 ```
 
 Embedded ThumbmarkJS module 708 belongs to that booking flow and is
-intentionally excluded from MonitorProvider. HTTP remains preferred. Madrid,
-Barcelona, London, and Milan may use an explicitly enabled experimental
+intentionally excluded from MonitorProvider. HTTP remains preferred. The nine
+currently registry-enabled research profiles—Madrid, Barcelona, London,
+Milan, Valencia, Berlin, Toronto, Cologne, and Bratislava—may use an explicitly enabled experimental
 persistent-browser fallback after HTTP `BLOCKED`; it stops at public `TIMES`
-and never interacts with CAPTCHA, identity, or booking. Other providers remain
-HTTP-only.
+and never interacts with CAPTCHA, identity, or booking. Kortrijk and Chisinau
+remain landing-only.
 
 Discovery is evidence-first:
 
@@ -58,8 +61,8 @@ The classifier emits typed evidence such as `HTTP_200`,
 `HTML_NO_SLOTS_MARKER`, `QUEUE_FORM_FOUND`, and `CSRF_FOUND`. Absence of a form
 alone is never evidence for `NO_SLOTS`.
 
-The four evidence-confirmed profiles provide normalized public date and time
-availability. The following items remain incomplete:
+Nine deployments now have evidence-confirmed and governance-approved public
+date/time contracts. The following items remain incomplete:
 
 - confirmed CSRF field names and response schemas for every deployment;
 - production polling limits beyond the bounded research policy;
@@ -69,15 +72,17 @@ availability. The following items remain incomplete:
 
 | Centre | Implemented locally | Live evidence |
 |---|---|---|
-| Kortrijk | Landing-page monitor, Observation persistence, diagnostic outbox integration; separate HTTP `days`/`times` adapter methods exist but are not wired into the monitor loop | A historical 24-hour page-level study exists; the current HTTP-only full discovery flow still needs live validation |
-| Berlin | Independent landing-page entry point using the shared city monitor | Offline tests only; centre-specific live classification is pending |
-| Bratislava | Independent landing-page entry point using the shared city monitor | The owner observed separate date/time steps in a passive browser session on 2026-07-30; monitor classification and exact HTTP contract remain unvalidated |
+| Kortrijk | Shared `CityMonitor` landing-only entry point plus opt-in ADR-0011 candidate landing probe; no service is selected automatically | A historical 24-hour study, a 12-hour comparison, and the 2026-08-02 six-hour release validation exist. The latest candidate probe found no queue form or identifiers; service selection and full discovery remain unconfirmed |
+| Berlin | Evidence-gated `berlin-v1` discovery profile (centre `2`, service `4`) | Owner-provided live evidence confirms `LANDING -> DAYS -> TIMES -> STOP`; the six-hour validation observed both `NO_SLOTS` and `SLOTS_AVAILABLE`, with no browser error or browser `UNKNOWN` |
+| Bratislava | Evidence-gated `bratislava-v1` discovery profile (centre `9`, service `4`) | Owner-provided live evidence confirms the bounded public contract; the six-hour validation observed both `NO_SLOTS` and `SLOTS_AVAILABLE` |
 | Milan | Experimental HTTP-first browser-fallback profile (`ServiceCenterId=4`, `ServiceId=4`) | Owner-provided passive browser evidence confirmed the public `form=days` request on 2026-07-31; the bounded runtime stops at `TIMES` |
 | Madrid | Shared city-monitor entry point plus evidence-gated `madrid-v1` public `days`/`times` discovery; stops at `TIMES` | Owner-provided evidence confirms centre `6`, service `4`, and the public days and times response schemas |
 | London | Experimental HTTP-first browser-fallback profile (`ServiceCenterId=47`, `ServiceId=4`) | Owner-provided passive browser evidence confirmed the public `form=days` request on 2026-07-31; the bounded runtime stops at `TIMES` |
-| Toronto | Shared city-monitor entry point and registry configuration | Owner-reported `NO_SLOTS` landing page; independent runtime validation pending |
+| Toronto | Evidence-gated `toronto-v1` discovery profile (centre `46`, service `4`) | Owner-provided live evidence confirms the bounded contract; the six-hour validation observed both `NO_SLOTS` and `SLOTS_AVAILABLE`, with up to 30 available time entries |
 | Chisinau | Shared city-monitor entry point and registry configuration | Owner-reported `NO_SLOTS` landing page; independent runtime validation pending |
 | Barcelona | Independent entry point plus evidence-gated `barcelona-v1` HTTP discovery and opt-in persistent-browser fallback; stops at `TIMES` | Owner evidence confirms the contract; a bounded 2026-07-31 runtime check independently completed HTTP `403` -> Playwright `TIMES` and recorded `SLOTS_AVAILABLE` |
+| Valencia | Independent entry point plus evidence-gated `valencia-v1` HTTP discovery and opt-in persistent-browser fallback; centre `7`, service `4`; stops at `TIMES` | Owner-provided passive browser evidence confirms the public days/times request sequence; the earlier 12-hour bounded runtime validation completed without browser error or browser `UNKNOWN` |
+| Cologne | Evidence-gated `cologne-v1` discovery profile (centre `3`, service `4`) | Owner-provided live evidence confirms the bounded public contract and seven allowed time entries; the later six-hour validation remained `NO_SLOTS` in all 38 observations |
 
 The frontend findings describe the observed DP Document application. They do
 not prove identical deployment details, markers, CSRF field names, or response
@@ -102,12 +107,19 @@ The earlier
 remains evidence about HTTP behavior before the experimental browser transport
 was enabled.
 
-Madrid and Barcelona use the `madrid-v1` and `barcelona-v1` profiles. London
-and Milan use the evidence-gated `london-research-v1` and
-`milan-research-v1` profiles. All four reuse the strict confirmed response
-classifiers, fail closed as `UNKNOWN` on protocol deviation, and terminate at
-`TIMES`. See the
-[Barcelona live-observation report](../research/dp-document/2026-07-31-barcelona-live-observation.md)
+All nine enabled profiles reuse the strict confirmed response classifiers,
+fail closed as `UNKNOWN` on protocol deviation, and terminate at `TIMES`. See the
+[Barcelona live-observation report](../research/dp-document/2026-07-31-barcelona-live-observation.md),
+the
+[Valencia live-observation report](../research/dp-document/2026-08-01-valencia-live-observation.md),
+the
+[Berlin live-observation report](../research/dp-document/2026-08-01-berlin-live-observation.md),
+the
+[Toronto live-observation report](../research/dp-document/2026-08-01-toronto-live-observation.md),
+the [Cologne live-observation report](../research/dp-document/2026-08-01-cologne-live-observation.md),
+the [Bratislava live-observation report](../research/dp-document/2026-08-01-bratislava-live-observation.md),
+the
+[cross-deployment comparison](../research/dp-document/2026-08-01-cross-deployment-public-discovery-comparison.md),
 and the local run-summary workflow documented in the project README.
 
 Until a deployment-specific CSRF input name is confirmed it remains explicit

@@ -3,9 +3,12 @@
 ## Current local prototype
 
 An operator configures environment variables and starts `python -m
-monitor_runner`. Three independent processes inspect provider landing pages,
-store immutable Observations, and may create diagnostic work through the
-outbox and queue. No end-user UI, subscription flow, Telegram integration, or
+monitor_runner`. The orchestrator loads `providers.json` and supervises eleven
+independent provider processes plus the diagnostic worker. Each `CityMonitor`
+selects HTTP first; an explicitly enabled confirmed profile may use bounded
+Playwright after HTTP is blocked. The Runtime Guard stops discovery at
+`TIMES`, and every cycle stores an immutable transport-independent
+Observation. No end-user UI, subscription flow, Telegram integration, or
 booking flow is implemented.
 
 ## Proposed end-user flow

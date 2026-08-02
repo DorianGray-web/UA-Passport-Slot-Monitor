@@ -6,7 +6,7 @@ from city_monitor import CityMonitor
 from provider_registry import load_city_provider
 
 
-MONITOR = CityMonitor(load_city_provider("kortrijk").monitor)
+MONITOR = CityMonitor(load_city_provider("valencia").monitor)
 
 
 if __name__ == "__main__":

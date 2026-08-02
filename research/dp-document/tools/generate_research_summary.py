@@ -78,6 +78,10 @@ def run_duration_seconds(observations: list[dict]) -> float:
     )
 
 
+def elapsed_seconds(start: datetime, end: datetime) -> float:
+    return max(0.0, (end - start).total_seconds())
+
+
 def format_duration(seconds: float) -> str:
     total_minutes = round(seconds / 60)
     hours, minutes = divmod(total_minutes, 60)
@@ -184,6 +188,8 @@ def build_report(
     observations: list[dict],
     *,
     timezone_name: str = "Europe/Amsterdam",
+    run_started_at: datetime | None = None,
+    run_ended_at: datetime | None = None,
 ) -> str:
     if not observations:
         raise ValueError("No observations were supplied.")
@@ -193,9 +199,12 @@ def build_report(
         raise ValueError("A report must contain exactly one run_id.")
 
     timezone = report_timezone(timezone_name)
-    start = parse_timestamp(observations[0]["observed_at"])
-    end = parse_timestamp(observations[-1]["observed_at"])
-    duration = run_duration_seconds(observations)
+    observation_start = parse_timestamp(observations[0]["observed_at"])
+    observation_end = parse_timestamp(observations[-1]["observed_at"])
+    observation_duration = run_duration_seconds(observations)
+    start = run_started_at or observation_start
+    end = run_ended_at or observation_end
+    duration = elapsed_seconds(start, end)
     providers: dict[str, list[dict]] = {}
     for item in observations:
         providers.setdefault(provider_name(item), []).append(item)
@@ -205,10 +214,32 @@ def build_report(
     browser_runs = [
         item for item in observations if item.get("transport") == "playwright"
     ]
+    candidate_probes = [
+        item
+        for item in browser_runs
+        if "CANDIDATE_EVIDENCE_PROBE" in set(item.get("evidence") or ())
+    ]
+    discovery_browser_runs = [
+        item for item in browser_runs if item not in candidate_probes
+    ]
     successful = [item for item in observations if reached_times(item)]
-    successful_browser = [item for item in browser_runs if reached_times(item)]
+    successful_browser = [
+        item for item in discovery_browser_runs if reached_times(item)
+    ]
+    bounded_browser_outcomes = [
+        item
+        for item in discovery_browser_runs
+        if item.get("state") in {"NO_SLOTS", "SLOTS_AVAILABLE"}
+    ]
+    earlier_no_slots = [
+        item
+        for item in bounded_browser_outcomes
+        if item.get("state") == "NO_SLOTS" and not reached_times(item)
+    ]
     browser_unknown = [
-        item for item in browser_runs if item.get("state") == "UNKNOWN"
+        item
+        for item in discovery_browser_runs
+        if item.get("state") == "UNKNOWN"
     ]
     browser_errors = [
         item
@@ -256,24 +287,27 @@ def build_report(
 
     http_every_cycle = bool(observations) and len(http_attempts) == len(observations)
     blocked_every_cycle = bool(observations) and len(http_blocked) == len(observations)
-    browser_success_every_cycle = bool(browser_runs) and (
-        len(successful_browser) == len(browser_runs)
+    browser_resolved_every_cycle = bool(discovery_browser_runs) and (
+        len(bounded_browser_outcomes) == len(discovery_browser_runs)
     )
 
     facts = [
         f"HTTP was attempted in {len(http_attempts)} of {len(observations)} cycles.",
         f"HTTP landing was blocked in {len(http_blocked)} cycles.",
-        f"Playwright fallback ran in {len(browser_runs)} cycles.",
+        f"Playwright transport ran in {len(browser_runs)} cycles.",
+        f"Bounded candidate landing probes ran in {len(candidate_probes)} cycles.",
         f"Playwright reached confirmed TIMES in {len(successful_browser)} cycles.",
         f"HTTP-only observations reached confirmed TIMES in {len(successful_http)} cycles.",
         f"Mean Playwright cycle duration was {number(browser_average / 1000 if browser_average is not None else None, 2)} seconds.",
     ]
     interpretation = []
-    if browser_success_every_cycle:
+    if browser_resolved_every_cycle:
         interpretation.append(
-            "During this run, the browser transport recovered public "
-            f"availability after all {len(browser_runs)} blocked HTTP landing "
-            "attempts that triggered fallback."
+            "During this run, every confirmed browser-discovery execution "
+            "produced a recognized bounded result: "
+            f"{len(successful_browser)} reached TIMES and "
+            f"{len(earlier_no_slots)} stopped at an earlier confirmed "
+            "NO_SLOTS boundary."
         )
     elif successful_browser:
         interpretation.append(
@@ -295,10 +329,18 @@ def build_report(
     )
 
     conclusions = []
-    if browser_runs:
+    if discovery_browser_runs:
         conclusions.append(
-            f"Playwright fallback completed {len(successful_browser)} of "
-            f"{len(browser_runs)} browser runs during {format_duration(duration)}."
+            f"Playwright fallback produced recognized bounded outcomes in "
+            f"{len(bounded_browser_outcomes)} of "
+            f"{len(discovery_browser_runs)} confirmed discovery runs during "
+            f"{format_duration(duration)}; {len(successful_browser)} reached "
+            f"TIMES and {len(earlier_no_slots)} stopped earlier at NO_SLOTS."
+        )
+    if candidate_probes:
+        conclusions.append(
+            f"Candidate landing probes stopped at LANDING in "
+            f"{len(candidate_probes)} cycles."
         )
     conclusions.extend(
         [
@@ -307,7 +349,7 @@ def build_report(
             "Observation schema remained transport-independent.",
         ]
     )
-    if blocked_every_cycle and browser_success_every_cycle:
+    if blocked_every_cycle and browser_resolved_every_cycle:
         conclusions.append(
             "Browser transport successfully replaced blocked HTTP transport "
             "for every observed cycle in this run."
@@ -323,6 +365,9 @@ End: {end.astimezone(timezone).isoformat()}
 Duration: {format_duration(duration)}  
 Timezone: `{timezone_name}`
 
+Observation coverage: `{observation_start.astimezone(timezone).isoformat()} → {observation_end.astimezone(timezone).isoformat()}`
+Observation coverage duration: {format_duration(observation_duration)}
+
 Providers:
 {provider_list}
 
@@ -331,7 +376,8 @@ Providers:
 Total observations: {len(observations)}  
 HTTP attempts: {len(http_attempts)}  
 HTTP blocked: {len(http_blocked)}  
-Playwright fallback: {len(browser_runs)}  
+Playwright runs: {len(browser_runs)}<br>
+Candidate landing probes: {len(candidate_probes)}<br>
 Successful discoveries through TIMES: {len(successful)}
 
 {provider_sections}
@@ -349,7 +395,9 @@ HTTP transport:
 - blocked every cycle: {str(blocked_every_cycle).lower()}
 
 Playwright transport:
-- succeeded every browser cycle: {str(browser_success_every_cycle).lower()}
+- produced a recognized bounded outcome in every confirmed discovery run: {str(browser_resolved_every_cycle).lower()}
+- reached TIMES: {len(successful_browser)}
+- stopped earlier at confirmed NO_SLOTS: {len(earlier_no_slots)}
 
 Unexpected browser errors: {len(browser_errors)}  
 Unexpected `UNKNOWN`: {len(browser_unknown)}  
@@ -390,6 +438,14 @@ Observed during this experiment:
 - Average duration: {number(browser_average / 1000 if browser_average is not None else None, 2)} s
 - Public-boundary stop is enforced by the transport implementation.
 
+### Candidate Landing Probes
+
+- Runs: {len(candidate_probes)}
+- Queue form detected: {sum('QUEUE_FORM_FOUND' in set(item.get('evidence') or ()) for item in candidate_probes)}
+- Service selector detected: {sum('SERVICE_SELECTOR_FOUND' in set(item.get('evidence') or ()) for item in candidate_probes)}
+- Service options detected: {sum('SERVICE_OPTIONS_FOUND' in set(item.get('evidence') or ()) for item in candidate_probes)}
+- All candidate probes stop at LANDING and cannot enable discovery profiles.
+
 ## Observed facts
 
 {''.join(f'- {fact}\n' for fact in facts)}
@@ -402,10 +458,18 @@ Observed during this experiment:
 
 
 def default_output_path(
-    observations: list[dict], output_dir: Path
+    observations: list[dict],
+    output_dir: Path,
+    *,
+    duration_seconds: float | None = None,
 ) -> Path:
     start = parse_timestamp(observations[0]["observed_at"])
-    hours = max(1, round(run_duration_seconds(observations) / 3600))
+    measured_duration = (
+        run_duration_seconds(observations)
+        if duration_seconds is None
+        else duration_seconds
+    )
+    hours = max(1, round(measured_duration / 3600))
     return output_dir / f"{start:%Y-%m-%d}-playwright-fallback-{hours}h-report.md"
 
 
@@ -417,6 +481,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--timezone", default="Europe/Amsterdam")
     parser.add_argument("--minimum-duration-hours", type=float, default=1.0)
+    parser.add_argument("--run-started-at")
+    parser.add_argument("--run-ended-at")
     parser.add_argument("--force", action="store_true")
     return parser.parse_args()
 
@@ -427,17 +493,41 @@ def main() -> int:
     if not observations:
         print("No observations found for the requested run.")
         return 2
-    duration_hours = run_duration_seconds(observations) / 3600
+    if bool(args.run_started_at) != bool(args.run_ended_at):
+        parser_error = "--run-started-at and --run-ended-at must be supplied together."
+        print(parser_error)
+        return 4
+    run_started_at = (
+        parse_timestamp(args.run_started_at) if args.run_started_at else None
+    )
+    run_ended_at = (
+        parse_timestamp(args.run_ended_at) if args.run_ended_at else None
+    )
+    duration_seconds = (
+        elapsed_seconds(run_started_at, run_ended_at)
+        if run_started_at is not None and run_ended_at is not None
+        else run_duration_seconds(observations)
+    )
+    duration_hours = duration_seconds / 3600
     if not args.force and duration_hours < args.minimum_duration_hours:
         print(
             f"Run duration {duration_hours:.2f}h is below the "
             f"{args.minimum_duration_hours:.2f}h report threshold."
         )
         return 3
-    output = args.output or default_output_path(observations, args.output_dir)
+    output = args.output or default_output_path(
+        observations,
+        args.output_dir,
+        duration_seconds=duration_seconds,
+    )
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(
-        build_report(observations, timezone_name=args.timezone),
+        build_report(
+            observations,
+            timezone_name=args.timezone,
+            run_started_at=run_started_at,
+            run_ended_at=run_ended_at,
+        ),
         encoding="utf-8",
     )
     print(output.resolve())

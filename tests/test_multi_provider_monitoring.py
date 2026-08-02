@@ -6,6 +6,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
@@ -19,6 +20,7 @@ from diagnostics.domain import RequestTraceEntry  # noqa: E402
 from provider_registry import load_provider_registry  # noqa: E402
 from monitor_runner import (  # noqa: E402
     configured_providers,
+    configured_run_duration_seconds,
     generate_research_summary,
 )
 
@@ -91,6 +93,38 @@ class MultiProviderMonitoringTests(unittest.TestCase):
             self.assertEqual(record["discovery_stage"], "LANDING")
             self.assertEqual(len(record["request_trace"]), 1)
 
+    def test_playwright_fallback_accepts_all_governed_discovery_profiles(self) -> None:
+        profiles = {
+            "madrid-v1",
+            "barcelona-v1",
+            "london-research-v1",
+            "milan-research-v1",
+            "valencia-v1",
+            "berlin-v1",
+            "bratislava-v1",
+            "toronto-v1",
+            "cologne-v1",
+        }
+        with tempfile.TemporaryDirectory() as directory, patch.dict(
+            "os.environ",
+            {"PLAYWRIGHT_DISCOVERY_FALLBACK_ENABLED": "true"},
+        ):
+            for profile in profiles:
+                monitor = CityMonitor(
+                    ProviderConfig(
+                        city="Test",
+                        provider="dp-document-test",
+                        queue_url="https://example.test/solutions/e-queue",
+                        env_prefix="TEST_PROFILE",
+                        base_dir=Path(directory),
+                        public_discovery_profile=profile,
+                    )
+                )
+                self.assertTrue(
+                    monitor.playwright_fallback_enabled(),
+                    profile,
+                )
+
     def test_second_different_page_marks_html_changed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             monitor = self.make_monitor(Path(directory))
@@ -118,17 +152,101 @@ class MultiProviderMonitoringTests(unittest.TestCase):
             self.assertFalse(records[0]["html_changed"])
             self.assertTrue(records[1]["html_changed"])
 
+    def test_unconfirmed_http_form_writes_sanitized_candidate_artifact(
+        self,
+    ) -> None:
+        landing_html = """
+        <form x-data='qlogicFormTotoro({"center":"15","csrf":"SECRET_FIELD"})'>
+          <select name="service">
+            <option value="">Choose</option>
+            <option value="4">Passport service</option>
+            <option value="7">Another public service</option>
+          </select>
+          <select name="date"><option value="">Choose</option></select>
+        </form>
+        """
+        with tempfile.TemporaryDirectory() as directory:
+            monitor = self.make_monitor(Path(directory))
+            with patch.object(
+                monitor, "fetch_page", return_value=(200, landing_html)
+            ):
+                state = monitor.check_once()
+
+            artifact = json.loads(
+                monitor.candidate_evidence.artifact_path.read_text(
+                    encoding="utf-8"
+                )
+            )
+
+        self.assertEqual(state.status, "UNKNOWN")
+        self.assertEqual(state.discovery_stage, "LANDING")
+        self.assertIn("SERVICE_SELECTOR_FOUND", state.evidence)
+        self.assertIn("SERVICE_OPTIONS_FOUND", state.evidence)
+        self.assertEqual(artifact["service_center_id"], "15")
+        self.assertEqual(
+            [item["service_id"] for item in artifact["options"]],
+            ["4", "7"],
+        )
+        self.assertNotIn("SECRET_FIELD", json.dumps(artifact))
+
+    def test_blocked_candidate_probe_runs_once_for_same_page_hash(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            monitor = CityMonitor(
+                ProviderConfig(
+                    city="Berlin",
+                    provider="dp-document-berlin",
+                    queue_url="https://example.test/solutions/e-queue",
+                    env_prefix="TEST_BERLIN",
+                    base_dir=root,
+                    project_dir=root,
+                    candidate_evidence_probe=True,
+                )
+            )
+            browser_state = QueueState(
+                "UNKNOWN",
+                "2026-08-01T10:00:00+00:00",
+                "browser-page-hash",
+                "Candidate queue form detected; governance review required.",
+                "playwright",
+                ("QUEUE_FORM_FOUND", "SERVICE_OPTIONS_FOUND"),
+                "LANDING",
+            )
+            with (
+                patch.dict(
+                    "os.environ",
+                    {"CANDIDATE_EVIDENCE_PROBE_ENABLED": "true"},
+                ),
+                patch.object(
+                    monitor,
+                    "fetch_page",
+                    return_value=(403, "stable challenge"),
+                ),
+                patch.object(
+                    monitor,
+                    "run_browser_candidate_probe",
+                    return_value=(browser_state, 200),
+                ) as probe,
+            ):
+                monitor.check_once()
+                monitor.check_once()
+
+        probe.assert_called_once()
+
     def test_provider_entrypoints_have_distinct_contracts(self) -> None:
         providers = {}
         cities = (
             "berlin",
             "bratislava",
+            "kortrijk",
             "madrid",
             "london",
             "milan",
             "toronto",
             "chisinau",
             "barcelona",
+            "valencia",
+            "cologne",
         )
         for city in cities:
             spec = importlib.util.spec_from_file_location(
@@ -158,6 +276,8 @@ class MultiProviderMonitoringTests(unittest.TestCase):
                 "toronto",
                 "chisinau",
                 "barcelona",
+                "valencia",
+                "cologne",
             },
         )
         self.assertTrue(all(item.enabled for item in providers.values()))
@@ -192,12 +312,52 @@ class MultiProviderMonitoringTests(unittest.TestCase):
         self.assertEqual(providers["london"].monitor.service_id, "4")
         self.assertEqual(providers["milan"].monitor.service_center_id, "4")
         self.assertEqual(providers["milan"].monitor.service_id, "4")
+        self.assertEqual(
+            providers["valencia"].monitor.public_discovery_profile,
+            "valencia-v1",
+        )
+        self.assertEqual(providers["valencia"].monitor.service_center_id, "7")
+        self.assertEqual(providers["valencia"].monitor.service_id, "4")
+        self.assertEqual(providers["valencia"].observation_group, "active")
         self.assertEqual(providers["toronto"].observation_group, "control")
+        self.assertEqual(
+            providers["berlin"].monitor.public_discovery_profile,
+            "berlin-v1",
+        )
+        self.assertEqual(providers["berlin"].monitor.service_center_id, "2")
+        self.assertEqual(
+            providers["bratislava"].monitor.public_discovery_profile,
+            "bratislava-v1",
+        )
+        self.assertEqual(
+            providers["bratislava"].monitor.service_center_id,
+            "9",
+        )
+        self.assertEqual(
+            providers["toronto"].monitor.public_discovery_profile,
+            "toronto-v1",
+        )
+        self.assertEqual(providers["toronto"].monitor.service_center_id, "46")
+        self.assertEqual(
+            providers["cologne"].monitor.public_discovery_profile,
+            "cologne-v1",
+        )
+        self.assertEqual(providers["cologne"].monitor.service_center_id, "3")
+        self.assertEqual(providers["cologne"].monitor.service_id, "4")
         self.assertEqual(providers["chisinau"].observation_group, "control")
+        self.assertTrue(
+            providers["berlin"].monitor.candidate_evidence_probe
+        )
+        self.assertTrue(
+            providers["kortrijk"].monitor.candidate_evidence_probe
+        )
+        self.assertFalse(
+            providers["bratislava"].monitor.candidate_evidence_probe
+        )
         self.assertTrue(all(item.entrypoint.is_file() for item in providers.values()))
         self.assertEqual(
             [item.startup_delay_seconds for item in providers.values()],
-            [0, 30, 60, 90, 120, 150, 180, 210, 240],
+            [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300],
         )
 
     def test_runner_can_select_research_cohort_from_environment(self) -> None:
@@ -234,6 +394,22 @@ class MultiProviderMonitoringTests(unittest.TestCase):
             {"Madrid", "Barcelona", "London", "Milan"},
         )
 
+    def test_runner_can_select_five_centre_browser_cohort(self) -> None:
+        with patch.dict(
+            "os.environ",
+            {
+                "MONITOR_PROVIDER_CITIES": (
+                    "madrid,barcelona,london,milan,valencia"
+                )
+            },
+        ):
+            providers = configured_providers()
+
+        self.assertEqual(
+            set(providers),
+            {"Madrid", "Barcelona", "London", "Milan", "Valencia"},
+        )
+
     def test_runner_rejects_unknown_research_city(self) -> None:
         with patch.dict(
             "os.environ",
@@ -241,6 +417,21 @@ class MultiProviderMonitoringTests(unittest.TestCase):
         ):
             with self.assertRaisesRegex(ValueError, "unknown"):
                 configured_providers()
+
+    def test_runner_accepts_positive_bounded_duration(self) -> None:
+        with patch.dict(
+            "os.environ",
+            {"MONITOR_RUN_DURATION_SECONDS": "21600"},
+        ):
+            self.assertEqual(configured_run_duration_seconds(), 21600)
+
+    def test_runner_rejects_non_positive_bounded_duration(self) -> None:
+        with patch.dict(
+            "os.environ",
+            {"MONITOR_RUN_DURATION_SECONDS": "0"},
+        ):
+            with self.assertRaisesRegex(ValueError, "must be positive"):
+                configured_run_duration_seconds()
 
     def test_runner_generates_summary_for_completed_long_run(self) -> None:
         completed = subprocess.CompletedProcess(
@@ -252,19 +443,29 @@ class MultiProviderMonitoringTests(unittest.TestCase):
         with patch.dict("os.environ", {}, clear=True), patch(
             "monitor_runner.subprocess.run", return_value=completed
         ) as run:
-            report = generate_research_summary("RUN-test")
+            report = generate_research_summary(
+                "RUN-test",
+                run_started_at=datetime(2026, 8, 1, 10, tzinfo=timezone.utc),
+                run_ended_at=datetime(2026, 8, 1, 22, tzinfo=timezone.utc),
+            )
 
         self.assertEqual(report, Path("E:\\reports\\runtime-report.md"))
         command = run.call_args.args[0]
         self.assertIn("--run-id", command)
         self.assertIn("RUN-test", command)
         self.assertIn("--minimum-duration-hours", command)
+        self.assertIn("--run-started-at", command)
+        self.assertIn("--run-ended-at", command)
 
     def test_runner_skips_summary_when_disabled(self) -> None:
         with patch.dict(
             "os.environ", {"RESEARCH_SUMMARY_ENABLED": "false"}
         ), patch("monitor_runner.subprocess.run") as run:
-            report = generate_research_summary("RUN-test")
+            report = generate_research_summary(
+                "RUN-test",
+                run_started_at=datetime(2026, 8, 1, 10, tzinfo=timezone.utc),
+                run_ended_at=datetime(2026, 8, 1, 22, tzinfo=timezone.utc),
+            )
 
         self.assertIsNone(report)
         run.assert_not_called()

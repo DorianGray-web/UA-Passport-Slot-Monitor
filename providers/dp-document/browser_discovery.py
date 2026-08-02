@@ -25,9 +25,11 @@ from playwright.sync_api import (
 
 from diagnostics.domain import RequestTraceEntry
 from provider_protocol import (
+    CandidateQueueForm,
     ConfirmedDaysClassifier,
     ConfirmedTimesClassifier,
     DiscoveryStage,
+    EvidenceCode,
     LandingPageClassifier,
     LandingState,
 )
@@ -46,6 +48,7 @@ class BrowserDiscoveryResult:
     available_time_slots_count: int | None = None
     earliest_available_time: str | None = None
     latest_available_time: str | None = None
+    candidate_form: CandidateQueueForm | None = None
 
 
 class PlaywrightDiscoveryTransport:
@@ -99,6 +102,104 @@ class PlaywrightDiscoveryTransport:
                 f"Playwright public discovery failed: {type(error).__name__}.",
                 "PLAYWRIGHT_ERROR",
             )
+
+    def probe_landing(self) -> BrowserDiscoveryResult:
+        """Observe public landing structure without selecting any option."""
+        self.profile_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            with sync_playwright() as playwright:
+                context = playwright.chromium.launch_persistent_context(
+                    str(self.profile_dir),
+                    headless=self.headless,
+                    locale="uk-UA",
+                    viewport={"width": 1440, "height": 1000},
+                )
+                try:
+                    page = context.pages[0] if context.pages else context.new_page()
+                    return self._probe_landing_page(page)
+                finally:
+                    context.close()
+        except PlaywrightTimeoutError:
+            return self._candidate_failure(
+                "Playwright landing evidence probe timed out without retry.",
+                "PLAYWRIGHT_TIMEOUT",
+            )
+        except Exception as error:
+            logging.exception("Playwright landing evidence probe failed.")
+            return self._candidate_failure(
+                f"Playwright landing evidence probe failed: {type(error).__name__}.",
+                "PLAYWRIGHT_ERROR",
+            )
+
+    def _probe_landing_page(self, page: Page) -> BrowserDiscoveryResult:
+        started = time.perf_counter()
+        navigation = page.goto(
+            self.queue_url,
+            wait_until="domcontentloaded",
+            timeout=self.timeout_ms,
+        )
+        page.wait_for_timeout(
+            max(0, int(os.getenv("PLAYWRIGHT_DISCOVERY_SETTLE_MS", "5000")))
+        )
+        html = page.content()
+        status = navigation.status if navigation is not None else None
+        duration_ms = round((time.perf_counter() - started) * 1000)
+        page_hash = hashlib.sha256(
+            self._normalized_body_text(page).encode("utf-8")
+        ).hexdigest()
+        trace = RequestTraceEntry(
+            method="GET",
+            operation="landing",
+            status_code=status,
+            duration_ms=duration_ms,
+            response_bytes=len(html.encode("utf-8")),
+            transport="playwright",
+        )
+        landing = self.landing_classifier.classify(status or 0, html)
+        candidate = self.landing_classifier.candidate_public_form(html)
+        logging.info("Playwright candidate probe reached LANDING")
+        if candidate is not None:
+            logging.info(
+                "Candidate landing form detected: service_center=%s "
+                "option_count=%s date_selector=%s time_selector=%s",
+                candidate.service_center_id or "unknown",
+                len(candidate.options),
+                candidate.date_selector_found,
+                candidate.time_selector_found,
+            )
+            logging.info("Stopping candidate probe at LANDING boundary.")
+            return BrowserDiscoveryResult(
+                "UNKNOWN",
+                page_hash,
+                "Candidate queue form detected; governance review required.",
+                (
+                    EvidenceCode.CANDIDATE_EVIDENCE_PROBE.value,
+                    *(item.value for item in landing.evidence),
+                ),
+                DiscoveryStage.LANDING,
+                status,
+                (trace,),
+                candidate_form=candidate,
+            )
+        state = (
+            "NO_SLOTS"
+            if landing.state is LandingState.NO_SLOTS
+            else "BLOCKED"
+            if landing.state is LandingState.BLOCKED
+            else "UNKNOWN"
+        )
+        return BrowserDiscoveryResult(
+            state,
+            page_hash,
+            "Playwright landing probe found no candidate queue form.",
+            (
+                EvidenceCode.CANDIDATE_EVIDENCE_PROBE.value,
+                *(item.value for item in landing.evidence),
+            ),
+            DiscoveryStage.LANDING,
+            status,
+            (trace,),
+        )
 
     def _discover_page(self, page: Page) -> BrowserDiscoveryResult:
         started = time.perf_counter()
@@ -399,6 +500,21 @@ class PlaywrightDiscoveryTransport:
             "",
             message,
             (evidence,),
+            DiscoveryStage.LANDING,
+            None,
+            (),
+        )
+
+    @staticmethod
+    def _candidate_failure(
+        message: str,
+        evidence: str,
+    ) -> BrowserDiscoveryResult:
+        return BrowserDiscoveryResult(
+            "UNKNOWN",
+            "",
+            message,
+            (EvidenceCode.CANDIDATE_EVIDENCE_PROBE.value, evidence),
             DiscoveryStage.LANDING,
             None,
             (),

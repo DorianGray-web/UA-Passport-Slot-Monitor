@@ -2,6 +2,12 @@
 
 - [x] Generate standardized, run-scoped Markdown research summaries from
   immutable Observations after long orchestrated monitoring sessions.
+- [x] Add a permanent Evidence Matrix and capability-promotion checklist for
+  the current deployment trust state.
+- [x] Complete the seven-centre 12-hour runtime validation and distinguish
+  orchestrator runtime from Observation coverage in generated summaries.
+- [x] Complete the six-hour release validation of Berlin, Cologne,
+  Bratislava, Toronto, Kortrijk, Madrid, and Barcelona.
 
 ## Phase 0 — Foundation and Validation
 
@@ -23,6 +29,17 @@
 - [x] Confirm Barcelona public days/times request and response contracts
 - [x] Confirm live availability schemas for the additional London and Milan
   research profiles
+- [x] Confirm Valencia centre `7`, service `4`, public days/times contract,
+  and terminal `TIMES` boundary from owner-provided live evidence
+- [x] Confirm Berlin centre `2`, service `4`, public days/times contract, and
+  the valid terminal `DAYS(1) -> TIMES(0) -> NO_SLOTS` outcome from
+  owner-provided live evidence
+- [x] Confirm Berlin temporal variability for the same allowed date:
+  `TIMES(0) -> NO_SLOTS` followed later by
+  `TIMES(9) -> SLOTS_AVAILABLE`
+- [x] Confirm Toronto centre `46`, service `4`, public days/times contract,
+  one allowed date, and 11 allowed public time entries from `08:15:00` through
+  `13:00:00` from owner-provided live evidence
 - [ ] Confirm live availability schemas for the remaining configured centres
 - [ ] Capture sanitized days, times, and first identity-boundary fixtures
 - [ ] Determine whether a public appointment count is exposed
@@ -50,7 +67,10 @@
 - [x] Add transactional diagnostic decisions and outbox delivery
 - [x] Add backend-agnostic queue, dispatcher, and diagnostic worker contracts
 - [x] Add SQLite priority, cooldown, deduplication, and lease recovery
-- [ ] Independently verify Berlin and Bratislava monitor classification live
+- [x] Independently verify Bratislava public discovery contract live
+- [x] Start the bounded Berlin/Kortrijk candidate-landing comparison alongside
+  the five enabled public-discovery profiles; Berlin evidence was confirmed
+  during the run, while Kortrijk remains landing-only
 - [ ] Analyze time-of-day and cross-centre HTML-change correlations
 - [ ] Measure delay from HTML changes to confirmed slot availability
 - [ ] Document the manual challenge-intervention flow
@@ -62,17 +82,23 @@
 - [x] Implement evidence-first landing classification and transition guards
 - [x] Add typed discovery stages, evidence, and request traces to Observation
 - [ ] Validate HTTP session and CSRF handling for each DP Document centre
-- [x] Add strict confirmed days/times classifiers used by the Madrid,
-  Barcelona, London, and Milan evidence profiles
+- [x] Add strict confirmed days/times classifiers used by nine governed
+  evidence profiles
 - [ ] Validate or add centre-specific days and times classifiers for the
   remaining centres
 - [ ] Add a terminal identity-boundary classifier from live-safe evidence
 - [x] Implement separate `MonitorProvider` and reserved `BookingProvider` boundaries
 - [x] Integrate Madrid, Barcelona, London, and Milan public `days` and `times`
   discovery into the monitor runtime with a terminal `TIMES` boundary
+- [x] Add Valencia as a fifth evidence-gated public-discovery profile for a
+  bounded comparative runtime validation
+- [x] Admit the evidence-confirmed Berlin, Toronto, Cologne, and Bratislava
+  contracts through four explicit governance-reviewed registry changes
+- [x] Complete bounded runtime validation of the four newly promoted profiles
 - [ ] After the ADR-0009 transition criteria are met, replace city wrappers
   with one registry-driven generic DP Document monitor
-- [x] Implement the initial Kortrijk observation adapter
+- [x] Migrate Kortrijk from its legacy monitor to the shared `CityMonitor`
+  landing-only entrypoint and candidate-probe path
 - [x] Implement standardized local observation metadata
 - [x] Implement separate provider and orchestrator logs
 - [ ] Implement subscription and state storage

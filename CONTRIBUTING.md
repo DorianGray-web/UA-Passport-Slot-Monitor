@@ -70,6 +70,9 @@ Before starting a large implementation:
 
 ## Responsible development
 
+Release-facing changes must satisfy the independent technical, governance,
+and traceability gates in [the Release Policy](docs/RELEASE_POLICY.md).
+
 Contributions must not:
 
 - bypass CAPTCHA or Cloudflare protections;

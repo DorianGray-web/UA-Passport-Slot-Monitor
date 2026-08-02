@@ -4,9 +4,9 @@
 
 This document separates the implemented local prototype from the intended
 service architecture. The Observation/outbox/diagnostic infrastructure,
-landing classifier, provider boundaries, nine independent monitor entry
-points, process runner, and four evidence-gated public-discovery profiles are
-implemented. Subscriptions, notifications, and live-validated `days`/`times`
+landing classifier, provider boundaries, eleven independent monitor entry
+points, process runner, and nine registry-enabled public-discovery profiles
+are implemented. Subscriptions, notifications, and live-validated `days`/`times`
 discovery for the remaining centres are not.
 
 ## Intended service flow (planned)
@@ -49,13 +49,14 @@ DP Document frontend 7.34.2 uses the public HTTP flow:
 Service -> days -> times
 ```
 
-MonitorProvider has no fingerprint, identity, OTP, BankID, Diia, reservation,
-or browser dependency.
+MonitorProvider is the protocol contract and has no fingerprint, identity,
+OTP, BankID, Diia, reservation, or browser dependency. `CityMonitor` performs
+transport orchestration without broadening that contract.
 
-The HTTP adapter exposes landing, `days`, and `times` operations. The
-evidence-gated Madrid, Barcelona, London, and Milan profiles execute the
-complete public sequence. Other city monitors remain landing-only until
-equivalent centre-specific evidence exists.
+The HTTP adapter exposes landing, `days`, and `times` operations. Nine
+governance-approved profiles execute the complete public sequence. Kortrijk
+and Chisinau remain landing-only until equivalent centre-specific evidence
+and governance approval exist.
 
 The provider protocol is an evidence-first state machine, not an unconditional
 request sequence:
@@ -73,10 +74,34 @@ LandingPageResult(state, csrf, queue_form, evidence)
 TransitionGuard
 ```
 
-A confirmed no-slots marker terminates at `LANDING`. Only a valid form and
+The trust boundary governing how observations and candidate research material
+may become configured provider capabilities is defined by
+[ADR-0011](DECISIONS.md#adr-0011-trust-model-for-evidence-collection-and-capability-governance).
+The current per-deployment trust state is maintained separately in the
+[Evidence Matrix](EVIDENCE_MATRIX.md); it is not runtime configuration.
+
+A confirmed no-slots marker may terminate at `LANDING`. Only a valid form and
 CSRF permit `SERVICE_VALIDATION` and `DAYS`; only confirmed dates permit
 `TIMES`. Unknown, blocked, maintenance, or authentication evidence terminates
 safely without additional requests.
+
+Berlin live evidence also confirms a distinct valid terminal path:
+
+```text
+LANDING -> DAYS (1) -> TIMES (0) -> NO_SLOTS -> STOP
+```
+
+Therefore `NO_SLOTS` records the confirmed absence of usable public time
+entries at the stage reached; it is not exclusively a landing-page state.
+Later Berlin evidence for the same allowed date reached `TIMES` with nine
+entries and `SLOTS_AVAILABLE`, confirming that a post-discovery state may
+change without changing the public state-machine boundary.
+
+Across the nine currently evidence-confirmed deployments, a cycle may stop at
+a recognized landing-level `NO_SLOTS` marker or continue through the guarded
+public contract. When `TIMES` is reached, its recognized contents determine
+`NO_SLOTS` or `SLOTS_AVAILABLE`. This is an evidence-bounded comparison, not a
+universal protocol guarantee.
 
 The evidence-gated runtime path is:
 
@@ -92,6 +117,13 @@ At `TIMES`, normalized counts and earliest/latest allowed public time entries
 are recorded, then monitoring stops. There is no transition into identity,
 CAPTCHA, fingerprinting, reservation, or booking.
 
+For explicitly configured landing-only research centres, ADR-0011 permits a
+separate opt-in candidate evidence probe after HTTP `BLOCKED`. It performs one
+persistent-browser landing navigation for a new
+`(provider_id, transport, page_hash)` key under cooldown, records only
+sanitized form candidates in Git-ignored `research-output/`, and stops at
+`LANDING`. It cannot select a service or enable `DAYS`/`TIMES`.
+
 ### BookingProvider
 
 Reserved for separately approved future work. No implementation exists. It
@@ -100,14 +132,20 @@ requirements can never become monitoring dependencies.
 
 ### Browser transport and diagnostics
 
-HTTP remains preferred. An opt-in research fallback allows Madrid, Barcelona,
-London, and Milan to use a persistent Playwright context only after HTTP is
-`BLOCKED`. It follows the same confirmed state machine and stops at `TIMES`.
+HTTP remains preferred. An opt-in research fallback allows the nine currently
+registry-enabled research profiles to use a persistent Playwright context
+only after HTTP is `BLOCKED`.
+It follows the same confirmed state machine and stops at `TIMES`.
 A browser challenge remains `BLOCKED`; it is never interacted with or
 bypassed.
 
 Site Investigator remains separately queued diagnostics and does not produce
 the fallback Observation.
+
+The 2026-08-02 six-hour release validation exercised the four newly governed
+profiles with two established controls. Every confirmed browser-discovery
+execution either reached `TIMES` or stopped at a recognized earlier
+`NO_SLOTS` boundary; no browser error or browser `UNKNOWN` was recorded.
 
 ### Capture validation
 

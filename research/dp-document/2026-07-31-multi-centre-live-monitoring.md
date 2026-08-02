@@ -7,6 +7,12 @@
 > is retained as historical research context, while validation of the remaining
 > centres and cross-centre correlation analysis remain open.
 
+> **Supersession note — 2026-08-01:** The Toronto row below records the
+> evidence state when this plan was written. A later project-owner live review
+> confirmed Toronto centre `46`, service `4`, one allowed date, 11 allowed
+> time entries, and public discovery through `TIMES -> STOP`. Runtime
+> capability remains unchanged pending governance review.
+
 ## Stage goal
 
 Prepare a configurable nine-centre research sample for the next passive

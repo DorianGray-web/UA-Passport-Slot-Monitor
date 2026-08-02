@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 from diagnostics.domain import make_run_id
@@ -71,6 +72,16 @@ def configured_providers() -> dict[str, RegisteredProvider]:
     }
 
 
+def configured_run_duration_seconds() -> float | None:
+    value = os.getenv("MONITOR_RUN_DURATION_SECONDS", "").strip()
+    if not value:
+        return None
+    duration = float(value)
+    if duration <= 0:
+        raise ValueError("MONITOR_RUN_DURATION_SECONDS must be positive")
+    return duration
+
+
 def start_provider(
     name: str,
     script: Path,
@@ -102,7 +113,12 @@ def stop_all(processes: dict[str, subprocess.Popen[bytes]]) -> None:
             process.wait()
 
 
-def generate_research_summary(run_id: str) -> Path | None:
+def generate_research_summary(
+    run_id: str,
+    *,
+    run_started_at: datetime,
+    run_ended_at: datetime,
+) -> Path | None:
     enabled = os.getenv("RESEARCH_SUMMARY_ENABLED", "true")
     if enabled.strip().lower() not in {"1", "true", "yes", "on"}:
         logging.info("Research summary generation is disabled")
@@ -114,6 +130,10 @@ def generate_research_summary(run_id: str) -> Path | None:
         run_id,
         "--minimum-duration-hours",
         os.getenv("RESEARCH_SUMMARY_MINIMUM_HOURS", "1"),
+        "--run-started-at",
+        run_started_at.isoformat(),
+        "--run-ended-at",
+        run_ended_at.isoformat(),
     ]
     output_dir = os.getenv("RESEARCH_SUMMARY_OUTPUT_DIR", "").strip()
     if output_dir:
@@ -145,6 +165,13 @@ def generate_research_summary(run_id: str) -> Path | None:
 
 
 def run() -> int:
+    run_started_at = datetime.now(timezone.utc)
+    run_duration_seconds = configured_run_duration_seconds()
+    deadline = (
+        time.monotonic() + run_duration_seconds
+        if run_duration_seconds is not None
+        else None
+    )
     run_id = os.getenv("MONITOR_RUN_ID") or make_run_id()
     os.environ["MONITOR_RUN_ID"] = run_id
     providers = configured_providers()
@@ -184,8 +211,25 @@ def run() -> int:
         len(INFRASTRUCTURE),
         run_id,
     )
+    if run_duration_seconds is not None:
+        logging.info(
+            "Bounded monitoring duration: %.0f seconds",
+            run_duration_seconds,
+        )
     try:
         while True:
+            if deadline is not None and time.monotonic() >= deadline:
+                run_ended_at = datetime.now(timezone.utc)
+                logging.info("Bounded monitoring duration reached")
+                logging.info("Orchestrator stopping")
+                stop_all(processes)
+                generate_research_summary(
+                    run_id,
+                    run_started_at=run_started_at,
+                    run_ended_at=run_ended_at,
+                )
+                logging.info("Orchestrator stopped")
+                return 0
             for name, script in {**provider_scripts, **INFRASTRUCTURE}.items():
                 process = processes[name]
                 return_code = process.poll()
@@ -210,9 +254,14 @@ def run() -> int:
                 logging.info("%s restarted", name)
             time.sleep(1)
     except KeyboardInterrupt:
+        run_ended_at = datetime.now(timezone.utc)
         logging.info("Orchestrator stopping")
         stop_all(processes)
-        generate_research_summary(run_id)
+        generate_research_summary(
+            run_id,
+            run_started_at=run_started_at,
+            run_ended_at=run_ended_at,
+        )
         logging.info("Orchestrator stopped")
         return 130
 

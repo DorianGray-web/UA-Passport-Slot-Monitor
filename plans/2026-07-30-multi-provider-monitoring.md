@@ -5,11 +5,16 @@
 **Historical; implemented and superseded in part — 2026-07-31.**
 
 The three-centre orchestration plan below was implemented and later expanded
-to the registry-driven nine-centre research sample. Observation schema v3,
-four explicitly enabled experimental browser-fallback profiles, long-running
-runtime validation, and SQLite-based research summaries now exist. Berlin and
-Bratislava centre-specific live validation and the correlation analyses listed
-below remain open.
+to the registry-driven multi-centre research sample. Observation schema v3,
+nine explicitly enabled experimental browser-fallback profiles, long-running
+runtime validation, and SQLite-based research summaries now exist.
+
+> **Supersession note — 2026-08-01:** Owner-provided live evidence now
+> confirms the Berlin public discovery contract for centre `2`, service `4`,
+> including `DAYS(1) -> TIMES(0) -> NO_SLOTS -> STOP`. Berlin runtime
+> capability was later approved through a governance-reviewed registry
+> change. Berlin and Bratislava completed bounded validation on 2026-08-02.
+> The correlation analyses below remain open.
 
 ## Objective
 

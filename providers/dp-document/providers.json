@@ -9,8 +9,13 @@
       "enabled": true,
       "priority": "normal",
       "startup_delay_seconds": 0,
+      "public_discovery_profile": "berlin-v1",
+      "service_center_id": "2",
+      "service_id": "4",
+      "csrf_value": "1",
       "research": {
-        "observation_group": "control"
+        "observation_group": "control",
+        "candidate_evidence_probe": true
       }
     },
     {
@@ -22,6 +27,10 @@
       "enabled": true,
       "priority": "high",
       "startup_delay_seconds": 30,
+      "public_discovery_profile": "bratislava-v1",
+      "service_center_id": "9",
+      "service_id": "4",
+      "csrf_value": "1",
       "research": {
         "observation_group": "active"
       }
@@ -36,7 +45,8 @@
       "priority": "normal",
       "startup_delay_seconds": 60,
       "research": {
-        "observation_group": "control"
+        "observation_group": "control",
+        "candidate_evidence_probe": true
       }
     },
     {
@@ -99,6 +109,10 @@
       "enabled": true,
       "priority": "normal",
       "startup_delay_seconds": 180,
+      "public_discovery_profile": "toronto-v1",
+      "service_center_id": "46",
+      "service_id": "4",
+      "csrf_value": "1",
       "research": {
         "observation_group": "control"
       }
@@ -127,6 +141,40 @@
       "startup_delay_seconds": 240,
       "public_discovery_profile": "barcelona-v1",
       "service_center_id": "41",
+      "service_id": "4",
+      "csrf_value": "1",
+      "research": {
+        "observation_group": "active"
+      }
+    },
+    {
+      "city": "valencia",
+      "provider": "dp-document-valencia",
+      "queue_url": "https://valencia.pasport.org.ua/solutions/e-queue",
+      "env_prefix": "VALENCIA",
+      "entrypoint": "valencia_monitor.py",
+      "enabled": true,
+      "priority": "high",
+      "startup_delay_seconds": 270,
+      "public_discovery_profile": "valencia-v1",
+      "service_center_id": "7",
+      "service_id": "4",
+      "csrf_value": "1",
+      "research": {
+        "observation_group": "active"
+      }
+    },
+    {
+      "city": "cologne",
+      "provider": "dp-document-cologne",
+      "queue_url": "https://cologne.pasport.org.ua/solutions/e-queue",
+      "env_prefix": "COLOGNE",
+      "entrypoint": "cologne_monitor.py",
+      "enabled": true,
+      "priority": "high",
+      "startup_delay_seconds": 300,
+      "public_discovery_profile": "cologne-v1",
+      "service_center_id": "3",
       "service_id": "4",
       "csrf_value": "1",
       "research": {

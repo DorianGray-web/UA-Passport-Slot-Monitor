@@ -32,6 +32,7 @@ def observation(
     earliest: str | None = None,
     latest: str | None = None,
     http_status: int = 403,
+    evidence: list[str] | None = None,
 ) -> dict:
     trace = [
         {
@@ -85,7 +86,9 @@ def observation(
         "duration_ms": duration_ms,
         "http_status": 200 if transport == "playwright" else http_status,
         "discovery_stage": stage,
-        "evidence": ["AVAILABLE_DATES_FOUND", "AVAILABLE_TIMES_FOUND"],
+        "evidence": evidence
+        if evidence is not None
+        else ["AVAILABLE_DATES_FOUND", "AVAILABLE_TIMES_FOUND"],
         "request_trace": trace,
         "available_dates_count": dates,
         "available_time_slots_count": slots,
@@ -127,8 +130,9 @@ class ResearchSummaryTests(unittest.TestCase):
 
         self.assertIn("Run ID: `RUN-test`", report)
         self.assertIn("Duration: 4h 0m", report)
+        self.assertIn("Observation coverage duration: 4h 0m", report)
         self.assertIn("HTTP blocked: 2", report)
-        self.assertIn("Playwright fallback: 2", report)
+        self.assertIn("Playwright runs: 2", report)
         self.assertIn("## Madrid", report)
         self.assertIn("## Barcelona", report)
         self.assertIn("| 2026-07-31 13:00:00 | Madrid", report)
@@ -142,6 +146,57 @@ class ResearchSummaryTests(unittest.TestCase):
         self.assertIn("## Observed facts", report)
         self.assertIn("## Interpretation", report)
         self.assertIn("## Conclusions", report)
+
+    def test_candidate_landing_probe_is_separate_from_discovery_results(self) -> None:
+        records = [
+            observation(
+                provider="berlin",
+                observed_at="2026-08-01T10:00:00+00:00",
+                transport="playwright",
+                state="UNKNOWN",
+                stage="LANDING",
+                duration_ms=2_000,
+                evidence=[
+                    "CANDIDATE_EVIDENCE_PROBE",
+                    "QUEUE_FORM_FOUND",
+                    "SERVICE_SELECTOR_FOUND",
+                    "SERVICE_OPTIONS_FOUND",
+                ],
+            )
+        ]
+
+        report = SUMMARY.build_report(records)
+
+        self.assertIn("Candidate landing probes: 1", report)
+        self.assertIn("## Candidate Landing Probes", report)
+        self.assertIn("Runs: 1", report)
+        self.assertIn("Queue form detected: 1", report)
+        self.assertIn("Service selector detected: 1", report)
+        self.assertIn("Service options detected: 1", report)
+        self.assertIn("Unexpected `UNKNOWN`: 0", report)
+        self.assertIn("Successful discoveries through TIMES: 0", report)
+
+    def test_confirmed_early_no_slots_is_a_bounded_browser_outcome(self) -> None:
+        records = [
+            observation(
+                provider="berlin",
+                observed_at="2026-08-02T01:00:00+00:00",
+                transport="playwright",
+                state="NO_SLOTS",
+                stage="LANDING",
+                duration_ms=2_000,
+            )
+        ]
+
+        report = SUMMARY.build_report(records)
+
+        self.assertIn(
+            "produced a recognized bounded outcome in every confirmed "
+            "discovery run: true",
+            report,
+        )
+        self.assertIn("stopped earlier at confirmed NO_SLOTS: 1", report)
+        self.assertIn("recognized bounded outcomes in 1 of 1", report)
 
     def test_report_rejects_mixed_run_ids(self) -> None:
         records = [
@@ -191,6 +246,39 @@ class ResearchSummaryTests(unittest.TestCase):
             path.name,
             "2026-07-31-playwright-fallback-4h-report.md",
         )
+
+    def test_runtime_duration_is_distinct_from_observation_coverage(self) -> None:
+        records = [
+            observation(
+                provider="madrid",
+                observed_at="2026-08-01T11:02:38+00:00",
+                transport="http",
+                state="BLOCKED",
+                stage="LANDING",
+                duration_ms=100,
+            ),
+            observation(
+                provider="madrid",
+                observed_at="2026-08-01T23:01:40+00:00",
+                transport="http",
+                state="BLOCKED",
+                stage="LANDING",
+                duration_ms=100,
+            ),
+        ]
+
+        report = SUMMARY.build_report(
+            records,
+            run_started_at=SUMMARY.parse_timestamp(
+                "2026-08-01T11:02:29+00:00"
+            ),
+            run_ended_at=SUMMARY.parse_timestamp(
+                "2026-08-01T23:05:38+00:00"
+            ),
+        )
+
+        self.assertIn("Duration: 12h 3m", report)
+        self.assertIn("Observation coverage duration: 11h 59m", report)
 
 
 if __name__ == "__main__":

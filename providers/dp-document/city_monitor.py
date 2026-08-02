@@ -22,6 +22,7 @@ from diagnostics.domain import RequestTraceEntry, make_run_id
 from diagnostics.event_store import SQLiteEventStore
 from diagnostics.monitoring import ObservationService
 from browser_discovery import PlaywrightDiscoveryTransport
+from candidate_evidence import CandidateEvidenceStore
 from dp_document_http import DPDocumentHTTPMonitorProvider
 from monitor_metadata import utc_timestamp
 from provider_boundaries import DaysRequest, TimesRequest
@@ -50,6 +51,11 @@ CONFIRMED_PUBLIC_DISCOVERY_PROFILES = {
     "barcelona-v1",
     "london-research-v1",
     "milan-research-v1",
+    "valencia-v1",
+    "berlin-v1",
+    "bratislava-v1",
+    "toronto-v1",
+    "cologne-v1",
 }
 
 
@@ -65,6 +71,7 @@ class ProviderConfig:
     service_center_id: str | None = None
     service_id: str | None = None
     csrf_value: str | None = None
+    candidate_evidence_probe: bool = False
 
     @property
     def slug(self) -> str:
@@ -120,6 +127,16 @@ class CityMonitor:
         )
         self.session = requests.Session()
         self.project_dir = project_dir
+        candidate_root = config.env_path(
+            "CANDIDATE_EVIDENCE_DIR",
+            project_dir
+            / "research-output"
+            / "candidate-evidence"
+            / config.slug,
+        )
+        self.candidate_evidence = CandidateEvidenceStore(
+            candidate_root, config.provider
+        )
 
     def configure_logging(self) -> None:
         self.log_file.parent.mkdir(parents=True, exist_ok=True)
@@ -158,6 +175,49 @@ class CityMonitor:
             os.getenv("PLAYWRIGHT_DISCOVERY_FALLBACK_ENABLED", "false"),
         )
         return value.strip().lower() in {"1", "true", "yes", "on"}
+
+    def candidate_probe_enabled(self) -> bool:
+        if (
+            self.config.public_discovery_profile is not None
+            or not self.config.candidate_evidence_probe
+        ):
+            return False
+        value = os.getenv(
+            f"{self.config.env_prefix}_CANDIDATE_PROBE_ENABLED",
+            os.getenv("CANDIDATE_EVIDENCE_PROBE_ENABLED", "false"),
+        )
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+
+    def candidate_probe_cooldown_seconds(self) -> int:
+        return max(
+            0,
+            int(os.getenv("CANDIDATE_EVIDENCE_PROBE_COOLDOWN_SECONDS", "21600")),
+        )
+
+    def collect_candidate_evidence(
+        self,
+        *,
+        html: str,
+        state: QueueState,
+        transport: str,
+    ) -> bool:
+        candidate = self.landing_classifier.candidate_public_form(html)
+        if candidate is None:
+            return False
+        path = self.candidate_evidence.write_candidate(
+            observed_at=state.checked_at,
+            transport=transport,
+            page_hash=state.page_hash,
+            candidate=candidate,
+        )
+        logging.info(
+            "Candidate evidence recorded locally: path=%s "
+            "service_center=%s option_count=%s",
+            path,
+            candidate.service_center_id or "unknown",
+            len(candidate.options),
+        )
+        return True
 
     def run_browser_fallback(
         self,
@@ -199,6 +259,47 @@ class CityMonitor:
             ),
             result.http_status,
         )
+
+    def run_browser_candidate_probe(
+        self,
+        http_state: QueueState,
+    ) -> tuple[QueueState, int | None]:
+        profile_dir = self.config.env_path(
+            "PLAYWRIGHT_PROFILE_DIR",
+            self.project_dir / ".browser-data" / self.config.slug,
+        )
+        headless_value = os.getenv(
+            "PLAYWRIGHT_DISCOVERY_HEADLESS", "false"
+        )
+        transport = PlaywrightDiscoveryTransport(
+            city=self.config.city,
+            queue_url=self.config.queue_url,
+            service_center_id=None,
+            service_id=None,
+            profile_dir=profile_dir,
+            headless=headless_value.strip().lower()
+            in {"1", "true", "yes", "on"},
+        )
+        result = transport.probe_landing()
+        state = QueueState(
+            result.state,
+            utc_timestamp(),
+            result.page_hash or http_state.page_hash,
+            result.message,
+            "playwright",
+            result.evidence,
+            result.discovery_stage,
+            request_trace=(*http_state.request_trace, *result.request_trace),
+        )
+        if result.candidate_form is not None:
+            path = self.candidate_evidence.write_candidate(
+                observed_at=state.checked_at,
+                transport="playwright",
+                page_hash=state.page_hash,
+                candidate=result.candidate_form,
+            )
+            logging.info("Candidate evidence recorded locally: path=%s", path)
+        return state, result.http_status
 
     def _post_public_discovery(
         self,
@@ -535,6 +636,20 @@ class CityMonitor:
                     response_bytes=response_bytes,
                 ),
             )
+            if (
+                self.config.public_discovery_profile is None
+                and "QUEUE_FORM_FOUND" in current.evidence
+                and self.collect_candidate_evidence(
+                    html=html,
+                    state=current,
+                    transport="http",
+                )
+            ):
+                current.status = "UNKNOWN"
+                current.message = (
+                    "Candidate queue form detected; governance review "
+                    "is required before discovery."
+                )
             observed_status = http_status
             if current.status == "BLOCKED":
                 if self.playwright_fallback_enabled():
@@ -542,6 +657,25 @@ class CityMonitor:
                         "HTTP blocked → switching to Playwright"
                     )
                     current, browser_status = self.run_browser_fallback(
+                        current
+                    )
+                    observed_status = browser_status
+                elif self.candidate_probe_enabled() and (
+                    self.candidate_evidence.should_probe(
+                        transport="playwright",
+                        page_hash=current.page_hash,
+                        cooldown_seconds=self.candidate_probe_cooldown_seconds(),
+                    )
+                ):
+                    self.candidate_evidence.mark_probe(
+                        transport="playwright",
+                        page_hash=current.page_hash,
+                    )
+                    logging.warning(
+                        "HTTP blocked → starting bounded Playwright "
+                        "candidate landing probe"
+                    )
+                    current, browser_status = self.run_browser_candidate_probe(
                         current
                     )
                     observed_status = browser_status

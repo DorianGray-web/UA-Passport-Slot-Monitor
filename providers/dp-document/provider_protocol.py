@@ -38,6 +38,11 @@ class EvidenceCode(StrEnum):
     CSRF_FOUND = "CSRF_FOUND"
     SERVICE_CENTER_FOUND = "SERVICE_CENTER_FOUND"
     SERVICE_FOUND = "SERVICE_FOUND"
+    SERVICE_SELECTOR_FOUND = "SERVICE_SELECTOR_FOUND"
+    SERVICE_OPTIONS_FOUND = "SERVICE_OPTIONS_FOUND"
+    DATE_SELECTOR_FOUND = "DATE_SELECTOR_FOUND"
+    TIME_SELECTOR_FOUND = "TIME_SELECTOR_FOUND"
+    CANDIDATE_EVIDENCE_PROBE = "CANDIDATE_EVIDENCE_PROBE"
     AUTH_REQUIRED_MARKER = "AUTH_REQUIRED_MARKER"
     MAINTENANCE_MARKER = "MAINTENANCE_MARKER"
     CHALLENGE_MARKER = "CHALLENGE_MARKER"
@@ -54,6 +59,20 @@ class EvidenceCode(StrEnum):
 class QueueForm:
     service_center_id: str | None
     service_id: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class CandidateServiceOption:
+    service_id: str
+    label: str
+
+
+@dataclass(frozen=True, slots=True)
+class CandidateQueueForm:
+    service_center_id: str | None
+    options: tuple[CandidateServiceOption, ...]
+    date_selector_found: bool
+    time_selector_found: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -253,6 +272,16 @@ class LandingPageClassifier:
             self._field_value(soup, "ServiceId")
             or self._field_value(soup, "service")
         )
+        service_selector = soup.select_one(
+            'select[name="service"], select[name="ServiceId"]'
+        )
+        service_options = self._candidate_service_options(service_selector)
+        date_selector = soup.select_one(
+            'select[name="date"], select[name="Date"]'
+        )
+        time_selector = soup.select_one(
+            'select[name="time"], select[name="Time"]'
+        )
         form = soup.select_one("form")
         if form is not None:
             evidence.append(EvidenceCode.QUEUE_FORM_FOUND)
@@ -262,6 +291,14 @@ class LandingPageClassifier:
             evidence.append(EvidenceCode.SERVICE_CENTER_FOUND)
         if service:
             evidence.append(EvidenceCode.SERVICE_FOUND)
+        if service_selector is not None:
+            evidence.append(EvidenceCode.SERVICE_SELECTOR_FOUND)
+        if service_options:
+            evidence.append(EvidenceCode.SERVICE_OPTIONS_FOUND)
+        if date_selector is not None:
+            evidence.append(EvidenceCode.DATE_SELECTOR_FOUND)
+        if time_selector is not None:
+            evidence.append(EvidenceCode.TIME_SELECTOR_FOUND)
 
         if form is not None and csrf:
             return LandingPageResult(
@@ -371,6 +408,49 @@ class LandingPageClassifier:
         if centre and len(services) == 1 and date_select is not None:
             return centre, services.pop()
         return None
+
+    @classmethod
+    def candidate_public_form(cls, html: str) -> CandidateQueueForm | None:
+        """Extract public landing-form candidates without reading secrets."""
+        soup = BeautifulSoup(html, "html.parser")
+        selector = soup.select_one(
+            'select[name="service"], select[name="ServiceId"]'
+        )
+        if selector is None or selector.find_parent("form") is None:
+            return None
+        embedded = cls._embedded_queue_config(soup)
+        centre = (
+            cls._field_value(soup, "ServiceCenterId")
+            or cls._field_value(soup, "center")
+            or cls._string_value(embedded.get("center"))
+        )
+        return CandidateQueueForm(
+            service_center_id=centre,
+            options=cls._candidate_service_options(selector),
+            date_selector_found=soup.select_one(
+                'select[name="date"], select[name="Date"]'
+            )
+            is not None,
+            time_selector_found=soup.select_one(
+                'select[name="time"], select[name="Time"]'
+            )
+            is not None,
+        )
+
+    @staticmethod
+    def _candidate_service_options(
+        selector: object | None,
+    ) -> tuple[CandidateServiceOption, ...]:
+        if selector is None or not hasattr(selector, "select"):
+            return ()
+        options: list[CandidateServiceOption] = []
+        for option in selector.select("option[value]"):
+            value = str(option.get("value") or "").strip()
+            if not value:
+                continue
+            label = " ".join(option.get_text(" ", strip=True).split())
+            options.append(CandidateServiceOption(value, label))
+        return tuple(options)
 
     @staticmethod
     def _embedded_queue_config(soup: BeautifulSoup) -> dict[str, object]:

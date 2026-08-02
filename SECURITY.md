@@ -139,8 +139,11 @@ Security researchers acting in good faith, respecting applicable laws and the pr
 
 ## 10. Browser automation security boundary
 
-Normal DP Document monitoring is HTTP-only. Browser automation may be used only
-by the separate diagnostic and controlled reverse-engineering subsystem.
+DP Document monitoring remains HTTP-first. An explicitly enabled bounded
+Playwright transport may be used only for evidence-confirmed research profiles
+after HTTP is blocked and only through the public discovery boundary
+`TIMES -> STOP`. Browser transport is a transport implementation, not a
+capability upgrade.
 
 Allowed:
 
@@ -148,7 +151,7 @@ Allowed:
 - waiting for normal rendering;
 - reading visible queue-state markers;
 - recording sanitized state metadata;
-- maintaining one local diagnostic browser profile;
+- maintaining one local, Git-ignored browser profile per confirmed deployment;
 - applying randomized observation intervals;
 - applying bounded backoff after failures or challenges.
 
@@ -165,10 +168,11 @@ Not allowed:
 - booking or slot reservation;
 - collection of personal booking data.
 
-A provider-side challenge must be treated as an observable access state. The
-monitor should report `BLOCKED` or `CAPTCHA_REQUIRED`, reduce request frequency,
-and optionally enqueue diagnostics. It must not launch a browser or respond by
-escalating evasion techniques.
+A provider-side challenge must be treated as an observable access state. For
+an explicitly enabled confirmed profile, the runtime may attempt one bounded
+normal-browser discovery execution. Otherwise it reports `BLOCKED` or
+`CAPTCHA_REQUIRED`. It never escalates to evasion techniques, CAPTCHA
+interaction, identity submission, or booking.
 
 ## 11. Local research and diagnostic tooling
 

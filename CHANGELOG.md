@@ -8,8 +8,18 @@ This changelog tracks implementation milestones and significant documentation, a
 
 ## [Unreleased]
 
+No unreleased changes.
+
+## [0.3.0] - 2026-08-02
+
 ### Added
 
+- Added a permanent Evidence Matrix covering every configured deployment and
+  separating observation, contract confirmation, comparative validation,
+  governance approval, and runtime capability.
+- Added a capability-promotion checklist that makes `providers.json` changes
+  the reviewed conclusion of the evidence lifecycle rather than an automatic
+  consequence of observation.
 - Added a run-scoped Research Summary Generator that derives transport,
   availability, timeline, behaviour, and per-provider statistics from the
   immutable Observation store.
@@ -17,6 +27,26 @@ This changelog tracks implementation milestones and significant documentation, a
   after a long run, with a configurable minimum-duration threshold.
 - Kept observed facts separate from interpretation and explicitly reports the
   enforced identity, CAPTCHA, and booking boundary.
+- Added normative ADR-0011, defining the project trust model for evidence
+  collection, governance-controlled capabilities, and fail-closed runtime
+  validation.
+- Added an opt-in, cooldown-bound candidate landing probe for Berlin and
+  Kortrijk. It records sanitized local form candidates, never selects a
+  service, and stops at `LANDING`.
+- Extended the Research Summary Generator to report candidate landing probes
+  separately from confirmed Playwright discovery runs.
+- Added Cologne as the eleventh independently supervised deployment and
+  approved `cologne-v1` for centre `3`, service `4`.
+- Added four independent governance approvals for Berlin, Cologne,
+  Bratislava, and Toronto public discovery profiles.
+- Added the normative Release Policy with independent technical, governance,
+  and traceability gates.
+- Added the v0.3.0 Release Readiness Report recording passing technical,
+  governance, traceability, operational, hygiene, and documentation gates.
+- Added a sanitized seven-centre 12-hour runtime validation note.
+- Added a sanitized seven-centre six-hour release-validation note covering
+  the four newly governed profiles, two established controls, and the
+  landing-only Kortrijk candidate probe.
 
 - Started the first provider feasibility study using the DP Document service center in Kortrijk, Belgium.
 - Started browser-assisted capture for provider research.
@@ -67,6 +97,11 @@ This changelog tracks implementation milestones and significant documentation, a
   service `4` without adding identity, CAPTCHA, or booking behavior.
 - Added sanitized mixed-transport request traces for HTTP/Playwright
   completion and timing analysis without changing Observation schema v3.
+- Added Valencia as the tenth independently supervised centre and as the fifth
+  evidence-gated public-discovery profile (`ServiceCenterId=7`,
+  `ServiceId=4`).
+- Added a five-centre Madrid, Barcelona, London, Milan, and Valencia research
+  cohort for bounded HTTP-first transport comparison.
 
 ### Changed
 
@@ -105,8 +140,15 @@ This changelog tracks implementation milestones and significant documentation, a
   Document days/times classifiers shared only by explicitly approved evidence
   profiles.
 - Enabled full public discovery for `madrid-v1`, `barcelona-v1`,
-  `london-research-v1`, and `milan-research-v1`; the remaining centres stay
+  `london-research-v1`, `milan-research-v1`, `valencia-v1`, `berlin-v1`,
+  `toronto-v1`, `cologne-v1`, and `bratislava-v1`; Kortrijk and Chisinau stay
   landing-only.
+- Replaced the legacy Kortrijk implementation with the shared `CityMonitor`
+  entrypoint while preserving candidate-only, no-service-selection behaviour.
+- Distinguished orchestrator runtime from Observation coverage in research
+  summaries and now use runtime duration for automatic report thresholds.
+- Synchronized the confirmed discovery-profile allowlist with the governed
+  Berlin, Cologne, Bratislava, and Toronto registry profiles.
 - Made unexpected Madrid days/times statuses, payload shapes, fields, and
   values fail closed as `UNKNOWN`.
 - Kept HTTP preferred while allowing one non-retrying persistent-browser
@@ -116,6 +158,42 @@ This changelog tracks implementation milestones and significant documentation, a
   environment files, caches, and Site Investigator runtime output.
 
 ### Research
+
+- Recorded owner-provided Berlin live evidence confirming centre `2`, service
+  `4`, and the bounded public `LANDING -> DAYS -> TIMES -> STOP` workflow.
+- Recorded the Berlin terminal case `DAYS(1) -> TIMES(0) -> NO_SLOTS`, which
+  confirms that `NO_SLOTS` can be a valid post-discovery result and is not
+  limited to landing-page classification.
+- Recorded a later Berlin observation for the same date in which `TIMES`
+  returned 9 allowed entries from `15:15:00` through `17:15:00`, transitioning
+  to `SLOTS_AVAILABLE`; response labels reported 61 free appointments across
+  those entries.
+- Documented that Madrid, Barcelona, London, Milan, Valencia, and Berlin now
+  share the same high-level public discovery contract across the currently
+  evidence-confirmed deployments. This evidence is not generalized to other
+  deployments and does not itself change registry capabilities.
+- Recorded owner-provided Toronto live evidence confirming centre `46`,
+  service `4`, one allowed date, 11 allowed time entries from `08:15:00`
+  through `13:00:00`, and the bounded public
+  `LANDING -> DAYS -> TIMES -> STOP` workflow. The response labels reported 32
+  free appointments across those entries.
+- Recorded frontend-source evidence for the separate public
+  `form=check_services` preflight while keeping its live response distinct
+  from the browser-observed `days` and `timeSlots` responses.
+- Added a nine-deployment comparison showing the shared evidence-confirmed
+  `LANDING -> DAYS -> TIMES -> STOP` sequence and using Berlin as the reference
+  case for `NO_SLOTS`/`SLOTS_AVAILABLE` variability within the same public
+  contract.
+- Completed the six-hour bounded release validation: 241 HTTP-first cycles,
+  213 blocked HTTP landings, 202 confirmed Playwright discovery runs, 117
+  `TIMES` completions, 85 recognized earlier `NO_SLOTS` stops, and zero
+  browser errors or browser `UNKNOWN` results.
+- Recorded that Cologne remained `NO_SLOTS` in all 38 observations during the
+  six-hour window despite earlier live slot evidence, while Kortrijk yielded
+  no candidate identifiers and remained landing-only.
+- Recorded owner-provided Valencia live evidence confirming centre `7`,
+  service `4`, the public `form=days` and date-dependent `form=times` flow,
+  and response arrays compatible with the strict confirmed classifiers.
 
 - Validated passive public availability discovery across Madrid, Barcelona,
   London, and Milan during a 3h 57m run: all 79 Playwright fallbacks reached
@@ -183,6 +261,24 @@ This changelog tracks implementation milestones and significant documentation, a
 - Added ADR-0009 to retain independent city entrypoints during live research
   and define the criteria for a later registry-driven generic monitor.
 
+## [0.1.1] - 2026-07-28
+
+### Research
+
+- Completed a continuous 24-hour Kortrijk queue observation.
+- Confirmed that direct HTTP observation is intermittently available but
+  frequently challenged.
+- Confirmed the need for a passive Playwright fallback for reliable rendered
+  state classification.
+- Documented browser-observation boundaries: no fingerprint spoofing, proxy or
+  IP rotation, automated CAPTCHA solving, booking, or form submission.
+- Verified temporary `BLOCKED` detection, progressive backoff, and automatic
+  recovery to `NO_SLOTS`.
+
+These findings describe the earlier page-level experiment. Frontend 7.34.2
+call-site analysis later superseded Playwright fallback for normal monitoring;
+browser automation is now restricted to diagnostics and research.
+
 ## [0.1.0] - 2026-07-20
 
 ### Added
@@ -224,21 +320,3 @@ This changelog tracks implementation milestones and significant documentation, a
 ### Notes
 
 The project remained in the research and validation stage. No production implementation existed at this release.
-
-## [0.1.1] - 2026-07-28
-
-### Research
-
-- Completed a continuous 24-hour Kortrijk queue observation.
-- Confirmed that direct HTTP observation is intermittently available but
-  frequently challenged.
-- Confirmed the need for a passive Playwright fallback for reliable rendered
-  state classification.
-- Documented browser-observation boundaries: no fingerprint spoofing, proxy or
-  IP rotation, automated CAPTCHA solving, booking, or form submission.
-- Verified temporary `BLOCKED` detection, progressive backoff, and automatic
-  recovery to `NO_SLOTS`.
-
-These findings describe the earlier page-level experiment. Frontend 7.34.2
-call-site analysis later superseded Playwright fallback for normal monitoring;
-browser automation is now restricted to diagnostics and research.

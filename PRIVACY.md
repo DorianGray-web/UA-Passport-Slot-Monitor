@@ -156,7 +156,7 @@ If analytics or diagnostic telemetry is introduced:
 - retention must be limited;
 - IP addresses and identifiers should be minimised or anonymised where possible.
 
-## 10. Security and logging
+## 10. Security, logging, and local browser transport
 
 Reasonable technical and organisational measures should be applied according to the risks of the implemented system.
 
@@ -166,9 +166,22 @@ Sensitive values, API keys, tokens, and user information must not be committed t
 
 Application logs must not intentionally contain passport information, passwords, authentication tokens, CAPTCHA answers, complete notification credentials, or personal information entered on official websites.
 
-Diagnostic artifacts may include sanitized HTML, screenshots, response
-metadata, content hashes, or network summaries collected during controlled
-research.
+### What is retained
+
+The immutable Observation may retain normalized state, transport, discovery
+stage, evidence codes, timing, status, content hash, and aggregate public date
+or time-entry counts.
+
+### What is never retained in Observations or research output
+
+Monitoring must not export cookies, CSRF values, browser session storage,
+local storage, raw HTML snapshots, HAR files, screenshots, identity data, or
+booking payloads into Observations or committed research output. The browser
+may manage session state inside its persistent profile; that entire profile
+remains local, Git-ignored, and outside the evidence corpus.
+
+Separately controlled diagnostic research may create sanitized artifacts for
+manual review.
 
 Such artifacts must remain local unless they have been reviewed and sanitized.
 Raw browser profiles, cookies, session tokens, authorization headers, complete

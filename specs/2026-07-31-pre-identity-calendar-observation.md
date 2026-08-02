@@ -3,9 +3,12 @@
 ## Status
 
 **Partially implemented.** The public `DAYS -> TIMES -> STOP` contract and
-Observation schema v3 are implemented for the confirmed Madrid, Barcelona,
-London, and Milan profiles. Other centres remain blocked on centre-specific
-evidence. The rendered identity-boundary classifier and fixture remain open.
+Observation schema v3 are implemented for nine governed profiles. Kortrijk
+and Chisinau remain landing-only, and the rendered identity-boundary
+classifier and fixture remain open.
+
+> **Supersession note — 2026-08-02:** The six-hour release validation completed
+> bounded runtime coverage for the four profiles promoted on 2026-08-02.
 
 ## Scope
 

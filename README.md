@@ -24,8 +24,9 @@ Feedback from users, developers, security specialists, UX designers, and open-so
 - does not automatically solve CAPTCHA or programmatically bypass anti-bot
   challenges;
 - does not rotate proxies, IP addresses, or browser identities;
-- uses HTTP for normal DP Document queue discovery;
-- reserves browser automation for separate diagnostics and controlled research;
+- remains HTTP-first for DP Document queue discovery;
+- permits an explicitly enabled, bounded Playwright transport only for
+  evidence-confirmed research profiles after HTTP is blocked;
 - no passport-number collection;
 - privacy-first location handling;
 - responsible request rates;
@@ -47,10 +48,26 @@ Belgium. Analysis of frontend 7.34.2 has confirmed that:
 - challenge pages, CAPTCHA, access restrictions, and incomplete captures must be detected separately from valid availability responses.
 
 The HTTP `MonitorProvider` boundary and its `days`/`times` request methods are
-implemented. Madrid, Barcelona, London, and Milan have separate evidence-gated
-profiles that run through public `DAYS` and `TIMES` and stop. Kortrijk, Berlin,
-Bratislava, Toronto, and Chisinau remain landing-only until centre-specific
-evidence confirms the full contract.
+implemented. Nine governance-approved, evidence-gated profiles—Madrid,
+Barcelona, London, Milan, Valencia, Berlin, Toronto, Cologne, and Bratislava—
+run through public `DAYS` and `TIMES` and stop. Kortrijk and Chisinau remain
+landing-only.
+
+Across the currently evidence-confirmed deployments, successful HTTP `200`
+landing responses exposed the public queue form and public discovery could
+proceed through `DAYS` and `TIMES`. This is an observed evidence set, not a
+protocol guarantee for other or future deployments.
+
+The current evidence set contains nine independently reviewed deployments.
+Berlin demonstrates both `TIMES(0) -> NO_SLOTS` and, later for the same date,
+`TIMES(9) -> SLOTS_AVAILABLE`: the public stage sequence remained stable while
+the availability payload changed.
+
+A six-hour release validation completed on 2026-08-02 for Berlin, Cologne,
+Bratislava, Toronto, Kortrijk, Madrid, and Barcelona. The four newly governed
+profiles completed bounded browser discovery without browser errors or
+browser `UNKNOWN`. Cologne remained `NO_SLOTS` throughout this window;
+Kortrijk produced no candidate identifiers and remains landing-only.
 
 Still planned:
 
@@ -59,12 +76,35 @@ Still planned:
 - an operator-facing blocked/challenge workflow;
 - Telegram and email notifications.
 
+## Recommended Reading Order
+
+The repository documentation is organized by responsibility rather than by
+chronological development. For first-time readers, the recommended order is:
+
+1. **README** — understand the project's purpose, principles, and current
+   scope.
+2. **[Evidence Matrix](docs/EVIDENCE_MATRIX.md)** — review the current trust
+   state, deployment maturity, and governance status.
+3. **[Architecture](docs/ARCHITECTURE.md)** — learn how trusted capabilities
+   are implemented and guarded at runtime.
+4. **[Project Decisions](docs/DECISIONS.md)** — understand why the governing
+   architectural rules exist.
+5. **[Research Notes](research/README.md)** — review the retained evidence
+   supporting individual capability decisions.
+
+This order separates mission, current trust state, implementation, rationale,
+and evidence. Historical plans and reports remain valuable records, but they
+are not the primary description of current runtime behaviour.
+
 ## Project documentation
 
 - [Project Concept](docs/PROJECT_CONCEPT.md)
 - [Roadmap](ROADMAP.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Project Decisions](docs/DECISIONS.md)
+- [Evidence Matrix](docs/EVIDENCE_MATRIX.md)
+- [Release Policy](docs/RELEASE_POLICY.md)
+- [v0.3.0 Release Readiness Report](docs/releases/2026-08-02-v0.3.0-release-readiness.md)
 - [Providers](docs/PROVIDERS.md)
 - [User Flow](docs/USER_FLOW.md)
 - [Research](research/README.md)
@@ -75,8 +115,10 @@ Still planned:
 
 ### Research summary reports
 
-When `monitor_runner.py` is stopped with `Ctrl+C`, it automatically generates a
-local Markdown summary for runs lasting at least one hour. Reports are written to
+When `monitor_runner.py` is stopped with `Ctrl+C` or reaches a configured
+bounded-run deadline, it automatically generates a local Markdown summary for
+runs lasting at least one hour. Runtime duration and Observation coverage are
+reported separately. Reports are written to
 `research/dp-document/<date>-playwright-fallback-<hours>h-report.md` and are
 built exclusively from immutable Observations in `data/observations.sqlite3`.
 Generated reports are runtime output and are ignored by Git; only manually
@@ -100,9 +142,9 @@ Localized user documentation:
 Create an environment and install dependencies.
 
 The runner starts every entry in `providers/dp-document/providers.json` whose
-`enabled` field is `true`. The current research sample contains nine centres:
-Kortrijk, Berlin, Bratislava, Madrid, London, Milan, Toronto, Chisinau, and
-Barcelona.
+`enabled` field is `true`. The current research sample contains eleven centres:
+Kortrijk, Berlin, Bratislava, Madrid, London, Milan, Toronto, Chisinau,
+Barcelona, Valencia, and Cologne.
 
 ```powershell
 python -m venv .venv
@@ -142,6 +184,10 @@ $env:MONITOR_PROVIDER_CITIES = "madrid,london,milan"
 python.exe .\monitor_runner.py
 ```
 
+Set `MONITOR_RUN_DURATION_SECONDS` for an automatically completed bounded run.
+The orchestrator stops its children cleanly and generates the research summary
+at the deadline.
+
 For a bounded four-centre transport experiment, explicitly enable the
 persistent browser fallback:
 
@@ -151,9 +197,38 @@ $env:PLAYWRIGHT_DISCOVERY_FALLBACK_ENABLED = "true"
 .\.venv-2\Scripts\python.exe .\monitor_runner.py
 ```
 
+For an explicitly selected confirmed-profile comparison run:
+
+```powershell
+$env:MONITOR_PROVIDER_CITIES = "madrid,barcelona,london,milan,valencia,berlin,toronto,cologne,bratislava"
+$env:PLAYWRIGHT_DISCOVERY_FALLBACK_ENABLED = "true"
+$env:RESEARCH_SUMMARY_MINIMUM_HOURS = "3"
+.\.venv-2\Scripts\python.exe .\monitor_runner.py
+```
+
 HTTP is attempted first on every cycle. Playwright starts only after
 `BLOCKED`, uses separate local profiles under `.browser-data/`, and stops at
 public `TIMES`. It does not interact with CAPTCHA, identity, or booking.
+
+The 2026-08-01 seven-centre research run originally treated Berlin and
+Kortrijk as candidate landing probes. Berlin's public discovery contract was
+subsequently confirmed by live review and promoted through explicit
+governance; Kortrijk remains candidate-only. The historical command remains a
+record of that earlier evidence state:
+
+```powershell
+$env:MONITOR_PROVIDER_CITIES = "madrid,barcelona,london,milan,valencia,berlin,kortrijk"
+$env:PLAYWRIGHT_DISCOVERY_FALLBACK_ENABLED = "true"
+$env:CANDIDATE_EVIDENCE_PROBE_ENABLED = "true"
+$env:CANDIDATE_EVIDENCE_PROBE_COOLDOWN_SECONDS = "21600"
+$env:RESEARCH_SUMMARY_MINIMUM_HOURS = "3"
+.\.venv-2\Scripts\python.exe .\monitor_runner.py
+```
+
+Sanitized candidate form details are written only under Git-ignored
+`research-output/candidate-evidence/<city>/`. Candidate evidence cannot enable
+a discovery profile; an explicit governance review and registry change are
+required.
 
 Every check stores an immutable, schema-versioned Observation in
 `data/observations.sqlite3`. The transaction also stores its diagnostic
