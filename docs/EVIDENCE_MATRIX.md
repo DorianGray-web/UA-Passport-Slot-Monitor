@@ -34,17 +34,18 @@ capabilities automatically.
 
 | Measure | Count |
 |---|---:|
-| Deployments tracked by this matrix | 11 |
-| Deployments configured in `providers.json` | 11 |
-| Evidence-confirmed public contracts | 9 |
-| Approved runtime discovery profiles | 9 |
+| Deployments tracked by this matrix | 12 |
+| Deployments configured in `providers.json` | 12 |
+| Evidence-confirmed public contracts | 10 |
+| Approved runtime discovery profiles | 10 |
 | Governance-pending discovery candidates | 0 |
 | Unconfirmed landing-only research deployments | 2 |
 | Discovery profiles completing bounded release validation | 9 |
 
 Berlin, Toronto, Cologne, and Bratislava were approved independently on
 2026-08-02. The two unconfirmed landing-only research deployments are Kortrijk
-and Chisinau.
+and Chisinau. Prague was independently approved on 2026-08-02; its bounded
+post-promotion runtime validation remains scheduled rather than completed.
 
 ## Current deployment state
 
@@ -59,6 +60,7 @@ and Chisinau.
 | Toronto | Confirmed | Confirmed | Confirmed | Approved | `discovery` |
 | Cologne | Confirmed | Confirmed | Confirmed | Approved | `discovery` |
 | Bratislava | Confirmed | Confirmed | Confirmed | Approved | `discovery` |
+| Prague | Confirmed | Confirmed | Confirmed | Approved | `discovery` |
 | Kortrijk | Landing only | Unconfirmed | Not eligible | Not eligible | `landing-only` |
 | Chisinau | Landing only | Unconfirmed | Not eligible | Not eligible | `landing-only` |
 
@@ -70,9 +72,9 @@ yet satisfied.
 
 ## Current comparative finding
 
-Nine deployments currently have reviewed public discovery evidence:
+Ten deployments currently have reviewed public discovery evidence:
 Madrid, Barcelona, London, Milan, Valencia, Berlin, Toronto, Cologne, and
-Bratislava. Each reached the bounded high-level sequence:
+Bratislava, plus Prague. Each reached the bounded high-level sequence:
 
 ```text
 LANDING -> DAYS -> TIMES -> STOP
@@ -89,8 +91,12 @@ It is not a protocol guarantee for unconfirmed or future deployments.
 The 2026-08-02 six-hour release validation exercised Berlin, Cologne,
 Bratislava, and Toronto alongside Madrid and Barcelona controls. Cologne was
 `NO_SLOTS` throughout that window despite its earlier live availability
-evidence. Kortrijk's candidate probe found no queue form or identifiers and
-did not change its landing-only trust state.
+evidence. Kortrijk's probe in that historical window found no queue form or
+identifiers. A later bounded candidate probe detected the public queue form,
+centre `48`, service option `4`, and date/time selectors, then stopped at
+`LANDING` without selecting a service or executing `DAYS` or `TIMES`. This
+increased the evidence corpus but did not change Kortrijk's landing-only trust
+state.
 
 ## Capability Promotion Checklist
 
@@ -128,6 +134,8 @@ A capability revision or removal requires:
 
 - [Cross-deployment comparison](../research/dp-document/2026-08-01-cross-deployment-public-discovery-comparison.md)
 - [2026-08-02 governance review](governance/2026-08-02-public-discovery-profile-promotions.md)
+- [Prague governance review](governance/2026-08-02-prague-public-discovery-promotion.md)
+- [Prague live observation](../research/dp-document/2026-08-02-prague-live-observation.md)
 - [Seven-centre six-hour release validation](../research/dp-document/2026-08-02-seven-centre-6h-release-validation.md)
 - [Berlin live observation](../research/dp-document/2026-08-01-berlin-live-observation.md)
 - [Toronto live observation](../research/dp-document/2026-08-01-toronto-live-observation.md)
@@ -136,4 +144,5 @@ A capability revision or removal requires:
 - [Valencia live observation](../research/dp-document/2026-08-01-valencia-live-observation.md)
 - [Barcelona live observation](../research/dp-document/2026-07-31-barcelona-live-observation.md)
 - [Bratislava and Milan live observation](../research/dp-document/2026-07-30-bratislava-milan-live-observation.md)
+- [Kortrijk candidate form observation](../research/dp-document/2026-08-02-kortrijk-candidate-form-observation.md)
 - [Kortrijk technical spike](../research/dp-document/belgium-kortrijk-spike.md)

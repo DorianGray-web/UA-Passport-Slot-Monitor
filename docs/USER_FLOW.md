@@ -3,7 +3,7 @@
 ## Current local prototype
 
 An operator configures environment variables and starts `python -m
-monitor_runner`. The orchestrator loads `providers.json` and supervises eleven
+monitor_runner`. The orchestrator loads `providers.json` and supervises twelve
 independent provider processes plus the diagnostic worker. Each `CityMonitor`
 selects HTTP first; an explicitly enabled confirmed profile may use bounded
 Playwright after HTTP is blocked. The Runtime Guard stops discovery at

@@ -368,7 +368,7 @@ That structure was intentional during early provider research:
 - failures in one entrypoint did not prevent the orchestrator from supervising
   the others.
 
-The current eleven-centre research sample still uses independent processes and
+The current twelve-centre research sample still uses independent processes and
 entrypoints. City-specific values have moved into
 `providers/dp-document/providers.json`, but each process continues to start
 through a city-named script. This implementation is working and covered by
@@ -549,6 +549,12 @@ service `4`, and Bratislava centre `9`, service `4`, bringing the reviewed
 public-contract corpus to nine deployments. On 2026-08-02, Berlin, Cologne,
 Bratislava, and Toronto were promoted independently through an explicit
 [governance review](governance/2026-08-02-public-discovery-profile-promotions.md).
+Later on 2026-08-02, owner-provided Prague evidence confirmed centre `8`,
+service `4`, one allowed date, and four allowed time entries. The project owner
+approved `prague-v1` through an independent
+[governance decision](governance/2026-08-02-prague-public-discovery-promotion.md),
+bringing the reviewed and approved corpus to ten deployments without
+generalizing the contract beyond them.
 This is a governed capability change, not an automatic consequence of the
 observations.
 
@@ -799,4 +805,224 @@ Trusted capabilities are governed.
 Runtime validates every execution.
 
 Runtime fails closed whenever validation fails.
+```
+
+## ADR-0012: Evidence-First Notification Derivation and Output Isolation
+
+**Status:** Proposed
+
+**Date:** 2026-08-02
+
+### Context
+
+The implemented runtime produces immutable Observations but does not send
+Telegram, email, push, webhook, or other external notifications. A future
+notification subsystem must communicate useful public facts without becoming
+a control path into provider monitoring, Runtime Guard, trusted capabilities,
+or governance.
+
+Direct monitor-to-channel delivery would couple provider execution to network
+delivery, make transient availability difficult to confirm, and give channel
+adapters access to more runtime data than they require. It would also obscure
+why a message was sent and which policy version authorized it.
+
+ADR-0011 governs how evidence may support trusted capabilities. The output
+architecture needs the corresponding rule for external communication:
+
+> **Output capabilities are governed with the same discipline as runtime
+> capabilities, while remaining an independent architecture.**
+
+### Decision
+
+Notification processing is a one-way, evidence-first Output Pipeline:
+
+```text
+Committed Observation
+    -> Notification Candidate
+    -> versioned Policy Set
+    -> Notification Decision Trace
+    -> Confirmed Notification Event
+    -> Delivery Job
+    -> Delivery Adapter
+    -> Delivery Audit
+```
+
+The Input Pipeline terminates at immutable Observation. The Output Pipeline
+may read committed source facts but has no control path back into a provider,
+monitor, transport, Runtime Guard, Observation, `providers.json`, the Evidence
+Matrix, or governance state.
+
+Notifications are outputs only. They never promote knowledge, provider
+capabilities, or notification capabilities automatically.
+
+### Output layers
+
+| Layer | Responsibility |
+|---|---|
+| Observation reader | Reads committed immutable source facts through a durable cursor |
+| Event builder | Produces a sanitized Notification Candidate from allowlisted facts |
+| Confirmation policy | Decides whether later natural observations confirm or invalidate the candidate |
+| Deduplication policy | Suppresses or aggregates equivalent confirmed events |
+| Priority policy | Classifies urgency independently from audience |
+| Privacy policy | Rejects envelopes outside the public-data allowlist |
+| Routing policy | Selects audience, channel, and destination alias |
+| Notification queue | Persists immutable delivery jobs with leases and bounded retries |
+| Delivery adapter | Translates a normalized envelope to one external channel |
+| Audit store | Records operational handling without changing logical decisions |
+
+### Policy Sets
+
+`notification_profiles.json` is the proposed declarative source of trusted
+notification policy. It remains independent from `providers.json` and contains
+no credentials.
+
+A Policy Set references independently versioned confirmation,
+deduplication, priority, privacy, and routing policies. Developer, research,
+and future public notification profiles may use different Policy Sets. Every
+logical decision records the Policy Set ID, version, and safe normalized hash
+that produced it.
+
+Policy changes do not change event schema versions unless the structure or
+meaning of a persisted contract changes.
+
+### Confirmation without feedback
+
+> **Policies consume observations but never schedule them.**
+
+Confirmation may require a configurable number of consecutive observations,
+a minimum duration, a maximum window, a required discovery stage, and reset
+states. Provider-specific notification-policy overrides may exist only in the
+separate notification configuration.
+
+The Output Pipeline must not request an early provider check, change polling
+frequency, start Playwright, or otherwise create a notification-to-runtime
+feedback loop. A candidate that is not confirmed by naturally occurring
+observations expires or is discarded.
+
+### Decisions, provenance, and audit
+
+Notification Candidate, Notification Decision, Confirmed Notification Event,
+Notification Provenance, Delivery Job, Delivery Result, and Notification Audit
+Record are separate immutable, schema-versioned contracts.
+
+Notification Decision records why a versioned policy accepted, rejected,
+suppressed, or deferred a candidate. Decisions for one candidate and one
+Policy Set share a `decision_trace_id` and deterministic sequence number.
+Notification Audit records what infrastructure later did. An accepted routing
+decision does not imply successful delivery, and a delivery failure does not
+change the logical event.
+
+Every externally deliverable event must retain sanitized provenance linking
+it to source Observation IDs, its confirmation interval, and every referenced
+policy version. Provenance never contains raw provider payloads, browser state,
+credentials, or destination identifiers.
+
+### Decision reproducibility
+
+Given retained source facts, their deterministic ordering, the referenced
+Policy Set, evaluation time, and relevant retained notification decision
+state, the logical Decision Trace must be reproducible without provider
+runtime or delivery infrastructure.
+
+Replay compares normalized logical results. Newly generated IDs, test-run
+timestamps, Telegram responses, and operational audit records are not part of
+the reproducible decision result.
+
+### Coordinator and adapters
+
+> **The Notification Coordinator performs orchestration only.**
+
+It may order policy evaluation, persist decisions, advance its processing
+cursor, and enqueue accepted routes. It must not contain event-specific,
+provider-specific, priority, privacy, routing, channel, or message-formatting
+rules.
+
+Delivery adapters receive only normalized, privacy-validated Notification
+Envelopes. Telegram is the first planned adapter, not part of the domain
+model. A Telegram adapter must not import Observation, provider configuration,
+provider monitors, Runtime Guard, Playwright, or governance state.
+
+### Privacy and security boundary
+
+Allowlisted outbound facts are limited to sanitized public centre and service
+labels, normalized state and discovery stage, observation time, aggregate
+availability counts, earliest/latest public time, an official public URL, and
+coarse reason codes.
+
+Notification contracts, jobs, logs, audit records, and outbound payloads must
+never contain cookies, CSRF values, request or response headers, raw HTML,
+browser storage, browser-profile paths, HAR or trace data, screenshots, phone
+numbers, OTP, CAPTCHA data, identity data, booking payloads, bot tokens, raw
+destination identifiers, or arbitrary exception bodies.
+
+Privacy validation occurs before queue insertion and again before delivery.
+Unknown schemas, Policy Sets, policies, event types, or fields fail closed and
+produce only a sanitized local refusal record.
+
+### Queue boundary
+
+The initial planned queue has a `NotificationQueue` protocol with in-memory
+contract-test and SQLite implementations. It supports priority ordering,
+deduplication, bounded leases, stale-lease protection, retry backoff, and
+terminal failure.
+
+DiagnosticQueue is not reused: diagnostics and notifications have different
+domain payloads and lifecycles. A separate `QueueStorage` abstraction is
+deferred until a second persistent notification implementation demonstrates
+that it is necessary.
+
+### Source-fact boundary
+
+Provider notification candidates derive from Observation. `RUN_COMPLETED`,
+`RESEARCH_SUMMARY_GENERATED`, `GOVERNANCE_REMINDER`, and similar events are not
+provider Observations and must not be fabricated as such. They require a
+separately reviewed immutable Operational Fact contract before implementation.
+
+### Non-goals
+
+This decision does not implement or authorize:
+
+- Telegram or any other external API call;
+- a runtime notification coordinator, queue, worker, or adapter;
+- user subscriptions or public notification destinations;
+- runtime hooks or changes to Observation;
+- provider checks initiated by notification policy;
+- changes to `providers.json`, the Evidence Matrix, or trusted capabilities;
+- booking, identity verification, CAPTCHA interaction, or browser execution;
+- an event bus, microservice split, plugin framework, Redis, or PostgreSQL.
+
+### Consequences
+
+- notification implementation can begin only after this ADR is accepted;
+- the first implementation milestone is offline immutable contracts, schema
+  validation, policy loading, decision replay, and architecture tests;
+- SQLite queue, worker, and a developer-only Telegram adapter follow only
+  after the offline milestone passes;
+- runtime integration follows bounded offline and adapter validation;
+- end-user notifications require a separate privacy and governance review;
+- every external message must be explainable from retained facts, versioned
+  policies, a complete Decision Trace, and delivery audit history.
+
+### Output invariants
+
+```text
+Observations are immutable inputs to the Output Pipeline.
+
+Candidates do not authorize delivery.
+
+Policies consume observations but never schedule them.
+
+Every confirmation is an explicit versioned decision.
+
+Priority and audience are independent dimensions.
+
+Coordinator performs orchestration only.
+
+Adapters consume envelopes but never Observations.
+
+Delivery results never alter source facts.
+
+Notification output never modifies trusted capabilities.
+
+Every external message is traceable to retained facts and policies.
 ```

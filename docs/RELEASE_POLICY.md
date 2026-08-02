@@ -45,6 +45,29 @@ Research Note
   -> Runtime
 ```
 
+When an externally deliverable notification profile exists, it must also have
+a complete output trace:
+
+```text
+Retained Source Facts
+  -> Notification Candidate
+  -> Versioned Policy Set
+  -> Reproducible Decision Trace
+  -> Confirmed Notification Event
+  -> Delivery Job
+  -> Delivery Result and Audit
+```
+
+Every externally deliverable event must be reproducible from retained source
+facts, retained logical decision state, the referenced versioned Policy Set,
+and the recorded evaluation context. Every outbound envelope must pass the
+referenced Privacy Policy. Unsupported or incomplete traces fail the
+Traceability gate.
+
+When no externally deliverable notification profile is implemented or
+enabled, notification traceability is recorded as **NOT APPLICABLE**, not as
+an implemented capability.
+
 ## Release axioms
 
 - Trust is declared, not inferred.

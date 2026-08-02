@@ -48,8 +48,9 @@ Belgium. Analysis of frontend 7.34.2 has confirmed that:
 - challenge pages, CAPTCHA, access restrictions, and incomplete captures must be detected separately from valid availability responses.
 
 The HTTP `MonitorProvider` boundary and its `days`/`times` request methods are
-implemented. Nine governance-approved, evidence-gated profiles—Madrid,
-Barcelona, London, Milan, Valencia, Berlin, Toronto, Cologne, and Bratislava—
+implemented. Ten governance-approved, evidence-gated profiles—Madrid,
+Barcelona, London, Milan, Valencia, Berlin, Toronto, Cologne, Bratislava, and
+Prague—
 run through public `DAYS` and `TIMES` and stop. Kortrijk and Chisinau remain
 landing-only.
 
@@ -58,7 +59,7 @@ landing responses exposed the public queue form and public discovery could
 proceed through `DAYS` and `TIMES`. This is an observed evidence set, not a
 protocol guarantee for other or future deployments.
 
-The current evidence set contains nine independently reviewed deployments.
+The current evidence set contains ten independently reviewed deployments.
 Berlin demonstrates both `TIMES(0) -> NO_SLOTS` and, later for the same date,
 `TIMES(9) -> SLOTS_AVAILABLE`: the public stage sequence remained stable while
 the availability payload changed.
@@ -67,14 +68,20 @@ A six-hour release validation completed on 2026-08-02 for Berlin, Cologne,
 Bratislava, Toronto, Kortrijk, Madrid, and Barcelona. The four newly governed
 profiles completed bounded browser discovery without browser errors or
 browser `UNKNOWN`. Cologne remained `NO_SLOTS` throughout this window;
-Kortrijk produced no candidate identifiers and remains landing-only.
+Kortrijk produced no candidate identifiers during that historical window.
+A later bounded candidate probe detected the public queue form, centre `48`,
+service option `4`, and date/time selectors, but did not select the service or
+execute `DAYS` or `TIMES`; Kortrijk therefore remains landing-only.
 
 Still planned:
 
 - full runtime integration for the remaining centres;
 - live validation for the remaining centre-specific contracts;
 - an operator-facing blocked/challenge workflow;
-- Telegram and email notifications.
+- the evidence-first notification Output Pipeline described by proposed
+  ADR-0012;
+- Telegram and email delivery adapters after notification governance,
+  offline contracts, replay tests, and bounded validation.
 
 ## Recommended Reading Order
 
@@ -103,6 +110,9 @@ are not the primary description of current runtime behaviour.
 - [Architecture](docs/ARCHITECTURE.md)
 - [Project Decisions](docs/DECISIONS.md)
 - [Evidence Matrix](docs/EVIDENCE_MATRIX.md)
+- [Notification Architecture](docs/NOTIFICATION_ARCHITECTURE.md)
+- [Notification Event Contracts](docs/contracts/notification-events.md)
+- [Notification Test Strategy](docs/testing/notification-test-strategy.md)
 - [Release Policy](docs/RELEASE_POLICY.md)
 - [v0.3.0 Release Readiness Report](docs/releases/2026-08-02-v0.3.0-release-readiness.md)
 - [Providers](docs/PROVIDERS.md)
@@ -142,9 +152,9 @@ Localized user documentation:
 Create an environment and install dependencies.
 
 The runner starts every entry in `providers/dp-document/providers.json` whose
-`enabled` field is `true`. The current research sample contains eleven centres:
+`enabled` field is `true`. The current research sample contains twelve centres:
 Kortrijk, Berlin, Bratislava, Madrid, London, Milan, Toronto, Chisinau,
-Barcelona, Valencia, and Cologne.
+Barcelona, Valencia, Cologne, and Prague.
 
 ```powershell
 python -m venv .venv
@@ -240,6 +250,11 @@ files are ignored by Git.
 
 These entry points are local research/prototyping tools. They do not send
 Telegram or email notifications and they do not book appointments.
+
+The proposed notification documentation is architecture only. ADR-0012
+remains `Proposed`; no notification Coordinator, policy engine, queue, worker,
+delivery adapter, subscription store, Telegram integration, or external
+message exists in the current runtime.
 
 ## Contributing
 

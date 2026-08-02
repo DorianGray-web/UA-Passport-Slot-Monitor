@@ -1,12 +1,16 @@
 # Notification Channels
 
-> Status: Research and validation
+> Status: Historical channel research; superseded for architecture by
+> [ADR-0012](DECISIONS.md#adr-0012-evidence-first-notification-derivation-and-output-isolation)
+> and [Notification Architecture](NOTIFICATION_ARCHITECTURE.md).
 
 ## Purpose
 
 This document describes the notification requirements and candidate delivery channels for UA Passport Slot Monitor.
 
-No final notification provider has been selected yet. The initial implementation decision will be based on user survey results, technical feasibility, privacy, reliability, and operating cost.
+This document retains the early delivery-channel comparison. Telegram is now
+the first planned, replaceable adapter in the proposed architecture, but ADR-0012
+remains `Proposed` and no delivery channel is implemented.
 
 No notification sender is currently implemented. Diagnostic decisions and
 outbox commands belong to the diagnostic subsystem and must not be described
@@ -79,11 +83,14 @@ Limitations:
 - permission management;
 - inconsistent background delivery, especially on mobile platforms.
 
-## Current decision
+## Supersession note — 2026-08-03
 
-The project will not select a primary notification provider until the current user survey has been reviewed.
-
-The notification layer should be modular so that one or more channels can be added without changing the provider-monitoring logic.
+The normative proposal now defines a transport-independent, one-way Output
+Pipeline. Telegram is the first planned adapter, not a runtime dependency or
+an implemented sender. Channel implementation remains blocked on governance
+acceptance, offline domain contracts, replay tests, privacy validation, and
+bounded validation. This historical comparison remains useful input and does
+not authorize implementation.
 
 ## Notification content
 
@@ -105,7 +112,7 @@ Notifications must not contain:
 
 ## Future updates
 
-This document will be updated when:
+Future channel research should be recorded here when:
 
 - survey results are available;
 - an MVP notification channel is selected;

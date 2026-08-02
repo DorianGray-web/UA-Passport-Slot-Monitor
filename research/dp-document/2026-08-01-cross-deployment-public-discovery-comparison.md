@@ -73,3 +73,9 @@ or any future deployment.
 
 The state is derived from evidence, not from a deployment-specific branch or
 an assumed centre reputation.
+
+> **Supersession note — 2026-08-02:** A later owner-provided Prague review
+> independently confirmed centre `8`, service `4`, one allowed date, four
+> allowed time entries, and the same bounded `LANDING -> DAYS -> TIMES -> STOP`
+> sequence. Prague is documented separately rather than rewriting this
+> historical nine-deployment comparison.

@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ua-passport-slot-monitor:schema:notification-profiles:1",
+  "title": "Notification Profiles",
+  "description": "Proposed output-policy configuration. It contains no credentials and does not enable provider capabilities.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "enabled",
+    "policy_sets",
+    "confirmation_policies",
+    "deduplication_policies",
+    "priority_policies",
+    "privacy_policies",
+    "routing_policies",
+    "provider_overrides"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "enabled": { "type": "boolean", "default": false },
+    "policy_sets": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/policySet" }
+    },
+    "confirmation_policies": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/confirmationPolicy" }
+    },
+    "deduplication_policies": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/deduplicationPolicy" }
+    },
+    "priority_policies": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/priorityPolicy" }
+    },
+    "privacy_policies": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/privacyPolicy" }
+    },
+    "routing_policies": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/routingPolicy" }
+    },
+    "provider_overrides": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-z0-9][a-z0-9-]*$" },
+      "additionalProperties": { "$ref": "#/$defs/providerOverride" }
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]*$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "policyRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy_id", "policy_version"],
+      "properties": {
+        "policy_id": { "$ref": "#/$defs/identifier" },
+        "policy_version": { "$ref": "#/$defs/version" }
+      }
+    },
+    "policySet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "policy_set_version",
+        "confirmation_policy",
+        "deduplication_policy",
+        "priority_policy",
+        "privacy_policy",
+        "routing_policy"
+      ],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "policy_set_version": { "$ref": "#/$defs/version" },
+        "confirmation_policy": { "$ref": "#/$defs/policyRef" },
+        "deduplication_policy": { "$ref": "#/$defs/policyRef" },
+        "priority_policy": { "$ref": "#/$defs/policyRef" },
+        "privacy_policy": { "$ref": "#/$defs/policyRef" },
+        "routing_policy": { "$ref": "#/$defs/policyRef" }
+      }
+    },
+    "confirmationPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_version",
+        "minimum_observations",
+        "minimum_duration_seconds",
+        "maximum_window_seconds",
+        "required_stage",
+        "required_states",
+        "require_consecutive",
+        "reset_states"
+      ],
+      "properties": {
+        "policy_version": { "$ref": "#/$defs/version" },
+        "minimum_observations": { "type": "integer", "minimum": 1 },
+        "minimum_duration_seconds": { "type": "integer", "minimum": 0 },
+        "maximum_window_seconds": { "type": "integer", "minimum": 1 },
+        "required_stage": {
+          "enum": ["LANDING", "SERVICE_VALIDATION", "DAYS", "TIMES"]
+        },
+        "required_states": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "require_consecutive": { "type": "boolean" },
+        "reset_states": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "deduplicationPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_version",
+        "silence_window_seconds",
+        "aggregation_window_seconds",
+        "notify_on_recovery"
+      ],
+      "properties": {
+        "policy_version": { "$ref": "#/$defs/version" },
+        "silence_window_seconds": { "type": "integer", "minimum": 0 },
+        "aggregation_window_seconds": { "type": "integer", "minimum": 0 },
+        "notify_on_recovery": { "type": "boolean" }
+      }
+    },
+    "priorityPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy_version", "event_priorities"],
+      "properties": {
+        "policy_version": { "$ref": "#/$defs/version" },
+        "event_priorities": {
+          "type": "object",
+          "additionalProperties": { "enum": ["P0", "P1", "P2", "P3"] }
+        }
+      }
+    },
+    "privacyPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy_version", "allowed_fields"],
+      "properties": {
+        "policy_version": { "$ref": "#/$defs/version" },
+        "allowed_fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/identifier" }
+        }
+      }
+    },
+    "route": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile_id",
+        "enabled",
+        "audience",
+        "channel",
+        "destination_ref",
+        "event_types"
+      ],
+      "properties": {
+        "profile_id": { "$ref": "#/$defs/identifier" },
+        "enabled": { "type": "boolean" },
+        "audience": { "enum": ["developer", "research", "public"] },
+        "channel": { "enum": ["telegram", "email", "discord", "webhook", "push"] },
+        "destination_ref": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$",
+          "description": "Environment-variable name or secret alias, never a resolved destination identifier."
+        },
+        "event_types": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "minimum_priority": { "enum": ["P0", "P1", "P2", "P3"] }
+      }
+    },
+    "routingPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy_version", "routes"],
+      "properties": {
+        "policy_version": { "$ref": "#/$defs/version" },
+        "routes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/route" }
+        }
+      }
+    },
+    "confirmationOverride": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "minimum_observations": { "type": "integer", "minimum": 1 },
+        "minimum_duration_seconds": { "type": "integer", "minimum": 0 },
+        "maximum_window_seconds": { "type": "integer", "minimum": 1 },
+        "require_consecutive": { "type": "boolean" }
+      },
+      "minProperties": 1
+    },
+    "providerOverride": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["confirmation"],
+      "properties": {
+        "confirmation": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/confirmationOverride" }
+        }
+      }
+    }
+  }
+}
