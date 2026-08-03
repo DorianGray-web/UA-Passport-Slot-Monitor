@@ -47,6 +47,12 @@ This changelog tracks implementation milestones and significant documentation, a
 - Added Prague as the twelfth independently supervised deployment and the
   tenth evidence-gated discovery profile, reusing the shared `CityMonitor`
   protocol without adding identity, CAPTCHA, fingerprint, or booking logic.
+- Added the Architecture Protection CI workflow using the existing unittest
+  suite, compileall, static boundary and notification-layer direction guards,
+  and tracked repository hygiene checks.
+- Added an extensible `tools/architecture/` checker package. Notification
+  guards pass explicitly while no notification runtime package exists and do
+  not change ADR-0012 from `Proposed`.
 
 ## [0.3.0] - 2026-08-02
 

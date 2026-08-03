@@ -8,6 +8,9 @@
   orchestrator runtime from Observation coverage in generated summaries.
 - [x] Complete the six-hour release validation of Berlin, Cologne,
   Bratislava, Toronto, Kortrijk, Madrid, and Barcelona.
+- [x] Add the first Architecture Protection CI milestone with existing unit
+  tests, compileall, focused boundary/layer guards, and repository hygiene
+  checks.
 
 ## Phase 0 — Foundation and Validation
 
