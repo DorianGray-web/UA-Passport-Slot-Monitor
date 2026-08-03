@@ -203,6 +203,24 @@ No component in this proposed Output Pipeline is implemented at the current
 milestone. Observation v3, provider runtime, diagnostics, and trusted
 capabilities remain unchanged.
 
+### Architecture protection CI
+
+The initial CI milestone enforces architecture before notification runtime
+exists. Focused AST-based guards reject notification imports from provider or
+diagnostic runtime, provider imports from the notification Output Pipeline,
+writes from notification code to `providers.json`, and reverse dependencies
+between classified notification layers. With no `notifications/` package,
+the guards report that the protected direction is currently valid.
+
+Repository hygiene is checked separately against tracked runtime artifacts,
+generated outputs, sensitive filenames, and high-confidence secret formats.
+Documentation is excluded from content secret matching so legitimate security,
+privacy, CSRF, cookie, and Telegram terminology is not treated as a leak.
+
+These checks protect dependency direction and repository boundaries only.
+They do not interpret evidence, approve capabilities, accept ADR-0012, or
+implement notification policy.
+
 ## Safety boundaries
 
 - The monitor does not book or confirm appointments.

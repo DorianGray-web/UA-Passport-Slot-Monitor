@@ -256,6 +256,23 @@ remains `Proposed`; no notification Coordinator, policy engine, queue, worker,
 delivery adapter, subscription store, Telegram integration, or external
 message exists in the current runtime.
 
+## Architecture protection checks
+
+GitHub Actions runs the existing `unittest` suite, compiles Python sources,
+and executes focused static guards for protected imports, future notification
+layer direction, tracked runtime artifacts, and high-confidence committed
+secrets. The same architecture checks can be run locally:
+
+```powershell
+python -m tools.architecture.check_boundaries
+python -m tools.architecture.check_layer_direction
+python -m tools.architecture.check_hygiene
+```
+
+The notification checks explicitly pass while no `notifications/` package
+exists. They protect ADR-0011 and proposed ADR-0012 boundaries; they do not
+implement or authorize notification behaviour.
+
 ## Contributing
 
 Ideas, real-world use cases, documentation improvements, testing, security reviews, and code contributions are welcome.
