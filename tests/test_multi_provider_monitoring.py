@@ -105,6 +105,8 @@ class MultiProviderMonitoringTests(unittest.TestCase):
             "toronto-v1",
             "cologne-v1",
             "prague-v1",
+            "varna-v1",
+            "chisinau-v1",
         }
         with tempfile.TemporaryDirectory() as directory, patch.dict(
             "os.environ",
@@ -249,6 +251,7 @@ class MultiProviderMonitoringTests(unittest.TestCase):
             "valencia",
             "cologne",
             "prague",
+            "varna",
         )
         for city in cities:
             spec = importlib.util.spec_from_file_location(
@@ -281,6 +284,7 @@ class MultiProviderMonitoringTests(unittest.TestCase):
                 "valencia",
                 "cologne",
                 "prague",
+                "varna",
             },
         )
         self.assertTrue(all(item.enabled for item in providers.values()))
@@ -354,6 +358,19 @@ class MultiProviderMonitoringTests(unittest.TestCase):
         self.assertEqual(providers["prague"].monitor.service_center_id, "8")
         self.assertEqual(providers["prague"].monitor.service_id, "4")
         self.assertEqual(providers["prague"].observation_group, "active")
+        self.assertEqual(
+            providers["varna"].monitor.public_discovery_profile,
+            "varna-v1",
+        )
+        self.assertEqual(
+            providers["chisinau"].monitor.public_discovery_profile,
+            "chisinau-v1",
+        )
+        self.assertEqual("45", providers["chisinau"].monitor.service_center_id)
+        self.assertEqual("4", providers["chisinau"].monitor.service_id)
+        self.assertEqual(providers["varna"].monitor.service_center_id, "43")
+        self.assertEqual(providers["varna"].monitor.service_id, "4")
+        self.assertEqual(providers["varna"].observation_group, "active")
         self.assertEqual(providers["chisinau"].observation_group, "control")
         self.assertTrue(
             providers["berlin"].monitor.candidate_evidence_probe
@@ -367,7 +384,7 @@ class MultiProviderMonitoringTests(unittest.TestCase):
         self.assertTrue(all(item.entrypoint.is_file() for item in providers.values()))
         self.assertEqual(
             [item.startup_delay_seconds for item in providers.values()],
-            [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330],
+            [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360],
         )
 
     def test_runner_can_select_research_cohort_from_environment(self) -> None:

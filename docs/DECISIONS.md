@@ -368,7 +368,7 @@ That structure was intentional during early provider research:
 - failures in one entrypoint did not prevent the orchestrator from supervising
   the others.
 
-The current twelve-centre research sample still uses independent processes and
+The current thirteen-centre research sample still uses independent processes and
 entrypoints. City-specific values have moved into
 `providers/dp-document/providers.json`, but each process continues to start
 through a city-named script. This implementation is working and covered by
@@ -557,6 +557,20 @@ bringing the reviewed and approved corpus to ten deployments without
 generalizing the contract beyond them.
 This is a governed capability change, not an automatic consequence of the
 observations.
+
+On 2026-08-03, owner-provided Varna evidence independently confirmed centre
+`43`, service `4`, one allowed date, and ten allowed time entries. The project
+owner approved `varna-v1` through a separate
+[governance decision](governance/2026-08-03-varna-public-discovery-promotion.md),
+bringing the reviewed and approved corpus to eleven deployments without
+generalizing the contract beyond them.
+
+Later on 2026-08-03, owner-provided Chisinau evidence confirmed centre `45`,
+service `4`, 25 allowed dates, and a recognized non-empty `TIMES` response.
+The project owner approved `chisinau-v1` through an independent
+[governance decision](governance/2026-08-03-chisinau-public-discovery-promotion.md),
+bringing the reviewed and approved corpus to twelve deployments without
+generalizing the contract beyond them.
 
 On 2026-08-02, a six-hour bounded release validation exercised Berlin,
 Cologne, Bratislava, and Toronto alongside Madrid and Barcelona controls. The
@@ -809,9 +823,11 @@ Runtime fails closed whenever validation fails.
 
 ## ADR-0012: Evidence-First Notification Derivation and Output Isolation
 
-**Status:** Proposed
+**Status:** Accepted
 
 **Date:** 2026-08-02
+
+**Accepted:** 2026-08-03 by documented project-owner decision
 
 ### Context
 
@@ -961,10 +977,10 @@ produce only a sanitized local refusal record.
 
 ### Queue boundary
 
-The initial planned queue has a `NotificationQueue` protocol with in-memory
-contract-test and SQLite implementations. It supports priority ordering,
-deduplication, bounded leases, stale-lease protection, retry backoff, and
-terminal failure.
+The first authorized persistence implementation is a local SQLite Delivery Job
+Store. It supports priority ordering, caller-supplied idempotent deduplication,
+bounded leases, stale-lease protection, bounded retry metadata, and terminal
+failure. Immutable jobs and mutable delivery state are stored separately.
 
 DiagnosticQueue is not reused: diagnostics and notifications have different
 domain payloads and lifecycles. A separate `QueueStorage` abstraction is
@@ -983,7 +999,7 @@ separately reviewed immutable Operational Fact contract before implementation.
 This decision does not implement or authorize:
 
 - Telegram or any other external API call;
-- a runtime notification coordinator, queue, worker, or adapter;
+- a runtime notification coordinator, worker, scheduler, or adapter;
 - user subscriptions or public notification destinations;
 - runtime hooks or changes to Observation;
 - provider checks initiated by notification policy;
@@ -1002,6 +1018,19 @@ This decision does not implement or authorize:
 - end-user notifications require a separate privacy and governance review;
 - every external message must be explainable from retained facts, versioned
   policies, a complete Decision Trace, and delivery audit history.
+
+The acceptance decision authorized only the first offline implementation
+slice: immutable notification contracts, fail-closed Policy Set loading,
+Decision Trace construction, deterministic confirmation replay, and offline
+tests. It does not authorize queues, workers, adapters, Telegram, runtime
+hooks, or provider changes.
+
+On 2026-08-03, a separate documented project-owner decision authorized the
+SQLite Delivery Job Persistence slice: immutable jobs, separate mutable
+state/lease records, idempotent enqueue, priority ordering, bounded retries,
+and persistence tests. That decision did not authorize workers, schedulers,
+adapters, runtime hooks, Observation access, notification generation, network
+communication, or secrets.
 
 ### Output invariants
 

@@ -53,10 +53,10 @@ MonitorProvider is the protocol contract and has no fingerprint, identity,
 OTP, BankID, Diia, reservation, or browser dependency. `CityMonitor` performs
 transport orchestration without broadening that contract.
 
-The HTTP adapter exposes landing, `days`, and `times` operations. Ten
+The HTTP adapter exposes landing, `days`, and `times` operations. Twelve
 governance-approved profiles execute the complete public sequence. Kortrijk
-and Chisinau remain landing-only until equivalent centre-specific evidence
-and governance approval exist.
+remains landing-only until equivalent centre-specific evidence and governance
+approval exist.
 
 The provider protocol is an evidence-first state machine, not an unconditional
 request sequence:
@@ -167,9 +167,9 @@ Only a valid, recognized provider response may produce `NO_SLOTS`.
 
 ### Change detection and notifications
 
-Planned service behavior. The prototype records state transitions and
+Planned external service behavior. The prototype records state transitions and
 diagnostic decisions, but no Telegram, email, or end-user notification sender
-is implemented. The proposed one-way Output Pipeline is specified by
+is implemented. The accepted one-way Output Pipeline is specified by
 [ADR-0012](DECISIONS.md#adr-0012-evidence-first-notification-derivation-and-output-isolation)
 and [Notification Architecture](NOTIFICATION_ARCHITECTURE.md).
 
@@ -181,7 +181,7 @@ flowchart LR
         G --> O["Immutable Observation"]
     end
 
-    subgraph OUTPUT["Proposed Output Pipeline"]
+    subgraph OUTPUT["Accepted Output Pipeline"]
         O --> C["Notification Candidate"]
         C --> D["Versioned Decision Trace"]
         D --> E["Confirmed Event"]
@@ -192,15 +192,20 @@ flowchart LR
     A -. "no control path" .-> P
 ```
 
-The proposal keeps notification derivation outside provider processes.
+ADR-0012 keeps notification derivation outside provider processes.
 Policies consume committed Observations but never schedule observations. The
 Coordinator performs orchestration only; priority and audience remain
 independent; adapters receive privacy-validated envelopes rather than
 Observation or provider objects. Notification decisions and delivery audit
 are separate immutable records.
 
-No component in this proposed Output Pipeline is implemented at the current
-milestone. Observation v3, provider runtime, diagnostics, and trusted
+The offline domain implements immutable contracts, fail-closed Policy Set
+loading, append-only Decision Trace construction, and pure confirmation
+replay. A separately governed persistence slice implements immutable Delivery
+Jobs plus local SQLite job/state storage. Job content is isolated from mutable
+status, lease, and bounded retry metadata. Worker, adapter, Telegram,
+Observation access, notification generation, and runtime integration remain
+unimplemented. Observation v3, provider runtime, diagnostics, and trusted
 capabilities remain unchanged.
 
 ### Architecture protection CI
@@ -209,8 +214,8 @@ The initial CI milestone enforces architecture before notification runtime
 exists. Focused AST-based guards reject notification imports from provider or
 diagnostic runtime, provider imports from the notification Output Pipeline,
 writes from notification code to `providers.json`, and reverse dependencies
-between classified notification layers. With no `notifications/` package,
-the guards report that the protected direction is currently valid.
+between classified notification layers. The guards now validate the offline
+`notifications/` package.
 
 Repository hygiene is checked separately against tracked runtime artifacts,
 generated outputs, sensitive filenames, and high-confidence secret formats.

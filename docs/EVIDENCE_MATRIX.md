@@ -34,18 +34,22 @@ capabilities automatically.
 
 | Measure | Count |
 |---|---:|
-| Deployments tracked by this matrix | 12 |
-| Deployments configured in `providers.json` | 12 |
-| Evidence-confirmed public contracts | 10 |
-| Approved runtime discovery profiles | 10 |
+| Deployments tracked by this matrix | 13 |
+| Deployments configured in `providers.json` | 13 |
+| Evidence-confirmed public contracts | 12 |
+| Approved runtime discovery profiles | 12 |
 | Governance-pending discovery candidates | 0 |
-| Unconfirmed landing-only research deployments | 2 |
+| Unconfirmed landing-only research deployments | 1 |
 | Discovery profiles completing bounded release validation | 9 |
 
 Berlin, Toronto, Cologne, and Bratislava were approved independently on
-2026-08-02. The two unconfirmed landing-only research deployments are Kortrijk
-and Chisinau. Prague was independently approved on 2026-08-02; its bounded
+2026-08-02. Kortrijk is the remaining unconfirmed landing-only research
+deployment. Prague was independently approved on 2026-08-02; its bounded
 post-promotion runtime validation remains scheduled rather than completed.
+Varna was independently approved on 2026-08-03; its bounded post-promotion
+runtime validation is also pending.
+Chisinau was independently approved on 2026-08-03; its bounded post-promotion
+runtime validation is pending.
 
 ## Current deployment state
 
@@ -61,8 +65,9 @@ post-promotion runtime validation remains scheduled rather than completed.
 | Cologne | Confirmed | Confirmed | Confirmed | Approved | `discovery` |
 | Bratislava | Confirmed | Confirmed | Confirmed | Approved | `discovery` |
 | Prague | Confirmed | Confirmed | Confirmed | Approved | `discovery` |
+| Varna | Confirmed | Confirmed | Confirmed | Approved | `discovery` |
 | Kortrijk | Landing only | Unconfirmed | Not eligible | Not eligible | `landing-only` |
-| Chisinau | Landing only | Unconfirmed | Not eligible | Not eligible | `landing-only` |
+| Chisinau | Confirmed | Confirmed | Confirmed | Approved | `discovery` |
 
 `Confirmed` means the retained evidence is sufficient for that column. It does
 not imply registry enablement. `Pending` means the evidence supports a
@@ -72,9 +77,9 @@ yet satisfied.
 
 ## Current comparative finding
 
-Ten deployments currently have reviewed public discovery evidence:
+Twelve deployments currently have reviewed public discovery evidence:
 Madrid, Barcelona, London, Milan, Valencia, Berlin, Toronto, Cologne, and
-Bratislava, plus Prague. Each reached the bounded high-level sequence:
+Bratislava, plus Prague, Varna, and Chisinau. Each reached the bounded high-level sequence:
 
 ```text
 LANDING -> DAYS -> TIMES -> STOP
@@ -136,6 +141,9 @@ A capability revision or removal requires:
 - [2026-08-02 governance review](governance/2026-08-02-public-discovery-profile-promotions.md)
 - [Prague governance review](governance/2026-08-02-prague-public-discovery-promotion.md)
 - [Prague live observation](../research/dp-document/2026-08-02-prague-live-observation.md)
+- [Varna governance review](governance/2026-08-03-varna-public-discovery-promotion.md)
+- [Varna live observation](../research/dp-document/2026-08-03-varna-live-observation.md)
+- [Chisinau live observation](../research/dp-document/2026-08-03-chisinau-live-observation.md)
 - [Seven-centre six-hour release validation](../research/dp-document/2026-08-02-seven-centre-6h-release-validation.md)
 - [Berlin live observation](../research/dp-document/2026-08-01-berlin-live-observation.md)
 - [Toronto live observation](../research/dp-document/2026-08-01-toronto-live-observation.md)

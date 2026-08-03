@@ -34,6 +34,7 @@ jobs:
           monitor_runner.py
           diagnostic_worker.py
           diagnostics
+          notifications
           providers
           research/dp-document/tools
           tests

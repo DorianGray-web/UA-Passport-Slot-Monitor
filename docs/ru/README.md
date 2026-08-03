@@ -23,13 +23,13 @@
 
 ## Текущая реализация
 
-Локальный оркестратор запускает двенадцать центров как независимые процессы.
-Десять governance-approved профилей — Madrid, Barcelona, London, Milan,
-Valencia, Berlin, Toronto, Cologne, Bratislava и Prague — используют подтверждённый
-публичный маршрут `LANDING → DAYS → TIMES → STOP`. Kortrijk и Chisinau
-остаются landing-only.
+Локальный оркестратор запускает тринадцать центров как независимые процессы.
+Двенадцать governance-approved профилей — Madrid, Barcelona, London, Milan,
+Valencia, Berlin, Toronto, Cologne, Bratislava, Prague, Varna и Chisinau —
+используют подтверждённый публичный маршрут
+`LANDING → DAYS → TIMES → STOP`. Kortrijk остаётся landing-only.
 
-Во всех десяти текущих evidence-confirmed deployments наблюдался один
+Во всех двенадцати текущих evidence-confirmed deployments наблюдался один
 высокоуровневый маршрут `LANDING → DAYS → TIMES → STOP`. Berlin является
 эталонным наблюдением того, что `NO_SLOTS` и `SLOTS_AVAILABLE` определяются
 содержимым подтверждённого ответа `TIMES`, а не иной веткой протокола. Этот
@@ -42,7 +42,7 @@ probe Kortrijk обнаружил публичную форму, центр `48`
 селекторы даты/времени, но не выбирал услугу и не выполнял `DAYS` или `TIMES`;
 Kortrijk остаётся landing-only.
 
-HTTP всегда остаётся первым и предпочтительным транспортом. Только для десяти
+HTTP всегда остаётся первым и предпочтительным транспортом. Только для двенадцати
 сейчас включённых исследовательских профилей можно явно включить
 экспериментальный persistent Playwright fallback после HTTP `BLOCKED`.
 Playwright не является транспортом по умолчанию и останавливается на `TIMES`,
@@ -53,9 +53,10 @@ cookies, CSRF, заголовков, request body и данных браузер
 прогоны могут создавать локальный Git-ignored Markdown-отчёт; в репозиторий
 попадают только вручную проверенные и санитизированные выводы.
 
-Предлагаемая архитектура уведомлений описана в ADR-0012 и остаётся только
-документацией. В runtime нет Coordinator, policy engine, очереди, worker,
-Telegram-адаптера или внешней отправки сообщений.
+Архитектура уведомлений из ADR-0012 принята. Реализованы автономный доменный
+слой и отдельно разрешённое локальное SQLite-хранилище неизменяемых Delivery
+Job с обособленным изменяемым состоянием. В runtime нет Coordinator, worker,
+Telegram-адаптера, Observation reader или внешней отправки сообщений.
 
 ## Основная цель
 
