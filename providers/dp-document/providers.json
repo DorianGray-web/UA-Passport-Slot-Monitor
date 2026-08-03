@@ -126,6 +126,10 @@
       "enabled": true,
       "priority": "normal",
       "startup_delay_seconds": 210,
+      "public_discovery_profile": "chisinau-v1",
+      "service_center_id": "45",
+      "service_id": "4",
+      "csrf_value": "1",
       "research": {
         "observation_group": "control"
       }
@@ -192,6 +196,23 @@
       "startup_delay_seconds": 330,
       "public_discovery_profile": "prague-v1",
       "service_center_id": "8",
+      "service_id": "4",
+      "csrf_value": "1",
+      "research": {
+        "observation_group": "active"
+      }
+    },
+    {
+      "city": "varna",
+      "provider": "dp-document-varna",
+      "queue_url": "https://varna.pasport.org.ua/solutions/e-queue",
+      "env_prefix": "VARNA",
+      "entrypoint": "varna_monitor.py",
+      "enabled": true,
+      "priority": "high",
+      "startup_delay_seconds": 360,
+      "public_discovery_profile": "varna-v1",
+      "service_center_id": "43",
       "service_id": "4",
       "csrf_value": "1",
       "research": {

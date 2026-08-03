@@ -48,18 +48,17 @@ Belgium. Analysis of frontend 7.34.2 has confirmed that:
 - challenge pages, CAPTCHA, access restrictions, and incomplete captures must be detected separately from valid availability responses.
 
 The HTTP `MonitorProvider` boundary and its `days`/`times` request methods are
-implemented. Ten governance-approved, evidence-gated profiles—Madrid,
+implemented. Twelve governance-approved, evidence-gated profiles—Madrid,
 Barcelona, London, Milan, Valencia, Berlin, Toronto, Cologne, Bratislava, and
-Prague—
-run through public `DAYS` and `TIMES` and stop. Kortrijk and Chisinau remain
-landing-only.
+Prague, plus Varna and Chisinau—run through public `DAYS` and `TIMES` and stop.
+Kortrijk remains landing-only.
 
 Across the currently evidence-confirmed deployments, successful HTTP `200`
 landing responses exposed the public queue form and public discovery could
 proceed through `DAYS` and `TIMES`. This is an observed evidence set, not a
 protocol guarantee for other or future deployments.
 
-The current evidence set contains ten independently reviewed deployments.
+The current evidence set contains twelve independently reviewed deployments.
 Berlin demonstrates both `TIMES(0) -> NO_SLOTS` and, later for the same date,
 `TIMES(9) -> SLOTS_AVAILABLE`: the public stage sequence remained stable while
 the availability payload changed.
@@ -152,9 +151,9 @@ Localized user documentation:
 Create an environment and install dependencies.
 
 The runner starts every entry in `providers/dp-document/providers.json` whose
-`enabled` field is `true`. The current research sample contains twelve centres:
+`enabled` field is `true`. The current research sample contains thirteen centres:
 Kortrijk, Berlin, Bratislava, Madrid, London, Milan, Toronto, Chisinau,
-Barcelona, Valencia, Cologne, and Prague.
+Barcelona, Valencia, Cologne, Prague, and Varna.
 
 ```powershell
 python -m venv .venv
@@ -251,10 +250,12 @@ files are ignored by Git.
 These entry points are local research/prototyping tools. They do not send
 Telegram or email notifications and they do not book appointments.
 
-The proposed notification documentation is architecture only. ADR-0012
-remains `Proposed`; no notification Coordinator, policy engine, queue, worker,
-delivery adapter, subscription store, Telegram integration, or external
-message exists in the current runtime.
+ADR-0012 is `Accepted`. The first offline notification-domain slice implements
+only immutable contracts, fail-closed Policy Set loading, append-only Decision
+Traces, and pure replay tests. A separately authorized persistence slice adds
+immutable Delivery Jobs and local SQLite job/state storage. No notification
+Coordinator, worker, delivery adapter, subscription store, Telegram
+integration, runtime hook, Observation reader, or external message exists.
 
 ## Architecture protection checks
 
@@ -269,9 +270,9 @@ python -m tools.architecture.check_layer_direction
 python -m tools.architecture.check_hygiene
 ```
 
-The notification checks explicitly pass while no `notifications/` package
-exists. They protect ADR-0011 and proposed ADR-0012 boundaries; they do not
-implement or authorize notification behaviour.
+The notification checks validate the offline `notifications/` package and
+protect ADR-0011 and accepted ADR-0012 boundaries. They do not authorize
+delivery infrastructure or runtime integration.
 
 ## Contributing
 

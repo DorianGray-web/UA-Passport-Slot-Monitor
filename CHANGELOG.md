@@ -10,7 +10,20 @@ This changelog tracks implementation milestones and significant documentation, a
 
 ### Documentation
 
-- Added proposed ADR-0012, defining evidence-first notification derivation,
+- Recorded the project-owner governance authorization for the bounded SQLite
+  Delivery Job Persistence slice under ADR-0012.
+
+- Recorded owner-provided Chisinau live evidence confirming centre `45`,
+  service `4`, 25 allowed dates, a non-empty `TIMES` response, and the bounded
+  `LANDING -> DAYS -> TIMES -> STOP` public contract.
+- Recorded the project-owner governance decision approving the independently
+  reviewed `chisinau-v1` public-discovery capability.
+- Recorded owner-provided Varna live evidence confirming centre `43`, service
+  `4`, one allowed date, ten allowed time entries, and the bounded
+  `LANDING -> DAYS -> TIMES -> STOP` public contract.
+- Recorded the project-owner governance decision approving the independently
+  reviewed `varna-v1` public-discovery capability.
+- Added and accepted ADR-0012, defining evidence-first notification derivation,
   versioned Policy Sets, immutable Decision Traces, decision reproducibility,
   privacy validation, output isolation, and the orchestration-only Coordinator
   invariant.
@@ -29,9 +42,12 @@ This changelog tracks implementation milestones and significant documentation, a
 - Extended the Release Policy Traceability gate so any future externally
   deliverable event must be reproducible from retained facts, logical decision
   state, and the referenced versioned Policy Set.
-- Documented that the notification package is architecture-only: no runtime
-  integration, queue, worker, adapter, Telegram API call, provider change, or
-  external message has been implemented.
+- Recorded the project-owner governance decision authorizing only the offline
+  notification-domain slice.
+- Documented that the initial offline notification-domain slice had no queue;
+  the later independently authorized persistence slice still has no runtime
+  integration, worker, adapter, Telegram API call, provider change, or
+  external message.
 - Recorded owner-provided Prague live evidence confirming centre `8`, service
   `4`, one allowed date, four allowed time entries from `11:45:00` through
   `12:45:00`, and the bounded `LANDING -> DAYS -> TIMES -> STOP` contract.
@@ -44,6 +60,20 @@ This changelog tracks implementation milestones and significant documentation, a
 
 ### Added
 
+- Added the immutable `NotificationDeliveryJob` and privacy-bounded envelope
+  contracts plus a local SQLite store with separate mutable delivery state,
+  caller-supplied idempotent deduplication keys, priority ordering, leases,
+  stale-lease protection, bounded retry metadata, and crash-safe transactions.
+- Added persistence tests without adding workers, adapters, runtime hooks,
+  Observation access, notification generation, network communication, or
+  environment-specific delivery.
+
+- Promoted the existing Chisinau deployment from landing-only research to the
+  twelfth evidence-gated discovery profile without adding identity, CAPTCHA,
+  fingerprint, or booking logic.
+- Added Varna as the thirteenth independently supervised deployment and the
+  eleventh evidence-gated discovery profile, reusing the shared `CityMonitor`
+  protocol without adding identity, CAPTCHA, fingerprint, or booking logic.
 - Added Prague as the twelfth independently supervised deployment and the
   tenth evidence-gated discovery profile, reusing the shared `CityMonitor`
   protocol without adding identity, CAPTCHA, fingerprint, or booking logic.
@@ -51,8 +81,10 @@ This changelog tracks implementation milestones and significant documentation, a
   suite, compileall, static boundary and notification-layer direction guards,
   and tracked repository hygiene checks.
 - Added an extensible `tools/architecture/` checker package. Notification
-  guards pass explicitly while no notification runtime package exists and do
-  not change ADR-0012 from `Proposed`.
+  guards protect the offline domain without authorizing notification runtime.
+- Added the offline notification domain: immutable Candidate, Decision,
+  Confirmed Event, provenance, and append-only Decision Trace contracts;
+  fail-closed Policy Set loading; pure confirmation replay; and replay tests.
 
 ## [0.3.0] - 2026-08-02
 

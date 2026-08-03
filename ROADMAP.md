@@ -11,6 +11,9 @@
 - [x] Add the first Architecture Protection CI milestone with existing unit
   tests, compileall, focused boundary/layer guards, and repository hygiene
   checks.
+- [x] Implement the governance-authorized SQLite Delivery Job Persistence
+  slice with immutable jobs, separate lease/state records, idempotent enqueue,
+  priority ordering, bounded retries, and persistence tests.
 
 ## Phase 0 — Foundation and Validation
 
@@ -89,7 +92,7 @@
 - [x] Implement evidence-first landing classification and transition guards
 - [x] Add typed discovery stages, evidence, and request traces to Observation
 - [ ] Validate HTTP session and CSRF handling for each DP Document centre
-- [x] Add strict confirmed days/times classifiers used by ten governed
+- [x] Add strict confirmed days/times classifiers used by twelve governed
   evidence profiles
 - [ ] Validate or add centre-specific days and times classifiers for the
   remaining centres
@@ -105,6 +108,16 @@
   public time entries, and the bounded public discovery contract
 - [x] Record the independent Prague governance decision and add `prague-v1`
 - [ ] Complete bounded post-promotion runtime validation for Prague
+- [x] Confirm Varna centre `43`, service `4`, one allowed date, ten allowed
+  time entries, and the bounded public discovery contract through `TIMES`.
+- [x] Record the independent Varna governance decision and add `varna-v1`
+  through the shared `CityMonitor` entrypoint.
+- [ ] Complete bounded post-promotion runtime validation for Varna.
+- [x] Confirm Chisinau centre `45`, service `4`, 25 allowed dates, a non-empty
+  `TIMES` response, and the bounded public discovery contract.
+- [x] Record the independent Chisinau governance decision and add
+  `chisinau-v1` through the shared `CityMonitor` entrypoint.
+- [ ] Complete bounded post-promotion runtime validation for Chisinau.
 - [x] Complete bounded runtime validation of the four newly promoted profiles
 - [ ] After the ADR-0009 transition criteria are met, replace city wrappers
   with one registry-driven generic DP Document monitor
@@ -115,19 +128,21 @@
 - [ ] Implement subscription and state storage
 - [ ] Deduplicate identical monitoring requests
 - [ ] Detect availability changes without false `NO_SLOTS` results
-- [ ] Complete the ADR-0012 documentation milestone:
+- [x] Complete the ADR-0012 documentation milestone:
   - [x] complete conceptual design, architecture review, and governance
     proposal;
   - [x] author proposed ADR-0012;
   - [x] author Notification Architecture, event contracts, configuration
     schema, and notification test strategy;
   - [x] integrate documentation references and release traceability;
-  - [ ] record governance approval and change ADR-0012 to `Accepted`.
-- [ ] Implement the offline notification domain only after ADR-0012 approval:
+  - [x] record governance approval and change ADR-0012 to `Accepted`.
+- [x] Implement the first offline notification domain slice after ADR-0012 approval:
   immutable contracts, Policy Set validation, Decision Trace, replay tests,
   and architecture tests
-- [ ] Implement SQLite NotificationQueue, worker, and developer-only Telegram
-  adapter after the offline milestone passes
+- [x] Implement the separately authorized SQLite Delivery Job Store without a
+  worker, adapter, runtime hook, or external delivery
+- [ ] Authorize and implement a delivery worker and developer-only Telegram
+  adapter only after persistence review
 - [ ] Perform bounded notification validation before any runtime integration
 - [ ] Review opt-in, retention, deletion, and privacy requirements before
   enabling public notifications or additional delivery channels

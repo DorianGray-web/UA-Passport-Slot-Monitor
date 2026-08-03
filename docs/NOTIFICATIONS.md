@@ -9,8 +9,8 @@
 This document describes the notification requirements and candidate delivery channels for UA Passport Slot Monitor.
 
 This document retains the early delivery-channel comparison. Telegram is now
-the first planned, replaceable adapter in the proposed architecture, but ADR-0012
-remains `Proposed` and no delivery channel is implemented.
+the first planned, replaceable adapter in the accepted architecture. ADR-0012
+is `Accepted`, but no delivery channel is implemented.
 
 No notification sender is currently implemented. Diagnostic decisions and
 outbox commands belong to the diagnostic subsystem and must not be described

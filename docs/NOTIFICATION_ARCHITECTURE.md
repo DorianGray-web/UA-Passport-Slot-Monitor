@@ -1,13 +1,16 @@
 # Notification Architecture
 
-> **Status:** Proposed; documentation milestone only
+> **Status:** Accepted; offline domain and Delivery Job persistence implemented
 >
-> No notification runtime, queue, worker, delivery adapter, Telegram API call,
-> subscription store, or external message is implemented by this document.
+> Immutable contracts, Policy Set loading, Decision Trace, pure offline replay,
+> and the separately authorized SQLite Delivery Job Store are implemented. No
+> Coordinator, worker, scheduler, delivery adapter, Telegram API call,
+> Observation reader, subscription store, runtime hook, or external message
+> exists.
 
 ## Purpose
 
-This document specifies the evidence-first Output Pipeline proposed by
+This document specifies the evidence-first Output Pipeline accepted in
 [ADR-0012](DECISIONS.md#adr-0012-evidence-first-notification-derivation-and-output-isolation).
 It complements the trust model in
 [ADR-0011](DECISIONS.md#adr-0011-trust-model-for-evidence-collection-and-capability-governance)
@@ -15,6 +18,23 @@ without extending provider runtime capabilities.
 
 > **Output capabilities are governed with the same discipline as runtime
 > capabilities, while remaining an independent architecture.**
+
+The accepted offline package deliberately remains flat:
+
+```text
+notifications/
+    contracts.py
+    decisions.py
+    policy_loader.py
+    replay.py
+    __init__.py
+```
+
+Replay is a pure function over explicit candidate/source facts, the loaded
+Policy Set, and immutable retained decision state. It uses no singleton,
+dependency-injection container, service locator, repository, queue, or runtime
+callback. A Decision Trace is an append-only tuple; replay returns a new tuple
+and never mutates the retained one.
 
 ## Information-flow boundary
 
@@ -165,9 +185,8 @@ future secret resolver; resolved identifiers are not domain-event fields.
 
 ### Queue and worker
 
-The planned `NotificationQueue` protocol exposes `enqueue`, `claim`,
-`complete`, and `fail`. Initial planned implementations are an in-memory
-contract-test queue and a local SQLite queue with:
+The implemented local SQLite Delivery Job Store exposes `enqueue`, `claim`,
+`complete`, and `fail`, with:
 
 - priority ordering;
 - active-job deduplication;
@@ -176,8 +195,15 @@ contract-test queue and a local SQLite queue with:
 - bounded retry backoff;
 - terminal failure.
 
-It remains separate from DiagnosticQueue. A worker claims a job and invokes
-the selected Delivery Adapter. It does not interpret Observations or policies.
+It remains separate from DiagnosticQueue. No worker or Delivery Adapter is
+implemented or authorized by this persistence slice.
+
+The governance-authorized persistence slice stores immutable Delivery Jobs
+separately from mutable status, lease, and bounded retry metadata. A lease does
+not alter the job. The caller supplies the logical event's `dedup_key` and
+already classified priority; SQLite performs idempotency and ordering only.
+No worker, scheduler, adapter, runtime hook, or network delivery is part of
+this slice.
 
 ### Delivery adapter
 
@@ -389,4 +415,3 @@ Offline immutable contracts
 Public notifications require a later privacy and governance review covering
 opt-in, opt-out, destination retention, deletion, fan-out, abuse controls, and
 third-party processing.
-

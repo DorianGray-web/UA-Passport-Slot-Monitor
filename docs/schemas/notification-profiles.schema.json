@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:ua-passport-slot-monitor:schema:notification-profiles:1",
   "title": "Notification Profiles",
-  "description": "Proposed output-policy configuration. It contains no credentials and does not enable provider capabilities.",
+  "description": "Accepted offline output-policy configuration. It contains no credentials and does not enable provider capabilities.",
   "type": "object",
   "additionalProperties": false,
   "required": [

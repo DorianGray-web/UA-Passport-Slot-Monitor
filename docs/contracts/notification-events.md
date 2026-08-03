@@ -1,6 +1,6 @@
 # Notification Event Contracts
 
-> **Status:** Proposed; no runtime implementation
+> **Status:** Accepted; offline contracts implemented, no runtime integration
 
 This document defines the planned immutable contracts for the evidence-first
 Output Pipeline in
@@ -236,6 +236,10 @@ schema_version: 1
 The immutable job contains a destination alias, never a bot token or resolved
 recipient ID. Lease token, lease expiry, retry count, and queue status are
 infrastructure columns rather than fields in the immutable request payload.
+The `dedup_key` originates from the logical notification event; persistence
+never derives it. Priority is classified before enqueue, and persistence only
+uses its fixed ordering. The SQLite implementation stores immutable jobs and
+mutable delivery state in separate tables and rejects job updates or deletes.
 
 ## DeliveryResult v1
 
@@ -364,4 +368,3 @@ policy references.
 
 New IDs, replay execution timestamps, external channel responses, and audit
 actions are excluded from semantic equality.
-

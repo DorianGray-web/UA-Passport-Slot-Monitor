@@ -1,13 +1,14 @@
 # Notification Test Strategy
 
-> **Status:** Proposed; documentation milestone only
+> **Status:** Accepted; offline contract, policy, and replay tests implemented
 
-This document defines the validation strategy for the planned evidence-first
+This document defines the validation strategy for the evidence-first
 Output Pipeline. It accompanies
 [ADR-0012](../DECISIONS.md#adr-0012-evidence-first-notification-derivation-and-output-isolation)
 and the [notification contracts](../contracts/notification-events.md).
 
-No notification implementation or external delivery is introduced here.
+The current implementation is offline only. No external delivery or runtime
+integration is introduced.
 
 ## Test levels
 
@@ -146,6 +147,10 @@ Integration cases include:
 - candidate replay does not duplicate a visible delivery;
 - queue leases recover an interrupted worker;
 - stale lease tokens cannot complete a job;
+- immutable Delivery Job rows reject update and deletion;
+- caller-supplied deduplication keys make enqueue idempotent;
+- priority ordering uses the classification already present on the job;
+- bounded retry metadata reaches a terminal failure without unbounded claims;
 - retryable and terminal failures remain distinct;
 - adapter failure cannot affect monitoring or source Observations;
 - Privacy Policy rejection prevents queue insertion or delivery;
@@ -219,4 +224,3 @@ recorded evaluation context.
 
 When no profile is enabled, notification traceability is recorded as not
 applicable rather than treated as implemented.
-

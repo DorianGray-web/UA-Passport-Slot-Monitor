@@ -23,13 +23,13 @@
 
 ## Поточна реалізація
 
-Локальний оркестратор запускає дванадцять центрів як незалежні процеси.
-Десять governance-approved профілів — Madrid, Barcelona, London, Milan,
-Valencia, Berlin, Toronto, Cologne, Bratislava і Prague — використовують підтверджений
-публічний маршрут `LANDING → DAYS → TIMES → STOP`. Kortrijk і Chisinau
-залишаються landing-only.
+Локальний оркестратор запускає тринадцять центрів як незалежні процеси.
+Дванадцять governance-approved профілів — Madrid, Barcelona, London, Milan,
+Valencia, Berlin, Toronto, Cologne, Bratislava, Prague, Varna і Chisinau —
+використовують підтверджений публічний маршрут
+`LANDING → DAYS → TIMES → STOP`. Kortrijk залишається landing-only.
 
-У всіх десяти поточних evidence-confirmed deployments спостерігався один
+В усіх дванадцяти поточних evidence-confirmed deployments спостерігався один
 високорівневий маршрут `LANDING → DAYS → TIMES → STOP`. Berlin є еталонним
 спостереженням того, що `NO_SLOTS` і `SLOTS_AVAILABLE` визначаються вмістом
 підтвердженої відповіді `TIMES`, а не іншою гілкою протоколу. Цей висновок не
@@ -42,7 +42,7 @@ Kortrijk виявив публічну форму, центр `48`, варіан
 дати/часу, але не обирав послугу та не виконував `DAYS` або `TIMES`; Kortrijk
 залишається landing-only.
 
-HTTP завжди залишається першим і пріоритетним транспортом. Лише для десяти
+HTTP завжди залишається першим і пріоритетним транспортом. Лише для дванадцяти
 зараз увімкнених дослідницьких профілів можна явно ввімкнути експериментальний
 persistent Playwright fallback після HTTP `BLOCKED`. Playwright не є
 транспортом за замовчуванням і зупиняється на `TIMES`, не взаємодіючи з
@@ -53,9 +53,10 @@ CSRF, заголовків, request body і даних браузерної се
 створювати локальний Git-ignored Markdown-звіт; до репозиторію потрапляють лише
 вручну перевірені та санітизовані висновки.
 
-Запропоновану архітектуру сповіщень описано в ADR-0012, і вона залишається
-лише документацією. У runtime немає Coordinator, policy engine, черги, worker,
-Telegram-адаптера або зовнішнього надсилання повідомлень.
+Архітектуру сповіщень з ADR-0012 прийнято. Реалізовано автономний доменний шар
+і окремо дозволене локальне SQLite-сховище незмінних Delivery Job з відділеним
+змінюваним станом. У runtime немає Coordinator, worker, Telegram-адаптера,
+Observation reader або зовнішнього надсилання повідомлень.
 
 ## Основна мета
 

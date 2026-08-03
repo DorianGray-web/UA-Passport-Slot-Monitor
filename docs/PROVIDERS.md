@@ -40,12 +40,12 @@ submitForm* -> browser fingerprint -> OTP / BankID / Diia -> reservation
 ```
 
 Embedded ThumbmarkJS module 708 belongs to that booking flow and is
-intentionally excluded from MonitorProvider. HTTP remains preferred. The ten
+intentionally excluded from MonitorProvider. HTTP remains preferred. The twelve
 currently registry-enabled research profiles—Madrid, Barcelona, London,
-Milan, Valencia, Berlin, Toronto, Cologne, Bratislava, and Prague—may use an explicitly enabled experimental
+Milan, Valencia, Berlin, Toronto, Cologne, Bratislava, Prague, Varna, and Chisinau—may use an explicitly enabled experimental
 persistent-browser fallback after HTTP `BLOCKED`; it stops at public `TIMES`
-and never interacts with CAPTCHA, identity, or booking. Kortrijk and Chisinau
-remain landing-only.
+and never interacts with CAPTCHA, identity, or booking. Kortrijk remains
+landing-only.
 
 Discovery is evidence-first:
 
@@ -61,7 +61,7 @@ The classifier emits typed evidence such as `HTTP_200`,
 `HTML_NO_SLOTS_MARKER`, `QUEUE_FORM_FOUND`, and `CSRF_FOUND`. Absence of a form
 alone is never evidence for `NO_SLOTS`.
 
-Ten deployments now have evidence-confirmed and governance-approved public
+Twelve deployments now have evidence-confirmed and governance-approved public
 date/time contracts. The following items remain incomplete:
 
 - confirmed CSRF field names and response schemas for every deployment;
@@ -79,11 +79,12 @@ date/time contracts. The following items remain incomplete:
 | Madrid | Shared city-monitor entry point plus evidence-gated `madrid-v1` public `days`/`times` discovery; stops at `TIMES` | Owner-provided evidence confirms centre `6`, service `4`, and the public days and times response schemas |
 | London | Experimental HTTP-first browser-fallback profile (`ServiceCenterId=47`, `ServiceId=4`) | Owner-provided passive browser evidence confirmed the public `form=days` request on 2026-07-31; the bounded runtime stops at `TIMES` |
 | Toronto | Evidence-gated `toronto-v1` discovery profile (centre `46`, service `4`) | Owner-provided live evidence confirms the bounded contract; the six-hour validation observed both `NO_SLOTS` and `SLOTS_AVAILABLE`, with up to 30 available time entries |
-| Chisinau | Shared city-monitor entry point and registry configuration | Owner-reported `NO_SLOTS` landing page; independent runtime validation pending |
+| Chisinau | Evidence-gated `chisinau-v1` discovery profile (centre `45`, service `4`) | Owner-provided live evidence confirms 25 allowed dates, a non-empty `TIMES` response, and the bounded public contract; bounded post-promotion runtime validation is pending |
 | Barcelona | Independent entry point plus evidence-gated `barcelona-v1` HTTP discovery and opt-in persistent-browser fallback; stops at `TIMES` | Owner evidence confirms the contract; a bounded 2026-07-31 runtime check independently completed HTTP `403` -> Playwright `TIMES` and recorded `SLOTS_AVAILABLE` |
 | Valencia | Independent entry point plus evidence-gated `valencia-v1` HTTP discovery and opt-in persistent-browser fallback; centre `7`, service `4`; stops at `TIMES` | Owner-provided passive browser evidence confirms the public days/times request sequence; the earlier 12-hour bounded runtime validation completed without browser error or browser `UNKNOWN` |
 | Cologne | Evidence-gated `cologne-v1` discovery profile (centre `3`, service `4`) | Owner-provided live evidence confirms the bounded public contract and seven allowed time entries; the later six-hour validation remained `NO_SLOTS` in all 38 observations |
 | Prague | Evidence-gated `prague-v1` discovery profile (centre `8`, service `4`) | Owner-provided live evidence confirms one allowed date, four allowed time entries, and the bounded public contract; bounded post-promotion runtime validation is pending |
+| Varna | Evidence-gated `varna-v1` discovery profile (centre `43`, service `4`) | Owner-provided live evidence confirms one allowed date, ten allowed time entries from `09:25:00` through `16:55:00`, and the bounded public contract; bounded post-promotion runtime validation is pending |
 
 The frontend findings describe the observed DP Document application. They do
 not prove identical deployment details, markers, CSRF field names, or response
@@ -108,7 +109,7 @@ The earlier
 remains evidence about HTTP behavior before the experimental browser transport
 was enabled.
 
-All ten enabled profiles reuse the strict confirmed response classifiers,
+All twelve enabled profiles reuse the strict confirmed response classifiers,
 fail closed as `UNKNOWN` on protocol deviation, and terminate at `TIMES`. See the
 [Barcelona live-observation report](../research/dp-document/2026-07-31-barcelona-live-observation.md),
 the
@@ -120,6 +121,7 @@ the
 the [Cologne live-observation report](../research/dp-document/2026-08-01-cologne-live-observation.md),
 the [Bratislava live-observation report](../research/dp-document/2026-08-01-bratislava-live-observation.md),
 the [Prague live-observation report](../research/dp-document/2026-08-02-prague-live-observation.md),
+the [Varna live-observation report](../research/dp-document/2026-08-03-varna-live-observation.md),
 the
 [cross-deployment comparison](../research/dp-document/2026-08-01-cross-deployment-public-discovery-comparison.md),
 and the local run-summary workflow documented in the project README.
