@@ -48,17 +48,17 @@ Belgium. Analysis of frontend 7.34.2 has confirmed that:
 - challenge pages, CAPTCHA, access restrictions, and incomplete captures must be detected separately from valid availability responses.
 
 The HTTP `MonitorProvider` boundary and its `days`/`times` request methods are
-implemented. Twelve governance-approved, evidence-gated profiles—Madrid,
+implemented. Seventeen governance-approved, evidence-gated profiles—Madrid,
 Barcelona, London, Milan, Valencia, Berlin, Toronto, Cologne, Bratislava, and
-Prague, plus Varna and Chisinau—run through public `DAYS` and `TIMES` and stop.
-Kortrijk remains landing-only.
+Prague, Varna, Chisinau, Kortrijk, Warsaw, Krakow, Gdansk, and Wroclaw—run
+through public `DAYS` and `TIMES` and stop.
 
 Across the currently evidence-confirmed deployments, successful HTTP `200`
 landing responses exposed the public queue form and public discovery could
 proceed through `DAYS` and `TIMES`. This is an observed evidence set, not a
 protocol guarantee for other or future deployments.
 
-The current evidence set contains twelve independently reviewed deployments.
+The current evidence set contains seventeen independently reviewed deployments.
 Berlin demonstrates both `TIMES(0) -> NO_SLOTS` and, later for the same date,
 `TIMES(9) -> SLOTS_AVAILABLE`: the public stage sequence remained stable while
 the availability payload changed.
@@ -70,7 +70,9 @@ browser `UNKNOWN`. Cologne remained `NO_SLOTS` throughout this window;
 Kortrijk produced no candidate identifiers during that historical window.
 A later bounded candidate probe detected the public queue form, centre `48`,
 service option `4`, and date/time selectors, but did not select the service or
-execute `DAYS` or `TIMES`; Kortrijk therefore remains landing-only.
+execute `DAYS` or `TIMES`. That historical evidence remains retained. A
+2026-08-04 live review later confirmed Kortrijk centre `48`, service `4`, and
+the full bounded public contract; explicit governance approved `kortrijk-v1`.
 
 Still planned:
 
@@ -112,6 +114,8 @@ are not the primary description of current runtime behaviour.
 - [Notification Architecture](docs/NOTIFICATION_ARCHITECTURE.md)
 - [Notification Event Contracts](docs/contracts/notification-events.md)
 - [Notification Test Strategy](docs/testing/notification-test-strategy.md)
+- [AI Engineering Telemetry](docs/ENGINEERING_TELEMETRY.md)
+- [Engineering Telemetry Contracts](docs/contracts/engineering-telemetry.md)
 - [Release Policy](docs/RELEASE_POLICY.md)
 - [v0.3.0 Release Readiness Report](docs/releases/2026-08-02-v0.3.0-release-readiness.md)
 - [Providers](docs/PROVIDERS.md)
@@ -151,9 +155,10 @@ Localized user documentation:
 Create an environment and install dependencies.
 
 The runner starts every entry in `providers/dp-document/providers.json` whose
-`enabled` field is `true`. The current research sample contains thirteen centres:
+`enabled` field is `true`. The current research sample contains seventeen centres:
 Kortrijk, Berlin, Bratislava, Madrid, London, Milan, Toronto, Chisinau,
-Barcelona, Valencia, Cologne, Prague, and Varna.
+Barcelona, Valencia, Cologne, Prague, Varna, Warsaw, Krakow, Gdansk, and
+Wroclaw.
 
 ```powershell
 python -m venv .venv
@@ -222,7 +227,8 @@ public `TIMES`. It does not interact with CAPTCHA, identity, or booking.
 The 2026-08-01 seven-centre research run originally treated Berlin and
 Kortrijk as candidate landing probes. Berlin's public discovery contract was
 subsequently confirmed by live review and promoted through explicit
-governance; Kortrijk remains candidate-only. The historical command remains a
+governance. Kortrijk was likewise promoted on 2026-08-04 after an independent
+live review. The historical command remains a
 record of that earlier evidence state:
 
 ```powershell

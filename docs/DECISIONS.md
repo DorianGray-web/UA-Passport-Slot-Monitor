@@ -368,7 +368,7 @@ That structure was intentional during early provider research:
 - failures in one entrypoint did not prevent the orchestrator from supervising
   the others.
 
-The current thirteen-centre research sample still uses independent processes and
+The current seventeen-centre research sample still uses independent processes and
 entrypoints. City-specific values have moved into
 `providers/dp-document/providers.json`, but each process continues to start
 through a city-named script. This implementation is working and covered by
@@ -571,6 +571,22 @@ The project owner approved `chisinau-v1` through an independent
 [governance decision](governance/2026-08-03-chisinau-public-discovery-promotion.md),
 bringing the reviewed and approved corpus to twelve deployments without
 generalizing the contract beyond them.
+
+On 2026-08-04, owner-provided live evidence independently confirmed Warsaw,
+Krakow, Gdansk, and Wroclaw for centres `10` through `13`, respectively, all
+with service `4` and bounded public discovery. The project owner approved the
+four profiles through separate deployment-specific governance decisions under
+the Poland Deployment Completion milestone, bringing the reviewed and approved
+corpus to sixteen deployments. The shared observed pattern is not a general
+rule for future Polish deployments.
+
+Later on 2026-08-04, owner-provided Kortrijk live evidence independently
+confirmed centre `48`, service `4`, one allowed date, seven allowed time
+entries, and bounded public discovery. The project owner approved
+`kortrijk-v1` through an independent
+[governance decision](governance/2026-08-04-kortrijk-public-discovery-promotion.md),
+bringing the reviewed and approved corpus to seventeen deployments without
+generalizing the contract beyond Kortrijk.
 
 On 2026-08-02, a six-hour bounded release validation exercised Berlin,
 Cologne, Bratislava, and Toronto alongside Madrid and Barcelona controls. The
@@ -1055,3 +1071,37 @@ Notification output never modifies trusted capabilities.
 
 Every external message is traceable to retained facts and policies.
 ```
+
+---
+
+## ADR-0013: Local AI Engineering Telemetry and Aggregate Cost Audits
+
+**Status:** Accepted
+
+**Date:** 2026-08-04
+
+### Context
+
+The project needs cost and efficiency analysis for AI-assisted engineering
+without product analytics, provider lock-in, or a path back into runtime.
+
+### Decision
+
+Implement an independent local `engineering_telemetry/` package with immutable
+aggregate session and metric contracts, append-only SQLite persistence, and
+deterministic daily, weekly, and monthly audit reports. Generic numeric metrics
+permit later CI, VPS, storage, notification, or infrastructure accounting
+without telemetry-side infrastructure dependencies.
+
+Telemetry records must not include prompts, completions, credentials, cookies,
+CSRF values, browser artifacts, raw provider data, Observations, or personal
+data. It makes no network calls and imports no provider runtime, monitor,
+diagnostic, or notification package. SQLite data and automatic reports remain
+local and Git-ignored. A reviewed aggregate report may be committed only after
+sanitization.
+
+### Consequences
+
+- cost and efficiency analysis is reproducible from retained local aggregates;
+- telemetry cannot influence runtime, governance, capabilities, or delivery;
+- architecture guards enforce the isolation boundary.

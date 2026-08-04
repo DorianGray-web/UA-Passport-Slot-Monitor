@@ -59,6 +59,11 @@ CONFIRMED_PUBLIC_DISCOVERY_PROFILES = {
     "prague-v1",
     "varna-v1",
     "chisinau-v1",
+    "kortrijk-v1",
+    "warsaw-v1",
+    "krakow-v1",
+    "gdansk-v1",
+    "wroclaw-v1",
 }
 
 

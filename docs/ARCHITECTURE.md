@@ -4,10 +4,10 @@
 
 This document separates the implemented local prototype from the intended
 service architecture. The Observation/outbox/diagnostic infrastructure,
-landing classifier, provider boundaries, twelve independent monitor entry
-points, process runner, and ten registry-enabled public-discovery profiles
-are implemented. Subscriptions, notifications, and live-validated `days`/`times`
-discovery for the remaining centres are not.
+landing classifier, provider boundaries, seventeen independent monitor entry
+points, process runner, and seventeen registry-enabled public-discovery
+profiles are implemented. Subscriptions, external notification delivery, and
+user-facing service infrastructure are not.
 
 ## Intended service flow (planned)
 
@@ -216,6 +216,14 @@ diagnostic runtime, provider imports from the notification Output Pipeline,
 writes from notification code to `providers.json`, and reverse dependencies
 between classified notification layers. The guards now validate the offline
 `notifications/` package.
+
+The same guard also protects the independent `engineering_telemetry/` package.
+Engineering telemetry stores local aggregate development and infrastructure
+facts for cost analysis. It imports neither providers, monitor runtime,
+diagnostics, nor notifications; it cannot observe or alter Runtime Guard,
+provider capability, or delivery behavior. Its local SQLite database and
+automatic audit output are runtime artifacts. Reviewed aggregate reports may
+be committed only after privacy review.
 
 Repository hygiene is checked separately against tracked runtime artifacts,
 generated outputs, sensitive filenames, and high-confidence secret formats.

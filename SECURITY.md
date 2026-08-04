@@ -174,7 +174,20 @@ normal-browser discovery execution. Otherwise it reports `BLOCKED` or
 `CAPTCHA_REQUIRED`. It never escalates to evasion techniques, CAPTCHA
 interaction, identity submission, or booking.
 
-## 11. Local research and diagnostic tooling
+## 11. Local AI engineering telemetry
+
+AI Engineering Telemetry is a local accounting subsystem. It must not make
+network requests, read provider runtime data, access browser profiles, import
+notification delivery code, or contain credentials. Its append-only SQLite
+database and automatic audit reports remain Git-ignored. Only a reviewed,
+sanitized aggregate report may be committed.
+
+Telemetry contracts reject sensitive-content identifiers and intentionally do
+not model prompts, completions, cookies, CSRF, credentials, raw captures, or
+personal data. New schema migrations must be forward-only and retain existing
+local facts unchanged.
+
+## 12. Local research and diagnostic tooling
 
 Security research may use richer local diagnostic tooling to understand page
 rendering, state transitions, network behaviour, and provider integration.
@@ -195,7 +208,7 @@ Diagnostic tooling must:
 The public monitor must not depend on an external diagnostic tool in order to
 continue operating.
 
-## 12. Proposed notification output boundary
+## 13. Proposed notification output boundary
 
 The proposed notification architecture is documented in
 [`docs/NOTIFICATION_ARCHITECTURE.md`](./docs/NOTIFICATION_ARCHITECTURE.md) and

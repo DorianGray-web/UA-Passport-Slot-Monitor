@@ -26,8 +26,11 @@ class KortrijkEntrypointTests(unittest.TestCase):
             monitor.MONITOR.config.provider,
             "dp-document-kortrijk",
         )
-        self.assertIsNone(monitor.MONITOR.config.public_discovery_profile)
-        self.assertTrue(monitor.MONITOR.config.candidate_evidence_probe)
+        self.assertEqual(
+            monitor.MONITOR.config.public_discovery_profile,
+            "kortrijk-v1",
+        )
+        self.assertFalse(monitor.MONITOR.config.candidate_evidence_probe)
 
     def test_ctrl_c_is_logged_as_manual_monitor_stop(self) -> None:
         with patch.object(

@@ -8,6 +8,43 @@ This changelog tracks implementation milestones and significant documentation, a
 
 ## [Unreleased]
 
+### AI Engineering Telemetry
+
+- Added an independent, provider-agnostic local telemetry subsystem for
+  aggregate AI development sessions and future infrastructure metrics.
+- Added append-only SQLite persistence, deterministic daily/weekly/monthly
+  cost and efficiency audits, contract tests, a local report CLI, and ordered
+  forward-only schema migrations beginning with `001_initial`.
+- Documented that local telemetry databases and automatic reports are ignored;
+  only manually reviewed, sanitized aggregate reports may be committed.
+- Extended architecture protection so telemetry cannot import provider runtime,
+  diagnostics, monitoring, or notification layers.
+- Extended CI source compilation to include the telemetry package.
+
+### Poland Deployment Completion
+
+- Promoted Warsaw centre `10`, Krakow centre `11`, Gdansk centre `12`, and
+  Wroclaw centre `13` through four independent governance decisions. Each
+  deployment was separately confirmed for service `4` and the bounded public
+  `LANDING -> DAYS -> TIMES -> STOP` contract.
+- Added four sanitized research notes, governance records, registry profiles,
+  shared `CityMonitor` entry points, and offline contract checks for
+  `warsaw-v1`, `krakow-v1`, `gdansk-v1`, and `wroclaw-v1`.
+- Expanded the configured research sample to seventeen deployments and the
+  governed discovery set to sixteen. A shared future Poland validation must
+  retain deployment-specific results and does not merge the four capabilities.
+
+### Kortrijk Public Discovery Promotion
+
+- Promoted Kortrijk centre `48` through an independent governance decision
+  after owner-provided live evidence confirmed service `4`, one allowed date,
+  seven allowed time entries, and the bounded public
+  `LANDING -> DAYS -> TIMES -> STOP` contract.
+- Replaced the landing-only candidate-probe configuration with the
+  evidence-gated `kortrijk-v1` discovery profile. The configured and governed
+  discovery sets now each contain seventeen deployments; bounded runtime
+  validation remains deployment-specific and pending.
+
 ### Documentation
 
 - Recorded the project-owner governance authorization for the bounded SQLite
@@ -57,6 +94,8 @@ This changelog tracks implementation milestones and significant documentation, a
   public queue form, centre `48`, service option `4`, and date/time selectors.
   The probe stopped at `LANDING`; no service was selected and no capability was
   promoted.
+- Recorded later owner-provided Kortrijk live evidence and the independent
+  governance decision that promoted the evidence-confirmed public profile.
 
 ### Added
 

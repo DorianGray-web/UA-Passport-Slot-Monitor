@@ -34,22 +34,25 @@ capabilities automatically.
 
 | Measure | Count |
 |---|---:|
-| Deployments tracked by this matrix | 13 |
-| Deployments configured in `providers.json` | 13 |
-| Evidence-confirmed public contracts | 12 |
-| Approved runtime discovery profiles | 12 |
+| Deployments tracked by this matrix | 17 |
+| Deployments configured in `providers.json` | 17 |
+| Evidence-confirmed public contracts | 17 |
+| Approved runtime discovery profiles | 17 |
 | Governance-pending discovery candidates | 0 |
-| Unconfirmed landing-only research deployments | 1 |
+| Unconfirmed landing-only research deployments | 0 |
 | Discovery profiles completing bounded release validation | 9 |
 
 Berlin, Toronto, Cologne, and Bratislava were approved independently on
-2026-08-02. Kortrijk is the remaining unconfirmed landing-only research
-deployment. Prague was independently approved on 2026-08-02; its bounded
+2026-08-02. Kortrijk was independently approved on 2026-08-04 after a live
+review confirmed its bounded public discovery contract. Prague was independently approved on 2026-08-02; its bounded
 post-promotion runtime validation remains scheduled rather than completed.
 Varna was independently approved on 2026-08-03; its bounded post-promotion
 runtime validation is also pending.
 Chisinau was independently approved on 2026-08-03; its bounded post-promotion
 runtime validation is pending.
+Warsaw, Krakow, Gdansk, and Wroclaw were approved independently on 2026-08-04
+under the Poland Deployment Completion milestone. Their deployment-specific
+bounded runtime validation remains pending.
 
 ## Current deployment state
 
@@ -66,8 +69,12 @@ runtime validation is pending.
 | Bratislava | Confirmed | Confirmed | Confirmed | Approved | `discovery` |
 | Prague | Confirmed | Confirmed | Confirmed | Approved | `discovery` |
 | Varna | Confirmed | Confirmed | Confirmed | Approved | `discovery` |
-| Kortrijk | Landing only | Unconfirmed | Not eligible | Not eligible | `landing-only` |
+| Kortrijk | Confirmed | Confirmed | Confirmed | Approved | `discovery` |
 | Chisinau | Confirmed | Confirmed | Confirmed | Approved | `discovery` |
+| Warsaw | Confirmed | Confirmed | Confirmed | Approved | `discovery` |
+| Krakow | Confirmed | Confirmed | Confirmed | Approved | `discovery` |
+| Gdansk | Confirmed | Confirmed | Confirmed | Approved | `discovery` |
+| Wroclaw | Confirmed | Confirmed | Confirmed | Approved | `discovery` |
 
 `Confirmed` means the retained evidence is sufficient for that column. It does
 not imply registry enablement. `Pending` means the evidence supports a
@@ -77,9 +84,10 @@ yet satisfied.
 
 ## Current comparative finding
 
-Twelve deployments currently have reviewed public discovery evidence:
+Seventeen deployments currently have reviewed public discovery evidence:
 Madrid, Barcelona, London, Milan, Valencia, Berlin, Toronto, Cologne, and
-Bratislava, plus Prague, Varna, and Chisinau. Each reached the bounded high-level sequence:
+Bratislava, Prague, Varna, Chisinau, Kortrijk, Warsaw, Krakow, Gdansk, and Wroclaw.
+Each reached the bounded high-level sequence:
 
 ```text
 LANDING -> DAYS -> TIMES -> STOP
@@ -93,15 +101,21 @@ the recognized `timeSlots` content determined the normalized result.
 This finding is limited to the reviewed deployments and observation windows.
 It is not a protocol guarantee for unconfirmed or future deployments.
 
+Across the four currently evidence-confirmed Polish deployments, the same
+bounded public discovery contract was observed with `ServiceId=4`, sequential
+`ServiceCenterId` values `10` through `13`, and the common terminal boundary.
+No general rule is inferred for future Polish deployments. Additional
+deployments require independent evidence and governance review.
+
 The 2026-08-02 six-hour release validation exercised Berlin, Cologne,
 Bratislava, and Toronto alongside Madrid and Barcelona controls. Cologne was
 `NO_SLOTS` throughout that window despite its earlier live availability
 evidence. Kortrijk's probe in that historical window found no queue form or
-identifiers. A later bounded candidate probe detected the public queue form,
-centre `48`, service option `4`, and date/time selectors, then stopped at
-`LANDING` without selecting a service or executing `DAYS` or `TIMES`. This
-increased the evidence corpus but did not change Kortrijk's landing-only trust
-state.
+identifiers. The historical candidate probe remains retained as evidence of
+the state at that time. A later 2026-08-04 live review independently confirmed
+centre `48`, service `4`, one allowed date, seven allowed time entries, and
+the bounded sequence `LANDING -> DAYS -> TIMES -> STOP`; explicit governance
+then approved `kortrijk-v1`.
 
 ## Capability Promotion Checklist
 
@@ -144,6 +158,16 @@ A capability revision or removal requires:
 - [Varna governance review](governance/2026-08-03-varna-public-discovery-promotion.md)
 - [Varna live observation](../research/dp-document/2026-08-03-varna-live-observation.md)
 - [Chisinau live observation](../research/dp-document/2026-08-03-chisinau-live-observation.md)
+- [Warsaw governance review](governance/2026-08-04-warsaw-public-discovery-promotion.md)
+- [Warsaw live observation](../research/dp-document/2026-08-04-warsaw-live-observation.md)
+- [Krakow governance review](governance/2026-08-04-krakow-public-discovery-promotion.md)
+- [Krakow live observation](../research/dp-document/2026-08-04-krakow-live-observation.md)
+- [Gdansk governance review](governance/2026-08-04-gdansk-public-discovery-promotion.md)
+- [Gdansk live observation](../research/dp-document/2026-08-04-gdansk-live-observation.md)
+- [Wroclaw governance review](governance/2026-08-04-wroclaw-public-discovery-promotion.md)
+- [Wroclaw live observation](../research/dp-document/2026-08-04-wroclaw-live-observation.md)
+- [Kortrijk governance review](governance/2026-08-04-kortrijk-public-discovery-promotion.md)
+- [Kortrijk live observation](../research/dp-document/2026-08-04-kortrijk-live-observation.md)
 - [Seven-centre six-hour release validation](../research/dp-document/2026-08-02-seven-centre-6h-release-validation.md)
 - [Berlin live observation](../research/dp-document/2026-08-01-berlin-live-observation.md)
 - [Toronto live observation](../research/dp-document/2026-08-01-toronto-live-observation.md)

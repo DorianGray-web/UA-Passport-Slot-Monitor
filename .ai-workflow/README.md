@@ -14,3 +14,6 @@ research evidence -> specification -> implementation plan -> code -> verificatio
 - Implementation must trace changes to acceptance-criteria IDs.
 - Verification is read-only except for reports.
 - Runtime browser profiles, captures, logs, tokens, and personal data never enter Git.
+- AI engineering telemetry is local aggregate accounting; its SQLite records and
+  automatic reports are not durable workflow artifacts. A sanitized aggregate
+  audit may be committed only after human review.
