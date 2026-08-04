@@ -107,6 +107,11 @@ class MultiProviderMonitoringTests(unittest.TestCase):
             "prague-v1",
             "varna-v1",
             "chisinau-v1",
+            "kortrijk-v1",
+            "warsaw-v1",
+            "krakow-v1",
+            "gdansk-v1",
+            "wroclaw-v1",
         }
         with tempfile.TemporaryDirectory() as directory, patch.dict(
             "os.environ",
@@ -252,6 +257,10 @@ class MultiProviderMonitoringTests(unittest.TestCase):
             "cologne",
             "prague",
             "varna",
+            "warsaw",
+            "krakow",
+            "gdansk",
+            "wroclaw",
         )
         for city in cities:
             spec = importlib.util.spec_from_file_location(
@@ -285,6 +294,10 @@ class MultiProviderMonitoringTests(unittest.TestCase):
                 "cologne",
                 "prague",
                 "varna",
+                "warsaw",
+                "krakow",
+                "gdansk",
+                "wroclaw",
             },
         )
         self.assertTrue(all(item.enabled for item in providers.values()))
@@ -372,19 +385,53 @@ class MultiProviderMonitoringTests(unittest.TestCase):
         self.assertEqual(providers["varna"].monitor.service_id, "4")
         self.assertEqual(providers["varna"].observation_group, "active")
         self.assertEqual(providers["chisinau"].observation_group, "control")
+        expected_poland = {
+            "warsaw": ("warsaw-v1", "10"),
+            "krakow": ("krakow-v1", "11"),
+            "gdansk": ("gdansk-v1", "12"),
+            "wroclaw": ("wroclaw-v1", "13"),
+        }
+        for city, (profile, centre) in expected_poland.items():
+            self.assertEqual(providers[city].monitor.public_discovery_profile, profile)
+            self.assertEqual(providers[city].monitor.service_center_id, centre)
+            self.assertEqual(providers[city].monitor.service_id, "4")
+            self.assertEqual(providers[city].observation_group, "active")
+        self.assertEqual(
+            providers["kortrijk"].monitor.public_discovery_profile,
+            "kortrijk-v1",
+        )
+        self.assertEqual("48", providers["kortrijk"].monitor.service_center_id)
+        self.assertEqual("4", providers["kortrijk"].monitor.service_id)
+        self.assertEqual(providers["kortrijk"].observation_group, "control")
         self.assertTrue(
             providers["berlin"].monitor.candidate_evidence_probe
         )
-        self.assertTrue(
-            providers["kortrijk"].monitor.candidate_evidence_probe
-        )
+        self.assertFalse(providers["kortrijk"].monitor.candidate_evidence_probe)
         self.assertFalse(
             providers["bratislava"].monitor.candidate_evidence_probe
         )
         self.assertTrue(all(item.entrypoint.is_file() for item in providers.values()))
         self.assertEqual(
             [item.startup_delay_seconds for item in providers.values()],
-            [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360],
+            [
+                0,
+                30,
+                60,
+                90,
+                120,
+                150,
+                180,
+                210,
+                240,
+                270,
+                300,
+                330,
+                360,
+                390,
+                420,
+                450,
+                480,
+            ],
         )
 
     def test_runner_can_select_research_cohort_from_environment(self) -> None:

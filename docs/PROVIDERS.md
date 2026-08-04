@@ -40,12 +40,12 @@ submitForm* -> browser fingerprint -> OTP / BankID / Diia -> reservation
 ```
 
 Embedded ThumbmarkJS module 708 belongs to that booking flow and is
-intentionally excluded from MonitorProvider. HTTP remains preferred. The twelve
+intentionally excluded from MonitorProvider. HTTP remains preferred. The seventeen
 currently registry-enabled research profiles—Madrid, Barcelona, London,
-Milan, Valencia, Berlin, Toronto, Cologne, Bratislava, Prague, Varna, and Chisinau—may use an explicitly enabled experimental
+Milan, Valencia, Berlin, Toronto, Cologne, Bratislava, Prague, Varna, Chisinau,
+Warsaw, Krakow, Gdansk, and Wroclaw—may use an explicitly enabled experimental
 persistent-browser fallback after HTTP `BLOCKED`; it stops at public `TIMES`
-and never interacts with CAPTCHA, identity, or booking. Kortrijk remains
-landing-only.
+and never interacts with CAPTCHA, identity, or booking.
 
 Discovery is evidence-first:
 
@@ -61,7 +61,7 @@ The classifier emits typed evidence such as `HTTP_200`,
 `HTML_NO_SLOTS_MARKER`, `QUEUE_FORM_FOUND`, and `CSRF_FOUND`. Absence of a form
 alone is never evidence for `NO_SLOTS`.
 
-Twelve deployments now have evidence-confirmed and governance-approved public
+Seventeen deployments now have evidence-confirmed and governance-approved public
 date/time contracts. The following items remain incomplete:
 
 - confirmed CSRF field names and response schemas for every deployment;
@@ -72,7 +72,7 @@ date/time contracts. The following items remain incomplete:
 
 | Centre | Implemented locally | Live evidence |
 |---|---|---|
-| Kortrijk | Shared `CityMonitor` landing-only entry point plus opt-in ADR-0011 candidate landing probe; no service is selected automatically | A later bounded probe detected the public queue form, centre `48`, service option `4`, and date/time selectors. It stopped at `LANDING` without selecting a service or executing `DAYS` or `TIMES`; service selection and the full public contract remain unconfirmed |
+| Kortrijk | Evidence-gated `kortrijk-v1` discovery profile (centre `48`, service `4`) | Owner-provided live evidence confirms one allowed date, seven allowed time entries from `09:40:00` through `16:20:00`, and the bounded public contract; deployment-specific runtime validation is pending |
 | Berlin | Evidence-gated `berlin-v1` discovery profile (centre `2`, service `4`) | Owner-provided live evidence confirms `LANDING -> DAYS -> TIMES -> STOP`; the six-hour validation observed both `NO_SLOTS` and `SLOTS_AVAILABLE`, with no browser error or browser `UNKNOWN` |
 | Bratislava | Evidence-gated `bratislava-v1` discovery profile (centre `9`, service `4`) | Owner-provided live evidence confirms the bounded public contract; the six-hour validation observed both `NO_SLOTS` and `SLOTS_AVAILABLE` |
 | Milan | Experimental HTTP-first browser-fallback profile (`ServiceCenterId=4`, `ServiceId=4`) | Owner-provided passive browser evidence confirmed the public `form=days` request on 2026-07-31; the bounded runtime stops at `TIMES` |
@@ -85,6 +85,10 @@ date/time contracts. The following items remain incomplete:
 | Cologne | Evidence-gated `cologne-v1` discovery profile (centre `3`, service `4`) | Owner-provided live evidence confirms the bounded public contract and seven allowed time entries; the later six-hour validation remained `NO_SLOTS` in all 38 observations |
 | Prague | Evidence-gated `prague-v1` discovery profile (centre `8`, service `4`) | Owner-provided live evidence confirms one allowed date, four allowed time entries, and the bounded public contract; bounded post-promotion runtime validation is pending |
 | Varna | Evidence-gated `varna-v1` discovery profile (centre `43`, service `4`) | Owner-provided live evidence confirms one allowed date, ten allowed time entries from `09:25:00` through `16:55:00`, and the bounded public contract; bounded post-promotion runtime validation is pending |
+| Warsaw | Evidence-gated `warsaw-v1` discovery profile (centre `10`, service `4`) | Owner-provided live evidence confirms one allowed date, 15 allowed time entries, and the bounded public contract; deployment-specific runtime validation is pending |
+| Krakow | Evidence-gated `krakow-v1` discovery profile (centre `11`, service `4`) | Owner-provided live evidence confirms one allowed date, 30 allowed time entries, and the bounded public contract; deployment-specific runtime validation is pending |
+| Gdansk | Evidence-gated `gdansk-v1` discovery profile (centre `12`, service `4`) | Owner-provided live evidence confirms one allowed date, 29 allowed time entries, and the bounded public contract; deployment-specific runtime validation is pending |
+| Wroclaw | Evidence-gated `wroclaw-v1` discovery profile (centre `13`, service `4`) | Owner-provided live evidence confirms one allowed date, 24 allowed time entries, and the bounded public contract; deployment-specific runtime validation is pending |
 
 The frontend findings describe the observed DP Document application. They do
 not prove identical deployment details, markers, CSRF field names, or response
@@ -109,7 +113,7 @@ The earlier
 remains evidence about HTTP behavior before the experimental browser transport
 was enabled.
 
-All twelve enabled profiles reuse the strict confirmed response classifiers,
+All seventeen enabled profiles reuse the strict confirmed response classifiers,
 fail closed as `UNKNOWN` on protocol deviation, and terminate at `TIMES`. See the
 [Barcelona live-observation report](../research/dp-document/2026-07-31-barcelona-live-observation.md),
 the
@@ -122,6 +126,10 @@ the [Cologne live-observation report](../research/dp-document/2026-08-01-cologne
 the [Bratislava live-observation report](../research/dp-document/2026-08-01-bratislava-live-observation.md),
 the [Prague live-observation report](../research/dp-document/2026-08-02-prague-live-observation.md),
 the [Varna live-observation report](../research/dp-document/2026-08-03-varna-live-observation.md),
+the [Warsaw live-observation report](../research/dp-document/2026-08-04-warsaw-live-observation.md),
+the [Krakow live-observation report](../research/dp-document/2026-08-04-krakow-live-observation.md),
+the [Gdansk live-observation report](../research/dp-document/2026-08-04-gdansk-live-observation.md),
+the [Wroclaw live-observation report](../research/dp-document/2026-08-04-wroclaw-live-observation.md),
 the
 [cross-deployment comparison](../research/dp-document/2026-08-01-cross-deployment-public-discovery-comparison.md),
 and the local run-summary workflow documented in the project README.

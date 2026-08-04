@@ -14,6 +14,9 @@
 - [x] Implement the governance-authorized SQLite Delivery Job Persistence
   slice with immutable jobs, separate lease/state records, idempotent enqueue,
   priority ordering, bounded retries, and persistence tests.
+- [x] Implement local provider-agnostic AI Engineering Telemetry with
+  append-only aggregate session/metric records, periodic audit reports, and
+  architecture isolation from runtime and notification delivery.
 
 ## Phase 0 — Foundation and Validation
 
@@ -79,8 +82,9 @@
   during the run, while Kortrijk remains landing-only
 - [x] Capture sanitized Kortrijk candidate form evidence for centre `48`,
   service option `4`, and date/time selectors without selecting the service
-- [ ] Confirm Kortrijk service selection and the complete bounded
-  `LANDING -> DAYS -> TIMES -> STOP` contract before capability review
+- [x] Confirm Kortrijk centre `48`, service `4`, and the complete bounded
+  `LANDING -> DAYS -> TIMES -> STOP` contract; approve `kortrijk-v1` through
+  an independent governance decision
 - [ ] Analyze time-of-day and cross-centre HTML-change correlations
 - [ ] Measure delay from HTML changes to confirmed slot availability
 - [ ] Document the manual challenge-intervention flow
@@ -92,7 +96,7 @@
 - [x] Implement evidence-first landing classification and transition guards
 - [x] Add typed discovery stages, evidence, and request traces to Observation
 - [ ] Validate HTTP session and CSRF handling for each DP Document centre
-- [x] Add strict confirmed days/times classifiers used by twelve governed
+- [x] Add strict confirmed days/times classifiers used by seventeen governed
   evidence profiles
 - [ ] Validate or add centre-specific days and times classifiers for the
   remaining centres
@@ -118,11 +122,19 @@
 - [x] Record the independent Chisinau governance decision and add
   `chisinau-v1` through the shared `CityMonitor` entrypoint.
 - [ ] Complete bounded post-promotion runtime validation for Chisinau.
+- [x] Confirm Warsaw centre `10`, Krakow centre `11`, Gdansk centre `12`, and
+  Wroclaw centre `13`, each with service `4` and the bounded public contract.
+- [x] Record four independent governance decisions under the Poland Deployment
+  Completion milestone and add `warsaw-v1`, `krakow-v1`, `gdansk-v1`, and
+  `wroclaw-v1` profiles.
+- [ ] Complete a shared Poland bounded runtime validation while retaining
+  deployment-specific results for all four profiles.
 - [x] Complete bounded runtime validation of the four newly promoted profiles
 - [ ] After the ADR-0009 transition criteria are met, replace city wrappers
   with one registry-driven generic DP Document monitor
 - [x] Migrate Kortrijk from its legacy monitor to the shared `CityMonitor`
-  landing-only entrypoint and candidate-probe path
+  entrypoint; later promote its confirmed discovery profile through explicit
+  governance
 - [x] Implement standardized local observation metadata
 - [x] Implement separate provider and orchestrator logs
 - [ ] Implement subscription and state storage

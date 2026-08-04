@@ -44,9 +44,12 @@
       "enabled": true,
       "priority": "normal",
       "startup_delay_seconds": 60,
+      "public_discovery_profile": "kortrijk-v1",
+      "service_center_id": "48",
+      "service_id": "4",
+      "csrf_value": "1",
       "research": {
-        "observation_group": "control",
-        "candidate_evidence_probe": true
+        "observation_group": "control"
       }
     },
     {
@@ -213,6 +216,74 @@
       "startup_delay_seconds": 360,
       "public_discovery_profile": "varna-v1",
       "service_center_id": "43",
+      "service_id": "4",
+      "csrf_value": "1",
+      "research": {
+        "observation_group": "active"
+      }
+    },
+    {
+      "city": "warsaw",
+      "provider": "dp-document-warsaw",
+      "queue_url": "https://warszawa.pasport.org.ua/solutions/e-queue",
+      "env_prefix": "WARSAW",
+      "entrypoint": "warsaw_monitor.py",
+      "enabled": true,
+      "priority": "high",
+      "startup_delay_seconds": 390,
+      "public_discovery_profile": "warsaw-v1",
+      "service_center_id": "10",
+      "service_id": "4",
+      "csrf_value": "1",
+      "research": {
+        "observation_group": "active"
+      }
+    },
+    {
+      "city": "krakow",
+      "provider": "dp-document-krakow",
+      "queue_url": "https://krakow.pasport.org.ua/solutions/e-queue",
+      "env_prefix": "KRAKOW",
+      "entrypoint": "krakow_monitor.py",
+      "enabled": true,
+      "priority": "high",
+      "startup_delay_seconds": 420,
+      "public_discovery_profile": "krakow-v1",
+      "service_center_id": "11",
+      "service_id": "4",
+      "csrf_value": "1",
+      "research": {
+        "observation_group": "active"
+      }
+    },
+    {
+      "city": "gdansk",
+      "provider": "dp-document-gdansk",
+      "queue_url": "https://gdansk.pasport.org.ua/solutions/e-queue",
+      "env_prefix": "GDANSK",
+      "entrypoint": "gdansk_monitor.py",
+      "enabled": true,
+      "priority": "high",
+      "startup_delay_seconds": 450,
+      "public_discovery_profile": "gdansk-v1",
+      "service_center_id": "12",
+      "service_id": "4",
+      "csrf_value": "1",
+      "research": {
+        "observation_group": "active"
+      }
+    },
+    {
+      "city": "wroclaw",
+      "provider": "dp-document-wroclaw",
+      "queue_url": "https://wroclaw.pasport.org.ua/solutions/e-queue",
+      "env_prefix": "WROCLAW",
+      "entrypoint": "wroclaw_monitor.py",
+      "enabled": true,
+      "priority": "high",
+      "startup_delay_seconds": 480,
+      "public_discovery_profile": "wroclaw-v1",
+      "service_center_id": "13",
       "service_id": "4",
       "csrf_value": "1",
       "research": {

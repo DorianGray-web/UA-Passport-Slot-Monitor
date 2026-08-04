@@ -11,6 +11,7 @@ from typing import Iterable
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 NOTIFICATION_ROOT = PROJECT_ROOT / "notifications"
+TELEMETRY_ROOT = PROJECT_ROOT / "engineering_telemetry"
 PROVIDER_ROOT = PROJECT_ROOT / "providers"
 
 FORBIDDEN_NOTIFICATION_IMPORTS = (
@@ -20,6 +21,13 @@ FORBIDDEN_NOTIFICATION_IMPORTS = (
     "diagnostics",
 )
 FORBIDDEN_PROVIDER_IMPORTS = ("notifications",)
+FORBIDDEN_TELEMETRY_IMPORTS = (
+    "providers",
+    "monitor_runner",
+    "diagnostic_worker",
+    "diagnostics",
+    "notifications",
+)
 TRUSTED_CONFIGURATION_NAME = "providers.json"
 
 
@@ -143,10 +151,22 @@ def provider_violations() -> list[Violation]:
     return violations
 
 
+def telemetry_violations() -> list[Violation]:
+    violations: list[Violation] = []
+    for path in python_files(TELEMETRY_ROOT):
+        tree = parse(path)
+        for module, line in imported_modules(tree):
+            if matches_prefix(module, FORBIDDEN_TELEMETRY_IMPORTS):
+                violations.append(
+                    Violation(path, line, f"engineering telemetry imports protected project module {module!r}")
+                )
+    return violations
+
+
 def main() -> int:
     if not NOTIFICATION_ROOT.is_dir():
         print("No notification package detected. Protected runtime boundaries currently valid.")
-    violations = notification_violations() + provider_violations()
+    violations = notification_violations() + provider_violations() + telemetry_violations()
     if violations:
         print("Architecture boundary violations:", file=sys.stderr)
         for violation in violations:

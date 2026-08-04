@@ -174,6 +174,20 @@ If analytics or diagnostic telemetry is introduced:
 - retention must be limited;
 - IP addresses and identifiers should be minimised or anonymised where possible.
 
+### Local engineering telemetry
+
+The implemented AI Engineering Telemetry subsystem is local-only project
+accounting, not user or product analytics. It may retain aggregate development
+session identifiers, provider/model/agent/skill labels, token totals,
+estimated costs, workflow stages, durations, outcomes, and generic numeric
+infrastructure metrics. It does not define or retain prompts, completions,
+cookies, CSRF values, credentials, browser artifacts, provider Observations,
+personal data, or recipient data.
+
+The local SQLite database and automatic periodic reports are Git-ignored. A
+maintainer may commit a sanitized aggregate report only after confirming that
+it contains no sensitive data or raw artifacts.
+
 ## 10. Security, logging, and local browser transport
 
 Reasonable technical and organisational measures should be applied according to the risks of the implemented system.
