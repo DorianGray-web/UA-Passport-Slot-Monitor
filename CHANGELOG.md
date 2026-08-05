@@ -8,6 +8,13 @@ This changelog tracks implementation milestones and significant documentation, a
 
 ## [Unreleased]
 
+### Discovery Quality
+
+- Added a normative, documentation-only Discovery Quality specification for
+  read-only offline analysis of completed discovery experiments. It preserves
+  traceability to immutable Observations and prohibits runtime control,
+  capability changes, and automatic response to drift.
+
 ### AI Engineering Telemetry
 
 - Added an independent, provider-agnostic local telemetry subsystem for

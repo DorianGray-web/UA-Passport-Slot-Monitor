@@ -20,6 +20,8 @@
 - [x] Implement local provider-agnostic AI Engineering Telemetry with
   append-only aggregate session/metric records, periodic audit reports, and
   architecture isolation from runtime and notification delivery.
+- [x] Define Discovery Quality as a read-only offline analytical layer with
+  traceable metrics, local reports, and no runtime or governance feedback.
 
 ## Phase 0 — Foundation and Validation
 
