@@ -116,6 +116,7 @@ are not the primary description of current runtime behaviour.
 - [Notification Test Strategy](docs/testing/notification-test-strategy.md)
 - [AI Engineering Telemetry](docs/ENGINEERING_TELEMETRY.md)
 - [Engineering Telemetry Contracts](docs/contracts/engineering-telemetry.md)
+- [Discovery Quality](docs/DISCOVERY_QUALITY.md)
 - [Release Policy](docs/RELEASE_POLICY.md)
 - [v0.3.0 Release Readiness Report](docs/releases/2026-08-02-v0.3.0-release-readiness.md)
 - [Providers](docs/PROVIDERS.md)
