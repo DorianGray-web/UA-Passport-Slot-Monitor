@@ -1,12 +1,12 @@
 # Notification Architecture
 
-> **Status:** Accepted; offline domain and Delivery Job persistence implemented
+> **Status:** Accepted; offline domain, Delivery Job persistence, and local Worker implemented
 >
 > Immutable contracts, Policy Set loading, Decision Trace, pure offline replay,
-> and the separately authorized SQLite Delivery Job Store are implemented. No
-> Coordinator, worker, scheduler, delivery adapter, Telegram API call,
-> Observation reader, subscription store, runtime hook, or external message
-> exists.
+> and the separately authorized SQLite Delivery Job Store and caller-driven
+> local Worker are implemented. No Coordinator, scheduler, external delivery
+> adapter, Telegram API call, Observation reader, subscription store, runtime
+> hook, or external message exists.
 
 ## Purpose
 
@@ -195,22 +195,29 @@ The implemented local SQLite Delivery Job Store exposes `enqueue`, `claim`,
 - bounded retry backoff;
 - terminal failure.
 
-It remains separate from DiagnosticQueue. No worker or Delivery Adapter is
-implemented or authorized by this persistence slice.
+It remains separate from DiagnosticQueue.
 
 The governance-authorized persistence slice stores immutable Delivery Jobs
 separately from mutable status, lease, and bounded retry metadata. A lease does
 not alter the job. The caller supplies the logical event's `dedup_key` and
 already classified priority; SQLite performs idempotency and ordering only.
-No worker, scheduler, adapter, runtime hook, or network delivery is part of
-this slice.
+The separately authorized local Worker claims one job, invokes a local
+`DeliveryPort.deliver(job) -> DeliveryResult`, then settles the state through
+`complete` or `fail`. It is caller-driven: it has no scheduler, background
+loop, runtime hook, Observation access, SQL, or network code. Store lease
+expiry remains the crash-recovery mechanism for a process that stops after a
+claim. A deliberately in-memory fake adapter is the only adapter implemented
+in this slice.
 
 ### Delivery adapter
 
-A Delivery Adapter receives only a normalized, privacy-validated
-Notification Envelope and destination alias. Telegram is the first planned
-adapter. Future email, Discord, webhook, and push adapters implement the same
-boundary without changing provider runtime or policy evaluation.
+A Delivery Adapter receives only an immutable, privacy-validated
+`NotificationDeliveryJob` and returns a small `DeliveryResult`: `SUCCESS`,
+`RETRYABLE_FAILURE`, or `PERMANENT_FAILURE`, with a sanitized reason for a
+failure. It receives no Store, SQLite connection, lease token, claim time, or
+retry-count data. Telegram is the first planned external adapter. Future
+email, Discord, webhook, and push adapters implement the same boundary
+without changing provider runtime or policy evaluation.
 
 An adapter cannot decide confirmation, deduplication, priority, audience, or
 governance. It returns a sanitized Delivery Result to the worker.

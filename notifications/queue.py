@@ -278,10 +278,14 @@ class SQLiteDeliveryJobStore:
         lease_token: str,
         error_code: str,
         retry_at: str,
+        *,
+        retry: bool = True,
     ) -> DeliveryJobStatus | None:
         require_text(job_id, "job_id")
         require_text(lease_token, "lease_token")
         require_text(error_code, "error_code")
+        if not isinstance(retry, bool):
+            raise ValueError("retry must be a boolean")
         parse_utc_timestamp(retry_at, "retry_at")
         with closing(self._connect()) as connection:
             connection.execute("BEGIN IMMEDIATE")
@@ -296,7 +300,7 @@ class SQLiteDeliveryJobStore:
             if row is None:
                 connection.commit()
                 return None
-            terminal = row["attempt_count"] >= row["max_attempts"]
+            terminal = not retry or row["attempt_count"] >= row["max_attempts"]
             status = DeliveryJobStatus.FAILED if terminal else DeliveryJobStatus.PENDING
             connection.execute(
                 """
