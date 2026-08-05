@@ -146,11 +146,12 @@ Third-party services must be documented in this policy before they are used in a
 
 The project will not sell personal data or share it with data brokers or advertising networks.
 
-The proposed evidence-first notification Output Pipeline is documented in
-[`docs/NOTIFICATION_ARCHITECTURE.md`](docs/NOTIFICATION_ARCHITECTURE.md). It is
-not implemented at this milestone. Telegram is the first planned delivery
-adapter, but no bot token, destination identifier, subscription, queue,
-external message, or third-party notification data flow currently exists.
+The evidence-first notification Output Pipeline is documented in
+[`docs/NOTIFICATION_ARCHITECTURE.md`](docs/NOTIFICATION_ARCHITECTURE.md). Its
+offline contracts, local SQLite Delivery Job Store, and caller-driven Worker
+with an in-memory fake adapter are implemented. Telegram remains the first
+planned external delivery adapter; no bot token, destination identifier,
+subscription, external message, or third-party notification data flow exists.
 
 Any future implementation must construct outbound payloads from an explicit
 public-data allowlist. Notification contracts, queues, logs, audit records,

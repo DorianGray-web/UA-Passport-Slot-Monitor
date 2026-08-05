@@ -49,6 +49,9 @@ This changelog tracks implementation milestones and significant documentation, a
 
 - Recorded the project-owner governance authorization for the bounded SQLite
   Delivery Job Persistence slice under ADR-0012.
+- Added a [local Worker verification report](docs/releases/2026-08-04-notification-worker-verification.md)
+  recording the authorized scope, non-goals, architecture boundaries, and 95
+  passing unit tests.
 
 - Recorded owner-provided Chisinau live evidence confirming centre `45`,
   service `4`, 25 allowed dates, a non-empty `TIMES` response, and the bounded
@@ -82,9 +85,9 @@ This changelog tracks implementation milestones and significant documentation, a
 - Recorded the project-owner governance decision authorizing only the offline
   notification-domain slice.
 - Documented that the initial offline notification-domain slice had no queue;
-  the later independently authorized persistence slice still has no runtime
-  integration, worker, adapter, Telegram API call, provider change, or
-  external message.
+  later independently authorized persistence and local Worker slices still
+  have no runtime integration, external adapter, Telegram API call, provider
+  change, or external message.
 - Recorded owner-provided Prague live evidence confirming centre `8`, service
   `4`, one allowed date, four allowed time entries from `11:45:00` through
   `12:45:00`, and the bounded `LANDING -> DAYS -> TIMES -> STOP` contract.
@@ -103,9 +106,11 @@ This changelog tracks implementation milestones and significant documentation, a
   contracts plus a local SQLite store with separate mutable delivery state,
   caller-supplied idempotent deduplication keys, priority ordering, leases,
   stale-lease protection, bounded retry metadata, and crash-safe transactions.
-- Added persistence tests without adding workers, adapters, runtime hooks,
-  Observation access, notification generation, network communication, or
-  environment-specific delivery.
+- Added a separately authorized caller-driven local Delivery Worker, a minimal
+  immutable-job `DeliveryPort` contract, and an in-memory fake adapter with
+  deterministic persistence-transition tests. No external adapter, network
+  communication, scheduler, runtime hook, Observation access, notification
+  generation, or environment-specific delivery was added.
 
 - Promoted the existing Chisinau deployment from landing-only research to the
   twelfth evidence-gated discovery profile without adding identity, CAPTCHA,

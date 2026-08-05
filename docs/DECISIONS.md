@@ -969,10 +969,12 @@ cursor, and enqueue accepted routes. It must not contain event-specific,
 provider-specific, priority, privacy, routing, channel, or message-formatting
 rules.
 
-Delivery adapters receive only normalized, privacy-validated Notification
-Envelopes. Telegram is the first planned adapter, not part of the domain
-model. A Telegram adapter must not import Observation, provider configuration,
-provider monitors, Runtime Guard, Playwright, or governance state.
+Delivery adapters receive only immutable, privacy-validated
+`NotificationDeliveryJob` values and return a sanitized result. They do not
+receive Store, SQLite, lease-token, claim-time, or retry-count data. Telegram
+is the first planned external adapter, not part of the domain model. A
+Telegram adapter must not import Observation, provider configuration, provider
+monitors, Runtime Guard, Playwright, or governance state.
 
 ### Privacy and security boundary
 
@@ -1015,7 +1017,7 @@ separately reviewed immutable Operational Fact contract before implementation.
 This decision does not implement or authorize:
 
 - Telegram or any other external API call;
-- a runtime notification coordinator, worker, scheduler, or adapter;
+- a runtime notification coordinator, scheduler, or external delivery adapter;
 - user subscriptions or public notification destinations;
 - runtime hooks or changes to Observation;
 - provider checks initiated by notification policy;
@@ -1047,6 +1049,15 @@ state/lease records, idempotent enqueue, priority ordering, bounded retries,
 and persistence tests. That decision did not authorize workers, schedulers,
 adapters, runtime hooks, Observation access, notification generation, network
 communication, or secrets.
+
+On 2026-08-04, a separate Worker Execution authorization permitted only a
+caller-driven local execution engine, the existing Store API, a minimal
+`DeliveryPort.deliver(job) -> DeliveryResult` boundary, an in-memory fake
+adapter, and persistence-transition tests. The Worker receives only
+`NotificationDeliveryJob`; it does not read Observations or decisions, issue
+SQL, run a scheduler, or communicate over a network. This authorization does
+not permit Telegram, any external adapter, runtime integration, provider
+changes, secrets, or notification generation.
 
 ### Output invariants
 

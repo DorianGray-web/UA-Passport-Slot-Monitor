@@ -1,6 +1,6 @@
 """Offline notification domain governed by ADR-0012.
 
-This package has no runtime, provider, worker, adapter, or delivery integration.
+This package has no runtime, provider, scheduler, network, or external delivery integration.
 """
 
 from .contracts import (
@@ -32,11 +32,23 @@ from .queue import (
     NotificationDeliveryState,
     SQLiteDeliveryJobStore,
 )
+from .worker import (
+    DeliveryResult,
+    DeliveryStatus,
+    DeliveryWorkerOutcome,
+    DeliveryWorkerRun,
+    LocalDeliveryAdapter,
+    NotificationDeliveryWorker,
+)
 
 __all__ = [
     "ConfirmedNotificationEvent",
     "ClaimedDeliveryJob",
     "DecisionTrace",
+    "DeliveryResult",
+    "DeliveryStatus",
+    "DeliveryWorkerOutcome",
+    "DeliveryWorkerRun",
     "DeliveryJobStatus",
     "NotificationCandidate",
     "NotificationAudience",
@@ -46,10 +58,12 @@ __all__ = [
     "NotificationDecisionOutcome",
     "NotificationDecisionStage",
     "NotificationEventType",
+    "NotificationDeliveryWorker",
     "NotificationPriority",
     "NotificationPolicyConfiguration",
     "NotificationDeliveryState",
     "NotificationProvenance",
+    "LocalDeliveryAdapter",
     "PolicyConfigurationError",
     "PublicNotificationFacts",
     "SQLiteDeliveryJobStore",

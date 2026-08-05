@@ -14,6 +14,9 @@
 - [x] Implement the governance-authorized SQLite Delivery Job Persistence
   slice with immutable jobs, separate lease/state records, idempotent enqueue,
   priority ordering, bounded retries, and persistence tests.
+- [x] Verify the local Delivery Worker against immutable-job persistence
+  transitions, static architecture boundaries, and the full unit suite; see
+  [verification report](docs/releases/2026-08-04-notification-worker-verification.md).
 - [x] Implement local provider-agnostic AI Engineering Telemetry with
   append-only aggregate session/metric records, periodic audit reports, and
   architecture isolation from runtime and notification delivery.
@@ -151,10 +154,10 @@
 - [x] Implement the first offline notification domain slice after ADR-0012 approval:
   immutable contracts, Policy Set validation, Decision Trace, replay tests,
   and architecture tests
-- [x] Implement the separately authorized SQLite Delivery Job Store without a
-  worker, adapter, runtime hook, or external delivery
-- [ ] Authorize and implement a delivery worker and developer-only Telegram
-  adapter only after persistence review
+- [x] Implement the separately authorized local Delivery Worker with an
+  in-memory fake adapter and persistence-transition tests; no external delivery
+- [ ] Authorize and implement a developer-only Telegram adapter only after
+  local worker review
 - [ ] Perform bounded notification validation before any runtime integration
 - [ ] Review opt-in, retention, deletion, and privacy requirements before
   enabling public notifications or additional delivery channels

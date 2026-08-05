@@ -13,6 +13,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 NOTIFICATION_ROOT = PROJECT_ROOT / "notifications"
 TELEMETRY_ROOT = PROJECT_ROOT / "engineering_telemetry"
 PROVIDER_ROOT = PROJECT_ROOT / "providers"
+WORKER_PATH = NOTIFICATION_ROOT / "worker.py"
 
 FORBIDDEN_NOTIFICATION_IMPORTS = (
     "providers",
@@ -27,6 +28,15 @@ FORBIDDEN_TELEMETRY_IMPORTS = (
     "diagnostic_worker",
     "diagnostics",
     "notifications",
+)
+FORBIDDEN_WORKER_IMPORTS = (
+    "notifications.decisions",
+    "notifications.policy_loader",
+    "notifications.replay",
+    "providers",
+    "monitor_runner",
+    "diagnostic_worker",
+    "diagnostics",
 )
 TRUSTED_CONFIGURATION_NAME = "providers.json"
 
@@ -163,10 +173,33 @@ def telemetry_violations() -> list[Violation]:
     return violations
 
 
+def worker_violations() -> list[Violation]:
+    """Keep the execution engine isolated from notification derivation and runtime."""
+    if not WORKER_PATH.is_file():
+        return []
+    tree = parse(WORKER_PATH)
+    violations: list[Violation] = []
+    for module, line in imported_modules(tree):
+        if matches_prefix(module, FORBIDDEN_WORKER_IMPORTS):
+            violations.append(
+                Violation(
+                    WORKER_PATH,
+                    line,
+                    f"delivery worker imports protected module {module!r}",
+                )
+            )
+    return violations
+
+
 def main() -> int:
     if not NOTIFICATION_ROOT.is_dir():
         print("No notification package detected. Protected runtime boundaries currently valid.")
-    violations = notification_violations() + provider_violations() + telemetry_violations()
+    violations = (
+        notification_violations()
+        + provider_violations()
+        + telemetry_violations()
+        + worker_violations()
+    )
     if violations:
         print("Architecture boundary violations:", file=sys.stderr)
         for violation in violations:
