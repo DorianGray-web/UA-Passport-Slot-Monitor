@@ -104,6 +104,9 @@ must retain references to the completed runs and Observation sets from which
 they were calculated.
 
 No aggregate may conceal the availability of its underlying run-level values.
+Discovery Quality references a run by `run_id`, its retained run manifest, and
+its immutable Observation set; generated report filenames are convenience
+artifacts and are never an analytical identifier.
 
 ## 8. Architecture (Informative)
 

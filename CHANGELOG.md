@@ -14,6 +14,11 @@ This changelog tracks implementation milestones and significant documentation, a
   read-only offline analysis of completed discovery experiments. It preserves
   traceability to immutable Observations and prohibits runtime control,
   capability changes, and automatic response to drift.
+- Research-summary filenames now include `run_id`, preventing local reports
+  from distinct experiments with the same date and rounded duration from
+  overwriting one another.
+- Recorded the 2026-08-05 invalid monitoring series as diagnostic evidence
+  excluded from Discovery Quality analysis.
 
 ### AI Engineering Telemetry
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sqlite3
 import statistics
 from collections import Counter
@@ -464,20 +465,27 @@ def default_output_path(
     duration_seconds: float | None = None,
 ) -> Path:
     start = parse_timestamp(observations[0]["observed_at"])
+    run_ids = {str(item["run_id"]) for item in observations}
+    if len(run_ids) != 1:
+        raise ValueError("A report must contain exactly one run_id.")
+    run_id = next(iter(run_ids))
+    if not re.fullmatch(r"[A-Za-z0-9._-]+", run_id):
+        raise ValueError("run_id contains unsupported filename characters.")
     measured_duration = (
         run_duration_seconds(observations)
         if duration_seconds is None
         else duration_seconds
     )
     hours = max(1, round(measured_duration / 3600))
-    return output_dir / f"{start:%Y-%m-%d}-playwright-fallback-{hours}h-report.md"
+    return output_dir / (
+        f"{start:%Y-%m-%d}-{run_id}-playwright-fallback-{hours}h-report.md"
+    )
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--run-id")
     parser.add_argument("--database", type=Path, default=DEFAULT_DATABASE)
-    parser.add_argument("--output", type=Path)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--timezone", default="Europe/Amsterdam")
     parser.add_argument("--minimum-duration-hours", type=float, default=1.0)
@@ -515,7 +523,7 @@ def main() -> int:
             f"{args.minimum_duration_hours:.2f}h report threshold."
         )
         return 3
-    output = args.output or default_output_path(
+    output = default_output_path(
         observations,
         args.output_dir,
         duration_seconds=duration_seconds,

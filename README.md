@@ -133,8 +133,14 @@ When `monitor_runner.py` is stopped with `Ctrl+C` or reaches a configured
 bounded-run deadline, it automatically generates a local Markdown summary for
 runs lasting at least one hour. Runtime duration and Observation coverage are
 reported separately. Reports are written to
-`research/dp-document/<date>-playwright-fallback-<hours>h-report.md` and are
-built exclusively from immutable Observations in `data/observations.sqlite3`.
+`research/dp-document/<date>-<run-id>-playwright-fallback-<hours>h-report.md`
+and are built exclusively from immutable Observations in
+`data/observations.sqlite3`. Including `run_id` prevents reports from
+different experiments with the same date and rounded duration from overwriting
+one another. Repeating generation for one `run_id` is idempotent: it can only
+regenerate that run's own report path and cannot affect another run's report.
+The generator accepts an output directory, not an arbitrary output filename,
+so this boundary also holds for manual generation.
 Generated reports are runtime output and are ignored by Git; only manually
 reviewed, sanitized conclusions belong in committed research documentation.
 
