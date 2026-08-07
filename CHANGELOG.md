@@ -19,6 +19,12 @@ This changelog tracks implementation milestones and significant documentation, a
   overwriting one another.
 - Recorded the 2026-08-05 invalid monitoring series as diagnostic evidence
   excluded from Discovery Quality analysis.
+- Research summaries now display discovery progression separately from
+  availability classification, preventing `LANDING -> BLOCKED` from being
+  misread as a no-availability result.
+- Recorded Playwright execution context as a research variable after a fresh,
+  isolated headless profile did not reproduce contemporaneous live-review
+  observability.
 
 ### AI Engineering Telemetry
 

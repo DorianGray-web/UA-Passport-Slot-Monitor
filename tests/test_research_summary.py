@@ -133,6 +133,11 @@ class ResearchSummaryTests(unittest.TestCase):
         self.assertIn("Observation coverage duration: 4h 0m", report)
         self.assertIn("HTTP blocked: 2", report)
         self.assertIn("Playwright runs: 2", report)
+        self.assertIn("## Summary", report)
+        self.assertIn("| Confirmed discovery reached LANDING | 2 |", report)
+        self.assertIn("| Confirmed discovery reached DAYS | 2 |", report)
+        self.assertIn("| Confirmed discovery reached TIMES | 2 |", report)
+        self.assertIn("| Availability classified at TIMES | 2 |", report)
         self.assertIn("## Madrid", report)
         self.assertIn("## Barcelona", report)
         self.assertIn("| 2026-07-31 13:00:00 | Madrid", report)
@@ -175,6 +180,8 @@ class ResearchSummaryTests(unittest.TestCase):
         self.assertIn("Service options detected: 1", report)
         self.assertIn("Unexpected `UNKNOWN`: 0", report)
         self.assertIn("Successful discoveries through TIMES: 0", report)
+        self.assertIn("| Confirmed discovery reached LANDING | 0 |", report)
+        self.assertIn("| Availability classified at TIMES | 0 |", report)
 
     def test_confirmed_early_no_slots_is_a_bounded_browser_outcome(self) -> None:
         records = [

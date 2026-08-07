@@ -71,6 +71,13 @@ Completed Research Summaries provide run boundaries, configuration metadata,
 experiment context, and human-readable interpretation. They are contextual
 artifacts, not an independent source of quantitative truth.
 
+When a local run manifest is retained, it records execution context rather
+than provider capability. At minimum, a Playwright-backed run should identify
+whether it was headed or headless, whether it used a persistent profile, and
+its profile strategy (for example, `existing-local` or `fresh-isolated`). This
+context distinguishes comparable experiments; it neither changes runtime
+transport selection nor alters the meaning of an Observation.
+
 ## 6. Derived Metrics (Normative)
 
 Derived metrics describe a referenced provider and completed run or explicit

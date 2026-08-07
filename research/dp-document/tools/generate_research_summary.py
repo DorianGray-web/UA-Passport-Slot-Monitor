@@ -267,6 +267,17 @@ def build_report(
     http_states = Counter(item.get("state") for item in http_observations)
     browser_states = Counter(item.get("state") for item in browser_runs)
     browser_average = mean(item.get("duration_ms", 0) for item in browser_runs)
+    browser_reached_landing = len(discovery_browser_runs)
+    browser_reached_days = sum(
+        item.get("discovery_stage") in {"DAYS", "TIMES"}
+        for item in discovery_browser_runs
+    )
+    browser_reached_times = len(successful_browser)
+    browser_availability_classified = sum(
+        item.get("discovery_stage") == "TIMES"
+        and item.get("state") in {"SLOTS_AVAILABLE", "NO_SLOTS"}
+        for item in discovery_browser_runs
+    )
 
     provider_list = "\n".join(f"- {name}" for name in providers)
     provider_sections = "\n\n".join(
@@ -380,6 +391,20 @@ HTTP blocked: {len(http_blocked)}
 Playwright runs: {len(browser_runs)}<br>
 Candidate landing probes: {len(candidate_probes)}<br>
 Successful discoveries through TIMES: {len(successful)}
+
+### Discovery Progression
+
+| Metric | Value |
+|---|---:|
+| Confirmed discovery reached LANDING | {browser_reached_landing} |
+| Confirmed discovery reached DAYS | {browser_reached_days} |
+| Confirmed discovery reached TIMES | {browser_reached_times} |
+| Availability classified at TIMES | {browser_availability_classified} |
+
+`NO_SLOTS` recorded at LANDING is a recognized earlier bounded outcome, not a
+calendar availability classification. A value of zero for availability
+classification means discovery did not reach a classified `TIMES` response; it
+does not mean that no public appointments existed during the experiment.
 
 {provider_sections}
 
