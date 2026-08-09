@@ -815,6 +815,83 @@ class MultiProviderMonitoringTests(unittest.TestCase):
         self.assertEqual(state.source, "http")
         fallback.assert_not_called()
 
+    def test_playwright_lease_timeout_keeps_blocked_http_observation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            monitor = CityMonitor(
+                ProviderConfig(
+                    city="Berlin",
+                    provider="dp-document-berlin",
+                    queue_url="https://example.test/solutions/e-queue",
+                    env_prefix="TEST_BERLIN",
+                    base_dir=root,
+                    project_dir=root,
+                    public_discovery_profile="berlin-v1",
+                    service_center_id="2",
+                    service_id="4",
+                )
+            )
+            blocked = QueueState(
+                "BLOCKED",
+                "2026-08-09T00:00:00+00:00",
+                "page-hash",
+                "HTTP request was blocked.",
+                "http",
+                ("HTTP_403",),
+            )
+            with (
+                patch.object(monitor.playwright_lease, "acquire", return_value=None),
+                patch("city_monitor.PlaywrightDiscoveryTransport") as transport,
+            ):
+                result, status_code = monitor.run_browser_fallback(blocked)
+
+            self.assertIsNone(status_code)
+            self.assertEqual(result.status, "BLOCKED")
+            self.assertEqual(result.source, "http")
+            self.assertEqual(result.discovery_stage, "LANDING")
+            self.assertIn("PLAYWRIGHT_LEASE_TIMEOUT", result.evidence)
+            transport.assert_not_called()
+
+    def test_playwright_lease_is_released_when_browser_fallback_raises(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            monitor = CityMonitor(
+                ProviderConfig(
+                    city="Berlin",
+                    provider="dp-document-berlin",
+                    queue_url="https://example.test/solutions/e-queue",
+                    env_prefix="TEST_BERLIN",
+                    base_dir=root,
+                    project_dir=root,
+                    public_discovery_profile="berlin-v1",
+                    service_center_id="2",
+                    service_id="4",
+                )
+            )
+            blocked = QueueState(
+                "BLOCKED",
+                "2026-08-09T00:00:00+00:00",
+                "page-hash",
+                "HTTP request was blocked.",
+                "http",
+                ("HTTP_403",),
+            )
+            lease_token = object()
+            with (
+                patch.object(
+                    monitor.playwright_lease,
+                    "acquire",
+                    return_value=lease_token,
+                ),
+                patch.object(monitor.playwright_lease, "release") as release,
+                patch("city_monitor.PlaywrightDiscoveryTransport") as transport,
+            ):
+                transport.return_value.discover.side_effect = RuntimeError("test")
+                with self.assertRaisesRegex(RuntimeError, "test"):
+                    monitor.run_browser_fallback(blocked)
+
+            release.assert_called_once_with(lease_token)
+
     def test_blocked_confirmed_provider_switches_to_playwright(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

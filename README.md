@@ -229,7 +229,19 @@ $env:RESEARCH_SUMMARY_MINIMUM_HOURS = "3"
 
 HTTP is attempted first on every cycle. Playwright starts only after
 `BLOCKED`, uses separate local profiles under `.browser-data/`, and stops at
-public `TIMES`. It does not interact with CAPTCHA, identity, or booking.
+public `TIMES`. A local anonymous FIFO lease serializes all fallback contexts:
+one lease permits one bounded browser-discovery lifecycle, with an absolute
+TTL. Waiting tickets also expire absolutely, so a crashed waiter cannot block
+the FIFO head. If a wait time expires, no browser starts and the resulting
+observation remains `BLOCKED` with `PLAYWRIGHT_LEASE_TIMEOUT`. It does not
+interact with CAPTCHA, identity, or booking.
+
+The lease is local runtime state and is Git-ignored. Its timeout, TTL, and
+path can be configured with `PLAYWRIGHT_FALLBACK_LEASE_TIMEOUT_SECONDS`,
+`PLAYWRIGHT_FALLBACK_LEASE_TTL_SECONDS`, and
+`PLAYWRIGHT_FALLBACK_LEASE_PATH` respectively. The configured TTL must cover
+one bounded public discovery lifecycle; it is a crash-recovery bound, not a
+heartbeat protocol.
 
 The 2026-08-01 seven-centre research run originally treated Berlin and
 Kortrijk as candidate landing probes. Berlin's public discovery contract was

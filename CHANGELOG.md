@@ -8,6 +8,19 @@ This changelog tracks implementation milestones and significant documentation, a
 
 ## [Unreleased]
 
+### Playwright fallback serialization
+
+- Added an anonymous process-safe SQLite FIFO lease for bounded Playwright
+  fallback operations. One lease authorizes one persistent-context discovery
+  lifecycle and expires by absolute TTL; no provider, browser profile, or
+  availability data is stored by the lease service.
+- A provider whose lease wait expires now records `BLOCKED` with
+  `PLAYWRIGHT_LEASE_TIMEOUT` and does not start a browser. This is an
+  execution-scoped observation, not a capability or classifier change.
+- Added offline persistence tests for release, absolute-TTL recovery, FIFO
+  order, timed-out ticket abandonment, and recovery from an expired waiting
+  ticket without starvation.
+
 ### Discovery Quality
 
 - Added a normative, documentation-only Discovery Quality specification for
