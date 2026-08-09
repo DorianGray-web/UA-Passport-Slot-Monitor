@@ -103,6 +103,22 @@ Other valid derived metrics include:
 
 Derived metrics shall never become runtime inputs.
 
+### Run Validity
+
+Every completed or terminated experiment used by Discovery Quality shall carry
+one explicit analytical status: `VALID`, `INVALID`, or `UNKNOWN`.
+
+An `INVALID` run remains part of research history and may contribute
+transport-health and diagnostic counts. It shall not contribute availability
+rates, discovery-completion baselines, moving averages, comparative provider
+quality, or drift conclusions. Its retained record must identify the `run_id`,
+Observation coverage, aggregate execution counts, exclusion reason, and the
+evidence that supports the exclusion. Invalidity describes the experiment, not
+the provider capability or the existence of appointments.
+
+An `UNKNOWN` status is used when evidence is insufficient to decide
+comparability. It must not be silently treated as valid.
+
 ## 7. Time-Series Model (Normative)
 
 Discovery Quality retains provider-specific, run-level values. Moving averages,

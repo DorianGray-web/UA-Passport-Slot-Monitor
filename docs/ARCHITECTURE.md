@@ -138,7 +138,10 @@ Playwright context only after HTTP is `BLOCKED`. A local anonymous FIFO lease
 serializes access: one lease permits one bounded context lifecycle, has an
 absolute TTL, and carries no provider, browser-profile, or classification
 metadata. Waiting tickets expire at their own absolute wait deadline, so an
-abandoned waiter cannot starve the FIFO queue. A lease wait timeout leaves the
+abandoned waiter cannot starve the FIFO queue. A separate anonymous SQLite
+execution budget persists a random bounded global interval between browser
+discovery sessions. It has no provider, profile, classifier, or Observation
+knowledge. A lease wait timeout leaves the
 original public result `BLOCKED` with `PLAYWRIGHT_LEASE_TIMEOUT`; it does not
 launch a browser. The configured absolute TTL must cover one bounded public
 discovery lifecycle; it provides crash recovery and is intentionally not a

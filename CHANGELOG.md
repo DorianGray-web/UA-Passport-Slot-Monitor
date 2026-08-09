@@ -10,6 +10,13 @@ This changelog tracks implementation milestones and significant documentation, a
 
 ### Playwright fallback serialization
 
+- Added a provider-agnostic, process-safe `PlaywrightExecutionBudget` that
+  persists a random 60-120 second interval between browser discovery sessions.
+  Lease and pacing responsibilities remain separate, and the default FIFO
+  wait timeout now allows a full provider cohort to remain serialized.
+- Added sanitized timing logs for lease wait, execution-budget wait, browser
+  start and finish, and the next permitted budget timestamp. Observation
+  contracts remain unchanged.
 - Added an anonymous process-safe SQLite FIFO lease for bounded Playwright
   fallback operations. One lease authorizes one persistent-context discovery
   lifecycle and expires by absolute TTL; no provider, browser profile, or
@@ -32,6 +39,13 @@ This changelog tracks implementation milestones and significant documentation, a
   overwriting one another.
 - Recorded the 2026-08-05 invalid monitoring series as diagnostic evidence
   excluded from Discovery Quality analysis.
+- Recorded `RUN-20260809-101949-existing-local-headed-24h` as an invalid
+  availability experiment while retaining its aggregate transport-health
+  statistics, synchronized `BLOCKED @ LANDING` evidence, and sanitized
+  comparison with contemporaneous live review.
+- Defined explicit `VALID`, `INVALID`, and `UNKNOWN` run status semantics so
+  invalid runs remain visible in research history without contaminating
+  availability baselines or comparative Discovery Quality metrics.
 - Research summaries now display discovery progression separately from
   availability classification, preventing `LANDING -> BLOCKED` from being
   misread as a no-availability result.

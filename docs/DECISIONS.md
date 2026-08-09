@@ -490,6 +490,8 @@ and subsequent browser stages.
 - persistent state remains local and excluded from source control;
 - existing polling intervals bound browser frequency to one attempt per
   blocked cycle;
+- a provider-agnostic execution budget independently paces serialized browser
+  discovery sessions without changing Observations or discovery classifiers;
 - Site Investigator remains a separate optional diagnostic subsystem;
 - adoption outside these profiles requires separate evidence and validation.
 

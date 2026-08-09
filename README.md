@@ -239,7 +239,13 @@ interact with CAPTCHA, identity, or booking.
 The lease is local runtime state and is Git-ignored. Its timeout, TTL, and
 path can be configured with `PLAYWRIGHT_FALLBACK_LEASE_TIMEOUT_SECONDS`,
 `PLAYWRIGHT_FALLBACK_LEASE_TTL_SECONDS`, and
-`PLAYWRIGHT_FALLBACK_LEASE_PATH` respectively. The configured TTL must cover
+`PLAYWRIGHT_FALLBACK_LEASE_PATH` respectively. A separate process-safe
+`PlaywrightExecutionBudget` enforces a random 60-120 second global interval
+between browser discovery sessions. Its local SQLite path is configurable with
+`PLAYWRIGHT_EXECUTION_BUDGET_PATH`; override the bounded interval with
+`PLAYWRIGHT_FALLBACK_MIN_INTERVAL_SECONDS` and
+`PLAYWRIGHT_FALLBACK_MAX_INTERVAL_SECONDS`, and its maximum wait with
+`PLAYWRIGHT_BUDGET_WAIT_TIMEOUT_SECONDS`. The configured lease TTL must cover
 one bounded public discovery lifecycle; it is a crash-recovery bound, not a
 heartbeat protocol.
 
