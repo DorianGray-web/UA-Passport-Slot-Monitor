@@ -133,6 +133,11 @@ class ResearchSummaryTests(unittest.TestCase):
         self.assertIn("Observation coverage duration: 4h 0m", report)
         self.assertIn("HTTP blocked: 2", report)
         self.assertIn("Playwright runs: 2", report)
+        self.assertIn("## Summary", report)
+        self.assertIn("| Confirmed discovery reached LANDING | 2 |", report)
+        self.assertIn("| Confirmed discovery reached DAYS | 2 |", report)
+        self.assertIn("| Confirmed discovery reached TIMES | 2 |", report)
+        self.assertIn("| Availability classified at TIMES | 2 |", report)
         self.assertIn("## Madrid", report)
         self.assertIn("## Barcelona", report)
         self.assertIn("| 2026-07-31 13:00:00 | Madrid", report)
@@ -175,6 +180,8 @@ class ResearchSummaryTests(unittest.TestCase):
         self.assertIn("Service options detected: 1", report)
         self.assertIn("Unexpected `UNKNOWN`: 0", report)
         self.assertIn("Successful discoveries through TIMES: 0", report)
+        self.assertIn("| Confirmed discovery reached LANDING | 0 |", report)
+        self.assertIn("| Availability classified at TIMES | 0 |", report)
 
     def test_confirmed_early_no_slots_is_a_bounded_browser_outcome(self) -> None:
         records = [
@@ -222,7 +229,7 @@ class ResearchSummaryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "exactly one run_id"):
             SUMMARY.build_report(records)
 
-    def test_default_filename_uses_run_date_and_duration(self) -> None:
+    def test_default_filename_uses_run_date_id_and_duration(self) -> None:
         records = [
             observation(
                 provider="madrid",
@@ -244,8 +251,26 @@ class ResearchSummaryTests(unittest.TestCase):
         path = SUMMARY.default_output_path(records, Path("research"))
         self.assertEqual(
             path.name,
-            "2026-07-31-playwright-fallback-4h-report.md",
+            "2026-07-31-RUN-test-playwright-fallback-4h-report.md",
         )
+
+    def test_default_filename_cannot_collide_across_run_ids(self) -> None:
+        first = [
+            observation(
+                provider="madrid",
+                observed_at="2026-07-31T11:00:00+00:00",
+                transport="http",
+                state="BLOCKED",
+                stage="LANDING",
+                duration_ms=100,
+            )
+        ]
+        second = [dict(first[0], run_id="RUN-other")]
+
+        first_path = SUMMARY.default_output_path(first, Path("research"))
+        second_path = SUMMARY.default_output_path(second, Path("research"))
+
+        self.assertNotEqual(first_path, second_path)
 
     def test_runtime_duration_is_distinct_from_observation_coverage(self) -> None:
         records = [

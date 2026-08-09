@@ -21,6 +21,7 @@ if str(PROJECT_DIR) not in sys.path:
 from diagnostics.domain import RequestTraceEntry, make_run_id
 from diagnostics.event_store import SQLiteEventStore
 from diagnostics.monitoring import ObservationService
+from playwright_lease import SQLitePlaywrightLease
 from browser_discovery import PlaywrightDiscoveryTransport
 from candidate_evidence import CandidateEvidenceStore
 from dp_document_http import DPDocumentHTTPMonitorProvider
@@ -28,6 +29,7 @@ from monitor_metadata import utc_timestamp
 from provider_boundaries import DaysRequest, TimesRequest
 from provider_protocol import (
     DiscoveryStage,
+    EvidenceCode,
     LandingPageClassifier,
     LandingState,
     ConfirmedDaysClassifier,
@@ -40,6 +42,8 @@ MIN_INTERVAL_SECONDS = 7 * 60
 MAX_INTERVAL_SECONDS = 12 * 60
 REQUEST_TIMEOUT_SECONDS = 30
 DEFAULT_BLOCKED_COOLDOWN_SECONDS = 60 * 60
+DEFAULT_PLAYWRIGHT_FALLBACK_LEASE_TIMEOUT_SECONDS = 120
+DEFAULT_PLAYWRIGHT_FALLBACK_LEASE_TTL_SECONDS = 600
 DEFAULT_DIAGNOSTIC_EVENTS = {
     "BLOCKED",
     "UNKNOWN",
@@ -129,6 +133,14 @@ class CityMonitor:
             self.observation_store,
             run_id=os.getenv("MONITOR_RUN_ID", make_run_id()),
             jsonl_export=self.metadata_file,
+        )
+        self.playwright_lease = SQLitePlaywrightLease(
+            Path(
+                os.getenv(
+                    "PLAYWRIGHT_FALLBACK_LEASE_PATH",
+                    project_dir / "data" / "playwright-fallback-lease.sqlite3",
+                )
+            )
         )
         self.landing_classifier = LandingPageClassifier(
             os.getenv(f"{config.env_prefix}_CSRF_FIELD") or None
@@ -231,6 +243,38 @@ class CityMonitor:
         self,
         http_state: QueueState,
     ) -> tuple[QueueState, int | None]:
+        lease = self.playwright_lease.acquire(
+            float(
+                os.getenv(
+                    "PLAYWRIGHT_FALLBACK_LEASE_TIMEOUT_SECONDS",
+                    str(DEFAULT_PLAYWRIGHT_FALLBACK_LEASE_TIMEOUT_SECONDS),
+                )
+            ),
+            float(
+                os.getenv(
+                    "PLAYWRIGHT_FALLBACK_LEASE_TTL_SECONDS",
+                    str(DEFAULT_PLAYWRIGHT_FALLBACK_LEASE_TTL_SECONDS),
+                )
+            ),
+        )
+        if lease is None:
+            return (
+                QueueState(
+                    "BLOCKED",
+                    utc_timestamp(),
+                    http_state.page_hash,
+                    "Playwright fallback lease wait elapsed; no browser operation was started.",
+                    "http",
+                    (*http_state.evidence, EvidenceCode.PLAYWRIGHT_LEASE_TIMEOUT.value),
+                    http_state.discovery_stage,
+                    http_state.available_dates_count,
+                    http_state.available_time_slots_count,
+                    http_state.earliest_available_time,
+                    http_state.latest_available_time,
+                    http_state.request_trace,
+                ),
+                None,
+            )
         centre = self.config.service_center_id
         service = self.config.service_id
         profile_dir = self.config.env_path(
@@ -240,16 +284,20 @@ class CityMonitor:
         headless_value = os.getenv(
             "PLAYWRIGHT_DISCOVERY_HEADLESS", "false"
         )
-        transport = PlaywrightDiscoveryTransport(
-            city=self.config.city,
-            queue_url=self.config.queue_url,
-            service_center_id=centre,
-            service_id=service,
-            profile_dir=profile_dir,
-            headless=headless_value.strip().lower()
-            in {"1", "true", "yes", "on"},
-        )
-        result = transport.discover()
+        try:
+            transport = PlaywrightDiscoveryTransport(
+                city=self.config.city,
+                queue_url=self.config.queue_url,
+                service_center_id=centre,
+                service_id=service,
+                profile_dir=profile_dir,
+                headless=headless_value.strip().lower()
+                in {"1", "true", "yes", "on"},
+            )
+            result = transport.discover()
+        finally:
+            if not self.playwright_lease.release(lease):
+                logging.warning("Playwright fallback lease was already expired.")
         return (
             QueueState(
                 result.state,

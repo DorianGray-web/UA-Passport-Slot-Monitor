@@ -33,7 +33,11 @@ These generated reports are runtime output and are ignored by Git. The
 generator reads only the immutable Observation payloads;
 it does not read browser profiles, raw HTML, cookies, headers, or captures.
 Each report is scoped to one `run_id` and separates observed facts from
-interpretation.
+interpretation. Generated filenames include both the local start date and the
+`run_id`, preventing accidental overwrite by another run with the same rounded
+duration. Re-generating a report is idempotent for its `run_id`: it replaces
+only that run's own derived report. The generator supports an output directory
+but never an arbitrary output filename.
 Only manually reviewed, sanitized conclusions should be promoted into
 committed research notes.
 

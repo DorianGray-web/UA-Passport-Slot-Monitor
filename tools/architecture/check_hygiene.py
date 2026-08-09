@@ -52,6 +52,7 @@ FORBIDDEN_NAME_PATTERNS = (
     re.compile(r"csrf[-_]snapshot", re.IGNORECASE),
     re.compile(r"storage[-_]state", re.IGNORECASE),
     re.compile(r"-playwright-fallback-.*-report\.md$", re.IGNORECASE),
+    re.compile(r"\.(?:db|sqlite|sqlite3)-(?:wal|shm)$", re.IGNORECASE),
 )
 
 SCANNED_SUFFIXES = {".cfg", ".ini", ".json", ".py", ".ps1", ".toml", ".txt", ".yaml", ".yml"}

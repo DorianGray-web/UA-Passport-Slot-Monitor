@@ -8,12 +8,36 @@ This changelog tracks implementation milestones and significant documentation, a
 
 ## [Unreleased]
 
+### Playwright fallback serialization
+
+- Added an anonymous process-safe SQLite FIFO lease for bounded Playwright
+  fallback operations. One lease authorizes one persistent-context discovery
+  lifecycle and expires by absolute TTL; no provider, browser profile, or
+  availability data is stored by the lease service.
+- A provider whose lease wait expires now records `BLOCKED` with
+  `PLAYWRIGHT_LEASE_TIMEOUT` and does not start a browser. This is an
+  execution-scoped observation, not a capability or classifier change.
+- Added offline persistence tests for release, absolute-TTL recovery, FIFO
+  order, timed-out ticket abandonment, and recovery from an expired waiting
+  ticket without starvation.
+
 ### Discovery Quality
 
 - Added a normative, documentation-only Discovery Quality specification for
   read-only offline analysis of completed discovery experiments. It preserves
   traceability to immutable Observations and prohibits runtime control,
   capability changes, and automatic response to drift.
+- Research-summary filenames now include `run_id`, preventing local reports
+  from distinct experiments with the same date and rounded duration from
+  overwriting one another.
+- Recorded the 2026-08-05 invalid monitoring series as diagnostic evidence
+  excluded from Discovery Quality analysis.
+- Research summaries now display discovery progression separately from
+  availability classification, preventing `LANDING -> BLOCKED` from being
+  misread as a no-availability result.
+- Recorded Playwright execution context as a research variable after a fresh,
+  isolated headless profile did not reproduce contemporaneous live-review
+  observability.
 
 ### AI Engineering Telemetry
 

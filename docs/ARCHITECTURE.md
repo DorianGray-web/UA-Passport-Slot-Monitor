@@ -132,10 +132,18 @@ requirements can never become monitoring dependencies.
 
 ### Browser transport and diagnostics
 
-HTTP remains preferred. An opt-in research fallback allows the ten currently
-registry-enabled research profiles to use a persistent Playwright context
-only after HTTP is `BLOCKED`.
-It follows the same confirmed state machine and stops at `TIMES`.
+HTTP remains preferred. An opt-in research fallback allows an
+evidence-confirmed, registry-enabled research profile to use a persistent
+Playwright context only after HTTP is `BLOCKED`. A local anonymous FIFO lease
+serializes access: one lease permits one bounded context lifecycle, has an
+absolute TTL, and carries no provider, browser-profile, or classification
+metadata. Waiting tickets expire at their own absolute wait deadline, so an
+abandoned waiter cannot starve the FIFO queue. A lease wait timeout leaves the
+original public result `BLOCKED` with `PLAYWRIGHT_LEASE_TIMEOUT`; it does not
+launch a browser. The configured absolute TTL must cover one bounded public
+discovery lifecycle; it provides crash recovery and is intentionally not a
+heartbeat protocol.
+The fallback follows the same confirmed state machine and stops at `TIMES`.
 A browser challenge remains `BLOCKED`; it is never interacted with or
 bypassed.
 
