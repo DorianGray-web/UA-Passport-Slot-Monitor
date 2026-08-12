@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -851,6 +852,44 @@ class MultiProviderMonitoringTests(unittest.TestCase):
             self.assertEqual(result.discovery_stage, "LANDING")
             self.assertIn("PLAYWRIGHT_LEASE_TIMEOUT", result.evidence)
             transport.assert_not_called()
+
+    def test_playwright_browser_channel_uses_provider_override(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            monitor = CityMonitor(
+                ProviderConfig(
+                    city="Madrid",
+                    provider="dp-document-madrid",
+                    queue_url="https://example.test/solutions/e-queue",
+                    env_prefix="TEST_MADRID",
+                    base_dir=root,
+                    project_dir=root,
+                )
+            )
+            with patch.dict(
+                os.environ,
+                {
+                    "PLAYWRIGHT_BROWSER_CHANNEL": "chromium",
+                    "TEST_MADRID_PLAYWRIGHT_BROWSER_CHANNEL": "chrome",
+                },
+            ):
+                self.assertEqual(monitor.playwright_browser_channel(), "chrome")
+
+    def test_playwright_browser_channel_defaults_to_bundled_browser(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            monitor = CityMonitor(
+                ProviderConfig(
+                    city="Madrid",
+                    provider="dp-document-madrid",
+                    queue_url="https://example.test/solutions/e-queue",
+                    env_prefix="TEST_MADRID",
+                    base_dir=root,
+                    project_dir=root,
+                )
+            )
+            with patch.dict(os.environ, {}, clear=True):
+                self.assertIsNone(monitor.playwright_browser_channel())
 
     def test_playwright_lease_is_released_when_browser_fallback_raises(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

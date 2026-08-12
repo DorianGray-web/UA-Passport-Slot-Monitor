@@ -226,6 +226,13 @@ class CityMonitor:
             int(os.getenv("CANDIDATE_EVIDENCE_PROBE_COOLDOWN_SECONDS", "21600")),
         )
 
+    def playwright_browser_channel(self) -> str | None:
+        value = os.getenv(
+            f"{self.config.env_prefix}_PLAYWRIGHT_BROWSER_CHANNEL",
+            os.getenv("PLAYWRIGHT_BROWSER_CHANNEL", ""),
+        ).strip()
+        return value or None
+
     def collect_candidate_evidence(
         self,
         *,
@@ -350,6 +357,7 @@ class CityMonitor:
                 profile_dir=profile_dir,
                 headless=headless_value.strip().lower()
                 in {"1", "true", "yes", "on"},
+                browser_channel=self.playwright_browser_channel(),
             )
             result = transport.discover()
         finally:
@@ -366,9 +374,11 @@ class CityMonitor:
                         "Playwright fallback lease was already expired."
                     )
             logging.info(
-                "Playwright discovery timing: lease_wait_time=%.3f "
+                "Playwright discovery timing: browser_channel=%s "
+                "lease_wait_time=%.3f "
                 "browser_budget_wait_time=%.3f browser_started_at=%s "
                 "browser_finished_at=%s next_budget_after=%s",
+                self.playwright_browser_channel() or "bundled",
                 lease_wait_seconds,
                 budget_wait_seconds,
                 browser_started_at,
@@ -412,6 +422,7 @@ class CityMonitor:
             profile_dir=profile_dir,
             headless=headless_value.strip().lower()
             in {"1", "true", "yes", "on"},
+            browser_channel=self.playwright_browser_channel(),
         )
         result = transport.probe_landing()
         state = QueueState(

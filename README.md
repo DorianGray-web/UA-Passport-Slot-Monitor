@@ -249,6 +249,13 @@ between browser discovery sessions. Its local SQLite path is configurable with
 one bounded public discovery lifecycle; it is a crash-recovery bound, not a
 heartbeat protocol.
 
+The browser executable remains Playwright's bundled browser by default. A
+bounded diagnostic comparison may select an installed branded browser with
+`PLAYWRIGHT_BROWSER_CHANNEL` or the provider-specific
+`<PROVIDER>_PLAYWRIGHT_BROWSER_CHANNEL` (for example, `chrome`). This changes
+only the executable channel; it does not change the discovery boundary,
+browser pacing, CAPTCHA policy, or launch-argument policy.
+
 The 2026-08-01 seven-centre research run originally treated Berlin and
 Kortrijk as candidate landing probes. Berlin's public discovery contract was
 subsequently confirmed by live review and promoted through explicit

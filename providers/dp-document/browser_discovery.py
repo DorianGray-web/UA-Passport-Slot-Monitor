@@ -64,6 +64,7 @@ class PlaywrightDiscoveryTransport:
         profile_dir: Path,
         timeout_ms: int = 60_000,
         headless: bool = False,
+        browser_channel: str | None = None,
     ) -> None:
         self.city = city
         self.queue_url = queue_url
@@ -72,6 +73,7 @@ class PlaywrightDiscoveryTransport:
         self.profile_dir = profile_dir
         self.timeout_ms = timeout_ms
         self.headless = headless
+        self.browser_channel = browser_channel
         self.landing_classifier = LandingPageClassifier()
 
     def discover(self) -> BrowserDiscoveryResult:
@@ -81,6 +83,7 @@ class PlaywrightDiscoveryTransport:
                 context = playwright.chromium.launch_persistent_context(
                     str(self.profile_dir),
                     headless=self.headless,
+                    channel=self.browser_channel,
                     locale="uk-UA",
                     viewport={"width": 1440, "height": 1000},
                 )
@@ -111,6 +114,7 @@ class PlaywrightDiscoveryTransport:
                 context = playwright.chromium.launch_persistent_context(
                     str(self.profile_dir),
                     headless=self.headless,
+                    channel=self.browser_channel,
                     locale="uk-UA",
                     viewport={"width": 1440, "height": 1000},
                 )
