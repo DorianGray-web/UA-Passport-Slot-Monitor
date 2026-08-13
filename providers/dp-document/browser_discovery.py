@@ -238,6 +238,73 @@ class PlaywrightDiscoveryTransport:
         )
         return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
+    @staticmethod
+    def _main_frame_redirect_chain(navigation: Response | None) -> str:
+        if navigation is None:
+            return "none"
+        requests: list[Request] = []
+        request: Request | None = navigation.request
+        while request is not None:
+            requests.append(request)
+            request = request.redirected_from
+        requests.reverse()
+        return " -> ".join(
+            PlaywrightDiscoveryTransport._sanitized_navigation_url(item.url)
+            for item in requests
+        )
+
+    @staticmethod
+    def _form_structure_complete(evidence: tuple[EvidenceCode, ...]) -> bool:
+        required = {
+            EvidenceCode.QUEUE_FORM_FOUND,
+            EvidenceCode.SERVICE_SELECTOR_FOUND,
+            EvidenceCode.DATE_SELECTOR_FOUND,
+            EvidenceCode.TIME_SELECTOR_FOUND,
+        }
+        return required.issubset(set(evidence))
+
+    def _challenge_source(
+        self,
+        *,
+        html: str,
+        final_url: str,
+        iframe_urls: tuple[str, ...],
+        challenge_form_found: bool,
+    ) -> tuple[str, EvidenceCode | None]:
+        lowered = html.lower()
+        sources: set[str] = set()
+        if any(
+            marker in lowered
+            for marker in self.landing_classifier.BLOCKING_CHALLENGE_MARKERS
+            if marker != 'id="challenge-form"'
+        ):
+            sources.add("html_marker")
+        if challenge_form_found:
+            sources.add("challenge_form")
+        if any(
+            marker in final_url.lower()
+            for marker in ("challenge", "captcha", "turnstile", "cdn-cgi")
+        ):
+            sources.add("main_frame_url")
+        if any(
+            marker in url.lower()
+            for url in iframe_urls
+            for marker in ("challenge", "captcha", "turnstile", "hcaptcha")
+        ):
+            sources.add("iframe_document")
+        if not sources:
+            return "none", None
+        if len(sources) > 1:
+            return "mixed", EvidenceCode.CHALLENGE_SOURCE_MIXED
+        source = next(iter(sources))
+        evidence = {
+            "html_marker": EvidenceCode.CHALLENGE_SOURCE_HTML_MARKER,
+            "challenge_form": EvidenceCode.CHALLENGE_SOURCE_CHALLENGE_FORM,
+            "main_frame_url": EvidenceCode.CHALLENGE_SOURCE_MAIN_FRAME_URL,
+            "iframe_document": EvidenceCode.CHALLENGE_SOURCE_IFRAME_DOCUMENT,
+        }[source]
+        return source, evidence
+
     def _discover_page(
         self,
         page: Page,
@@ -247,17 +314,6 @@ class PlaywrightDiscoveryTransport:
     ) -> BrowserDiscoveryResult:
         started = time.perf_counter()
         launch_started = browser_launch_started or started
-        document_responses: list[tuple[int, str]] = []
-        page.on(
-            "response",
-            lambda response: document_responses.append(
-                (response.status, self._sanitized_navigation_url(response.url))
-            )
-            if (
-                response.request.resource_type == "document"
-            )
-            else None,
-        )
         navigation = page.goto(
             self.queue_url,
             wait_until="domcontentloaded",
@@ -270,11 +326,7 @@ class PlaywrightDiscoveryTransport:
             max(0, int(os.getenv("PLAYWRIGHT_DISCOVERY_SETTLE_MS", "5000")))
         )
         html = page.content()
-        status = (
-            document_responses[-1][0]
-            if document_responses
-            else navigation.status if navigation is not None else None
-        )
+        status = navigation.status if navigation is not None else None
         landing_ms = round((time.perf_counter() - started) * 1000)
         page_hash = hashlib.sha256(
             self._normalized_body_text(page).encode("utf-8")
@@ -290,15 +342,47 @@ class PlaywrightDiscoveryTransport:
             )
         ]
         landing = self.landing_classifier.classify(status or 0, html)
-        redirect_chain = " -> ".join(
-            f"{response_status}:{response_url}"
-            for response_status, response_url in document_responses
-        ) or "none"
+        redirect_chain = self._main_frame_redirect_chain(navigation)
+        iframe_urls = tuple(
+            frame.url for frame in page.frames if frame is not page.main_frame
+        )
+        challenge_form_found = page.locator("#challenge-form").count() > 0
+        challenge_source, challenge_source_evidence = self._challenge_source(
+            html=html,
+            final_url=page.url,
+            iframe_urls=iframe_urls,
+            challenge_form_found=challenge_form_found,
+        )
+        challenge_present = challenge_source != "none"
+        form_structure_complete = self._form_structure_complete(landing.evidence)
+        main_frame_challenge_url = any(
+            marker in page.url.lower()
+            for marker in ("challenge", "captcha", "turnstile", "cdn-cgi")
+        )
+        active_gate = challenge_form_found or main_frame_challenge_url
+        challenge_blocks_discovery = "true" if active_gate else "unknown"
+        challenge_interaction_required = "true" if active_gate else "unknown"
+        challenge_widget_visible = any(
+            locator.is_visible()
+            for selector in (
+                "#challenge-form",
+                ".h-captcha",
+                '[class*="turnstile"]',
+                'iframe[src*="captcha"]',
+                'iframe[src*="challenge"]',
+                'iframe[src*="turnstile"]',
+            )
+            for locator in [page.locator(selector).first]
+            if locator.count() > 0
+        )
         logging.info(
             "Playwright first navigation: initial_url=%s final_url=%s "
             "main_document_status=%s redirect_chain=%s "
             "browser_start_to_navigation_response_ms=%s "
-            "challenge_detected=%s days_request_sent=false "
+            "redirect_chain_telemetry_valid=true challenge_present=%s "
+            "challenge_source=%s challenge_blocks_discovery=%s "
+            "challenge_interaction_required=%s form_structure_complete=%s "
+            "challenge_widget_visible=%s days_request_sent=false "
             "times_request_sent=false browser_channel=%s browser_version=%s "
             "launch_config_hash=%s launch_config_scope=application-controlled",
             self._sanitized_navigation_url(self.queue_url),
@@ -306,7 +390,12 @@ class PlaywrightDiscoveryTransport:
             status if status is not None else "none",
             redirect_chain,
             navigation_response_ms,
-            str(landing.state is LandingState.BLOCKED).lower(),
+            str(challenge_present).lower(),
+            challenge_source,
+            challenge_blocks_discovery,
+            challenge_interaction_required,
+            str(form_structure_complete).lower(),
+            str(challenge_widget_visible).lower(),
             self.browser_channel or "bundled",
             browser_version,
             self._launch_config_hash(browser_version),
@@ -325,11 +414,30 @@ class PlaywrightDiscoveryTransport:
                 available_time_slots_count=0,
             )
         if landing.state is LandingState.BLOCKED:
+            refined_evidence = list(landing.evidence)
+            if challenge_source_evidence is not None:
+                refined_evidence.append(challenge_source_evidence)
+            if form_structure_complete:
+                refined_evidence.append(EvidenceCode.FORM_STRUCTURE_COMPLETE)
+            if active_gate:
+                refined_evidence.extend(
+                    (
+                        EvidenceCode.ACTIVE_CHALLENGE_GATE,
+                        EvidenceCode.CHALLENGE_INTERACTION_REQUIRED,
+                    )
+                )
+            elif challenge_present:
+                refined_evidence.extend(
+                    (
+                        EvidenceCode.EMBEDDED_CHALLENGE_ASSET_PRESENT,
+                        EvidenceCode.CHALLENGE_EFFECT_UNDETERMINED,
+                    )
+                )
             return BrowserDiscoveryResult(
                 "BLOCKED",
                 page_hash,
                 "Playwright encountered a browser challenge and stopped.",
-                tuple(item.value for item in landing.evidence),
+                tuple(dict.fromkeys(item.value for item in refined_evidence)),
                 DiscoveryStage.LANDING,
                 status,
                 tuple(traces),

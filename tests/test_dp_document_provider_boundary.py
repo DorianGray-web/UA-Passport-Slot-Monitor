@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 
@@ -434,6 +435,59 @@ class PlaywrightNavigationDiagnosticsTests(unittest.TestCase):
             first._launch_config_hash("151.0.7922.109"),
             second._launch_config_hash("151.0.7922.109"),
         )
+
+    def test_main_frame_redirect_chain_excludes_iframe_documents(self) -> None:
+        first = SimpleNamespace(
+            url="https://example.test/start?private=value",
+            redirected_from=None,
+        )
+        final = SimpleNamespace(
+            url="https://example.test/solutions/e-queue",
+            redirected_from=first,
+        )
+        navigation = SimpleNamespace(request=final)
+        self.assertEqual(
+            PlaywrightDiscoveryTransport._main_frame_redirect_chain(navigation),
+            "https://example.test/start -> "
+            "https://example.test/solutions/e-queue",
+        )
+
+    def test_embedded_iframe_challenge_effect_remains_undetermined(self) -> None:
+        transport = PlaywrightDiscoveryTransport(
+            city="Madrid",
+            queue_url="https://example.test/solutions/e-queue",
+            service_center_id="centre",
+            service_id="service",
+            profile_dir=Path("diagnostic/profile"),
+        )
+        source, evidence = transport._challenge_source(
+            html="<form><select name='service'></select></form>",
+            final_url="https://example.test/solutions/e-queue",
+            iframe_urls=("https://newassets.hcaptcha.com/captcha/frame",),
+            challenge_form_found=False,
+        )
+        self.assertEqual(source, "iframe_document")
+        self.assertEqual(
+            evidence,
+            EvidenceCode.CHALLENGE_SOURCE_IFRAME_DOCUMENT,
+        )
+
+    def test_multiple_challenge_sources_are_mixed(self) -> None:
+        transport = PlaywrightDiscoveryTransport(
+            city="Madrid",
+            queue_url="https://example.test/solutions/e-queue",
+            service_center_id="centre",
+            service_id="service",
+            profile_dir=Path("diagnostic/profile"),
+        )
+        source, evidence = transport._challenge_source(
+            html="<main>Триває перевірка безпеки</main>",
+            final_url="https://example.test/solutions/e-queue",
+            iframe_urls=("https://newassets.hcaptcha.com/captcha/frame",),
+            challenge_form_found=False,
+        )
+        self.assertEqual(source, "mixed")
+        self.assertEqual(evidence, EvidenceCode.CHALLENGE_SOURCE_MIXED)
 
 
 if __name__ == "__main__":
