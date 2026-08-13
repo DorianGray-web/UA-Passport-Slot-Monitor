@@ -14,6 +14,7 @@ import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
 
 from playwright.sync_api import (
     Page,
@@ -80,6 +81,7 @@ class PlaywrightDiscoveryTransport:
         self.profile_dir.mkdir(parents=True, exist_ok=True)
         try:
             with sync_playwright() as playwright:
+                browser_launch_started = time.perf_counter()
                 context = playwright.chromium.launch_persistent_context(
                     str(self.profile_dir),
                     headless=self.headless,
@@ -89,7 +91,16 @@ class PlaywrightDiscoveryTransport:
                 )
                 try:
                     page = context.pages[0] if context.pages else context.new_page()
-                    return self._discover_page(page)
+                    browser_version = (
+                        context.browser.version
+                        if context.browser is not None
+                        else "unknown"
+                    )
+                    return self._discover_page(
+                        page,
+                        browser_launch_started=browser_launch_started,
+                        browser_version=browser_version,
+                    )
                 finally:
                     context.close()
         except PlaywrightTimeoutError:
@@ -205,15 +216,45 @@ class PlaywrightDiscoveryTransport:
             (trace,),
         )
 
-    def _discover_page(self, page: Page) -> BrowserDiscoveryResult:
+    @staticmethod
+    def _sanitized_navigation_url(url: str) -> str:
+        parsed = urlsplit(url)
+        return urlunsplit((parsed.scheme, parsed.netloc, parsed.path, "", ""))
+
+    def _launch_config_hash(self, browser_version: str) -> str:
+        controlled_config = {
+            "browser_channel": self.browser_channel or "bundled",
+            "browser_version": browser_version,
+            "headless": self.headless,
+            "locale": "uk-UA",
+            "persistent_context": True,
+            "viewport": {"height": 1000, "width": 1440},
+        }
+        serialized = json.dumps(
+            controlled_config,
+            ensure_ascii=True,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
+        return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+    def _discover_page(
+        self,
+        page: Page,
+        *,
+        browser_launch_started: float | None = None,
+        browser_version: str = "unknown",
+    ) -> BrowserDiscoveryResult:
         started = time.perf_counter()
-        document_statuses: list[int] = []
+        launch_started = browser_launch_started or started
+        document_responses: list[tuple[int, str]] = []
         page.on(
             "response",
-            lambda response: document_statuses.append(response.status)
+            lambda response: document_responses.append(
+                (response.status, self._sanitized_navigation_url(response.url))
+            )
             if (
                 response.request.resource_type == "document"
-                and response.url.startswith(self.queue_url)
             )
             else None,
         )
@@ -222,13 +263,16 @@ class PlaywrightDiscoveryTransport:
             wait_until="domcontentloaded",
             timeout=self.timeout_ms,
         )
+        navigation_response_ms = round(
+            (time.perf_counter() - launch_started) * 1000
+        )
         page.wait_for_timeout(
             max(0, int(os.getenv("PLAYWRIGHT_DISCOVERY_SETTLE_MS", "5000")))
         )
         html = page.content()
         status = (
-            document_statuses[-1]
-            if document_statuses
+            document_responses[-1][0]
+            if document_responses
             else navigation.status if navigation is not None else None
         )
         landing_ms = round((time.perf_counter() - started) * 1000)
@@ -246,6 +290,27 @@ class PlaywrightDiscoveryTransport:
             )
         ]
         landing = self.landing_classifier.classify(status or 0, html)
+        redirect_chain = " -> ".join(
+            f"{response_status}:{response_url}"
+            for response_status, response_url in document_responses
+        ) or "none"
+        logging.info(
+            "Playwright first navigation: initial_url=%s final_url=%s "
+            "main_document_status=%s redirect_chain=%s "
+            "browser_start_to_navigation_response_ms=%s "
+            "challenge_detected=%s days_request_sent=false "
+            "times_request_sent=false browser_channel=%s browser_version=%s "
+            "launch_config_hash=%s launch_config_scope=application-controlled",
+            self._sanitized_navigation_url(self.queue_url),
+            self._sanitized_navigation_url(page.url),
+            status if status is not None else "none",
+            redirect_chain,
+            navigation_response_ms,
+            str(landing.state is LandingState.BLOCKED).lower(),
+            self.browser_channel or "bundled",
+            browser_version,
+            self._launch_config_hash(browser_version),
+        )
         logging.info("Playwright reached LANDING")
         if landing.state is LandingState.NO_SLOTS:
             return BrowserDiscoveryResult(

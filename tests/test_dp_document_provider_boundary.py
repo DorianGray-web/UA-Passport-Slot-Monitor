@@ -11,6 +11,7 @@ PROVIDER_DIR = PROJECT_DIR / "providers" / "dp-document"
 sys.path.insert(0, str(PROVIDER_DIR))
 
 from dp_document_http import DPDocumentHTTPMonitorProvider  # noqa: E402
+from browser_discovery import PlaywrightDiscoveryTransport  # noqa: E402
 from provider_boundaries import DaysRequest, TimesRequest  # noqa: E402
 from provider_protocol import (  # noqa: E402
     EvidenceCode,
@@ -403,6 +404,35 @@ class DPDocumentMonitorProviderTests(unittest.TestCase):
         self.assertFalse(result.recognized)
         self.assertIn(
             EvidenceCode.TIMES_PAYLOAD_UNRECOGNIZED, result.evidence
+        )
+
+
+class PlaywrightNavigationDiagnosticsTests(unittest.TestCase):
+    def test_navigation_url_removes_query_and_fragment(self) -> None:
+        sanitized = PlaywrightDiscoveryTransport._sanitized_navigation_url(
+            "https://example.test/solutions/e-queue?token=private#section"
+        )
+        self.assertEqual(sanitized, "https://example.test/solutions/e-queue")
+
+    def test_launch_config_hash_excludes_profile_path(self) -> None:
+        common = {
+            "city": "Madrid",
+            "queue_url": "https://example.test/solutions/e-queue",
+            "service_center_id": "centre",
+            "service_id": "service",
+            "browser_channel": "chrome",
+        }
+        first = PlaywrightDiscoveryTransport(
+            **common,
+            profile_dir=Path("diagnostic/profile-a"),
+        )
+        second = PlaywrightDiscoveryTransport(
+            **common,
+            profile_dir=Path("diagnostic/profile-b"),
+        )
+        self.assertEqual(
+            first._launch_config_hash("151.0.7922.109"),
+            second._launch_config_hash("151.0.7922.109"),
         )
 
 
