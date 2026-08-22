@@ -1,16 +1,26 @@
-const singleLinePattern = /^(?!.*(?:https?:\/\/|www\.|[^\s@]+@[^\s@]+\.[^\s@]+|@[_A-Za-z0-9]{2,}|\+?[0-9][0-9 ()-]{6,}[0-9]))[^<>\u0000-\u001F\u007F]*$/;
+const accidentalIdentifierPattern = /(?:https?:\/\/|www\.|[^\s@]+@[^\s@]+\.[^\s@]+|@[_A-Za-z0-9]{2,}|\+?[0-9][0-9 ()-]{6,}[0-9])/;
+const singleLinePattern = /^[^<>\u0000-\u001F\u007F]*$/;
+const multilinePattern = /^[^<>\u0000-\u0009\u000B-\u001F\u007F]*$/;
 
-export function normalizeFreeText(value) {
+export function normalizeFreeText(value, { multiline = false } = {}) {
   if (typeof value !== 'string') return null;
-  const normalized = value.trim();
+  let normalized = value
+    .replace(/\r\n?/g, '\n')
+    .replace(/\u00A0/g, ' ')
+    .replace(/[^\S\r\n]+/g, ' ')
+    .trim()
+    .normalize('NFC');
+  if (multiline) normalized = normalized.replace(/\n+/g, '\n');
   return normalized || null;
 }
 
 function isTextValid(value, maxLength, multiline = false, minimumLength = 2) {
-  if (typeof value !== 'string') return false;
-  if (value.length < minimumLength || value.length > maxLength) return false;
-  if (!multiline && /[\r\n]/.test(value)) return false;
-  return (multiline ? !/[<>\u0000-\u0009\u000B-\u001F\u007F]/.test(value) : singleLinePattern.test(value));
+  const normalized = normalizeFreeText(value, { multiline });
+  if (typeof normalized !== 'string') return false;
+  if (normalized.length < minimumLength || normalized.length > maxLength) return false;
+  if (!multiline && /[\r\n]/.test(normalized)) return false;
+  if (accidentalIdentifierPattern.test(normalized)) return false;
+  return (multiline ? multilinePattern : singleLinePattern).test(normalized);
 }
 
 export function validateAnswers(answers, taxonomies, partial = false) {

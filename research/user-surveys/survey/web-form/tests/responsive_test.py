@@ -1,6 +1,8 @@
 import functools
 import json
 import re
+import shutil
+import subprocess
 import threading
 import unittest
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -11,6 +13,7 @@ from playwright.sync_api import sync_playwright
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[5]
 FORM_PATH = "/research/user-surveys/survey/web-form/index.html"
+SCHEMA_PATH = REPOSITORY_ROOT / "research" / "user-surveys" / "shared" / "schemas" / "survey-response.schema.json"
 VIEWPORTS = (320, 360, 390, 430, 768)
 LOCALES = ("en", "uk", "ru")
 STEP_NAMES = ("introduction", "situation", "centres", "problems", "notifications", "testing")
@@ -51,6 +54,62 @@ class ResponsiveSurveyTest(unittest.TestCase):
     def continue_button(self, page, locale):
         labels = {"en": "Continue", "uk": "Продовжити", "ru": "Продолжить"}
         return page.get_by_role("button", name=labels[locale])
+
+    def assert_schema_result(self, payload, expected_valid):
+        pwsh = shutil.which("pwsh")
+        self.assertIsNotNone(pwsh, "PowerShell 7 is required for Draft 2020-12 schema validation")
+        script = "$json = [Console]::In.ReadToEnd(); if ($json | Test-Json -SchemaFile $args[0] -ErrorAction SilentlyContinue) { exit 0 } else { exit 1 }"
+        result = subprocess.run(
+            [pwsh, "-NoLogo", "-NoProfile", "-NonInteractive", "-CommandWithArgs", script, str(SCHEMA_PATH)],
+            input=json.dumps(payload), text=True, capture_output=True, check=False,
+        )
+        self.assertEqual(result.returncode == 0, expected_valid, result.stderr or result.stdout)
+
+    def test_javascript_contract_helpers(self):
+        page = self.browser.new_page()
+        try:
+            page.goto(f"{self.base_url}?helper-tests=1")
+            results = page.evaluate(
+                """async () => {
+                    const tests = await import('/research/user-surveys/survey/web-form/tests/form.test.js');
+                    for (const name of Object.keys(tests).filter((name) => name.startsWith('test')).sort()) await tests[name]();
+                    return Object.keys(tests).filter((name) => name.startsWith('test')).sort();
+                }"""
+            )
+            self.assertGreaterEqual(len(results), 7)
+        finally:
+            page.close()
+
+    def test_show_unless_and_exclusive_choices(self):
+        page = self.browser.new_page()
+        try:
+            page.goto(f"{self.base_url}?interaction-tests=1")
+            page.locator('input[name="consent_research"]').check()
+            self.continue_button(page, "en").click()
+            page.locator('input[name="slot_search_experience"][value="not_started"]').check()
+            self.assertEqual(page.locator('input[name="search_duration"]').count(), 0)
+            page.locator('input[name="slot_search_experience"][value="searching_now"]').check()
+            self.assertGreater(page.locator('input[name="search_duration"]').count(), 0)
+            page.locator('input[name="residence_region_id"][value="eu"]').check()
+            page.locator('input[name="service_id"][value="id_card"]').check()
+            page.locator('input[name="check_frequency"][value="daily"]').check()
+            self.continue_button(page, "en").click()
+            page.locator('input[name="centre_ids"][value="munich"]').check()
+            page.locator('input[name="centre_ids"][value="other_centre"]').check()
+            page.locator('input[name="centre_ids"][value="not_decided"]').check()
+            self.assertEqual(page.locator('input[name="centre_ids"]:checked').evaluate_all("nodes => nodes.map(node => node.value)"), ["not_decided"])
+            self.continue_button(page, "en").click()
+            page.locator('input[name="problem_category_ids"][value="no_slots_found"]').check()
+            page.locator('input[name="problem_category_ids"][value="other"]').check()
+            page.locator('input[name="problem_category_ids"][value="none"]').check()
+            self.assertEqual(page.locator('input[name="problem_category_ids"]:checked').evaluate_all("nodes => nodes.map(node => node.value)"), ["none"])
+            self.continue_button(page, "en").click()
+            page.locator('input[name="notification_channel_ids"][value="telegram"]').check()
+            page.locator('input[name="notification_channel_ids"][value="other"]').check()
+            page.locator('input[name="notification_channel_ids"][value="none"]').check()
+            self.assertEqual(page.locator('input[name="notification_channel_ids"]:checked').evaluate_all("nodes => nodes.map(node => node.value)"), ["none"])
+        finally:
+            page.close()
 
     def test_no_horizontal_overflow_across_locales_viewports_and_steps(self):
         for locale in LOCALES:
@@ -122,8 +181,26 @@ class ResponsiveSurveyTest(unittest.TestCase):
             page.get_by_role("button", name="Submit survey").click()
             page.wait_for_selector("#debug-payload:not(:empty)")
             payload = json.loads(page.locator("#debug-payload").inner_text())
-            self.assertEqual(payload["answers"]["other_service_text"], "Some  text")
+            self.assertEqual(payload["answers"]["other_service_text"], "Some text")
             self.assertIsNone(payload["answers"]["additional_context"])
+            schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+            self.assertEqual(set(payload["answers"]), set(schema["$defs"]["answers"]["required"]))
+            self.assertNotIn("consent_research", payload["answers"])
+            self.assertTrue(payload["consent"]["research"])
+            for nullable in ("search_duration", "appointment_urgency", "cross_border_flexibility"):
+                self.assertIn(nullable, payload["answers"])
+                self.assertIsNone(payload["answers"][nullable])
+            self.assert_schema_result(payload, True)
+
+            invalid = json.loads(json.dumps(payload))
+            invalid["answers"]["consent_research"] = True
+            self.assert_schema_result(invalid, False)
+            invalid = json.loads(json.dumps(payload))
+            del invalid["answers"]["appointment_urgency"]
+            self.assert_schema_result(invalid, False)
+            invalid = json.loads(json.dumps(payload))
+            invalid["answers"]["additional_context"] = "context\nname@example.com"
+            self.assert_schema_result(invalid, False)
             self.assertEqual(page.locator("#form-status").inner_text(), "Demo mode: your response was validated locally and was not sent to a server.")
         finally:
             page.close()

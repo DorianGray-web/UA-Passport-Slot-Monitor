@@ -2,7 +2,8 @@ import { loadTaxonomies } from '../config/centres.js';
 import { questions, sections } from '../config/questions.js';
 import { getMessages, text } from './i18n.js';
 import { submitSurvey } from './api.js';
-import { normalizeFreeText, validateAnswers } from './validation.js';
+import { applyExclusiveSelection, buildCanonicalAnswers, buildSurveyResponse } from './payload.js';
+import { validateAnswers } from './validation.js';
 
 const form = document.querySelector('#survey-form');
 const status = document.querySelector('#form-status');
@@ -15,13 +16,23 @@ const state = { locale: document.documentElement.lang || 'en', section: 0, value
 let taxonomies;
 
 const fieldFor = (question) => question.field || question.id;
-const active = (question) => !question.showWhen || state.values[question.showWhen[0]]?.includes?.(question.showWhen[1]) || state.values[question.showWhen[0]] === question.showWhen[1];
+const conditionMatches = ([field, expected]) => state.values[field]?.includes?.(expected) || state.values[field] === expected;
+const active = (question) => (!question.showWhen || conditionMatches(question.showWhen)) && (!question.showUnless || !conditionMatches(question.showUnless));
 const optionLabel = (messages, question, id) => text(messages, `questions.${question.id}.options.${id}`, id);
 
 function createChoice(question, id, label, multiple = false) {
   const wrapper = document.createElement('label'); wrapper.className = 'choice';
   const input = document.createElement('input'); input.type = multiple ? 'checkbox' : 'radio'; input.name = fieldFor(question); input.value = id; input.checked = multiple ? state.values[fieldFor(question)]?.includes(id) : state.values[fieldFor(question)] === id;
-  input.addEventListener('change', () => { if (multiple && input.checked) { const systemIds = question.type === 'centres' ? ['other_centre', 'not_decided'] : ['other', 'none']; form.querySelectorAll(`input[name="${fieldFor(question)}"]`).forEach((node) => { if (node !== input && ((systemIds.includes(id) && !systemIds.includes(node.value)) || (!systemIds.includes(id) && systemIds.includes(node.value) && node.checked))) node.checked = false; }); } state.values[fieldFor(question)] = multiple ? [...form.querySelectorAll(`input[name="${fieldFor(question)}"]:checked`)].map((node) => node.value) : input.value; render(); });
+  input.addEventListener('change', () => {
+    const field = fieldFor(question);
+    if (multiple) {
+      const sentinel = question.type === 'centres' ? 'not_decided' : 'none';
+      state.values[field] = applyExclusiveSelection(state.values[field], id, input.checked, sentinel);
+    } else {
+      state.values[field] = input.value;
+    }
+    render();
+  });
   wrapper.append(input, document.createTextNode(label)); return wrapper;
 }
 
@@ -87,7 +98,16 @@ function showDebugPayload(payload) {
   debugPayload.textContent = JSON.stringify(payload, null, 2);
 }
 
-function visibleAnswers() { const values = { ...state.values }; if (values.slot_search_experience === 'not_started') values.search_duration = null; for (const field of ['other_centre_text', 'other_service_text', 'other_problem_text', 'other_notification_channel_text']) if (!active(questions.find((question) => fieldFor(question) === field))) values[field] = null; for (const field of ['other_centre_text', 'other_service_text', 'other_problem_text', 'other_notification_channel_text', 'additional_context']) values[field] = normalizeFreeText(values[field]); if (!values.problem_category_ids) values.problem_category_ids = []; if (!values.notification_channel_ids) values.notification_channel_ids = []; return values; }
+function taxonomyOrder() {
+  return {
+    centres: [...taxonomies.centresData, ...taxonomies.centreSystems].map((item) => item.centre_id),
+    problems: taxonomies.problemsData.map((item) => item.id),
+    channels: taxonomies.channelsData.map((item) => item.id),
+  };
+}
+function visibleAnswers() {
+  return { ...buildCanonicalAnswers(state.values, taxonomyOrder()), consent_research: Boolean(state.values.consent_research) };
+}
 function validateCurrent() {
   const answers = visibleAnswers();
   const errors = validateAnswers(answers, taxonomies, true);
@@ -99,7 +119,7 @@ function validateCurrent() {
 }
 function advance() { if (!validateCurrent()) { state.status = text(getMessages(state.locale), 'controls.invalid'); render(); return; } state.section += 1; state.errors = {}; state.status = ''; render(); }
 
-form.addEventListener('submit', async (event) => { event.preventDefault(); if (state.submitting || !validateCurrent()) { state.status = text(getMessages(state.locale), 'controls.invalid'); render(); return; } state.submitting = true; state.status = text(getMessages(state.locale), 'controls.submitting'); render(); try { const answers = visibleAnswers(); const payload = { response_id: state.responseId, survey_version: '1.0.0', contract_version: '2.0.0', source: 'survey_web_form', locale: state.locale, submitted_at: new Date().toISOString(), answers: { ...answers, other_centre_text: normalizeFreeText(answers.other_centre_text), other_service_text: normalizeFreeText(answers.other_service_text), other_problem_text: normalizeFreeText(answers.other_problem_text), other_notification_channel_text: normalizeFreeText(answers.other_notification_channel_text), additional_context: normalizeFreeText(answers.additional_context) }, consent: { research: Boolean(answers.consent_research) }, client: { timezone_offset_minutes: new Date().getTimezoneOffset() * -1 } }; const result = await submitSurvey(payload); state.submitting = false; state.status = result.status === 'demo' ? text(getMessages(state.locale), 'controls.demoSuccess') : text(getMessages(state.locale), 'controls.success'); showDebugPayload(payload); render(); } catch { state.submitting = false; state.status = text(getMessages(state.locale), 'controls.error'); render(); } });
+form.addEventListener('submit', async (event) => { event.preventDefault(); if (state.submitting || !validateCurrent()) { state.status = text(getMessages(state.locale), 'controls.invalid'); render(); return; } state.submitting = true; state.status = text(getMessages(state.locale), 'controls.submitting'); render(); try { const payload = buildSurveyResponse({ values: state.values, taxonomyOrder: taxonomyOrder(), responseId: state.responseId, locale: state.locale, submittedAt: new Date().toISOString(), timezoneOffsetMinutes: new Date().getTimezoneOffset() * -1 }); const result = await submitSurvey(payload); state.submitting = false; state.status = result.status === 'demo' ? text(getMessages(state.locale), 'controls.demoSuccess') : text(getMessages(state.locale), 'controls.success'); showDebugPayload(payload); render(); } catch { state.submitting = false; state.status = text(getMessages(state.locale), 'controls.error'); render(); } });
 localePicker.addEventListener('change', () => { state.locale = localePicker.value; render(); });
 
 loadTaxonomies().then((data) => { taxonomies = { centresData: data.centres.centres, centreSystems: data.centres.system_options, countriesData: data.centres.countries, problemsData: data.problems.problem_categories, channelsData: data.channels.notification_channels, centres: new Set(data.centres.centres.map((item) => item.centre_id)), problems: new Set(data.problems.problem_categories.map((item) => item.id)), channels: new Set(data.channels.notification_channels.map((item) => item.id)) }; render(); }).catch(() => { status.textContent = text(getMessages(state.locale), 'controls.taxonomyError'); });
