@@ -1,0 +1,109 @@
+{
+  "taxonomy_id": "survey_problem_categories",
+  "taxonomy_version": "1.0.0",
+  "default_locale": "en",
+  "supported_locales": ["uk", "ru", "en"],
+  "problem_categories": [
+    {
+      "id": "no_slots_found",
+      "sort_order": 10,
+      "labels": {
+        "uk": "Не вдається знайти вільні слоти",
+        "ru": "Не удаётся найти свободные слоты",
+        "en": "No available slots found"
+      }
+    },
+    {
+      "id": "slots_disappear_quickly",
+      "sort_order": 20,
+      "labels": {
+        "uk": "Слоти зникають надто швидко",
+        "ru": "Слоты исчезают слишком быстро",
+        "en": "Slots disappear too quickly"
+      }
+    },
+    {
+      "id": "frequent_manual_checks",
+      "sort_order": 30,
+      "labels": {
+        "uk": "Потрібно часто перевіряти вручну",
+        "ru": "Приходится часто проверять вручную",
+        "en": "Frequent manual checking"
+      }
+    },
+    {
+      "id": "unclear_availability_status",
+      "sort_order": 40,
+      "labels": {
+        "uk": "Незрозумілий статус доступності",
+        "ru": "Непонятный статус доступности",
+        "en": "Unclear availability status"
+      }
+    },
+    {
+      "id": "queue_interface_confusing",
+      "sort_order": 50,
+      "labels": {
+        "uk": "Незручний або незрозумілий інтерфейс черги",
+        "ru": "Неудобный или непонятный интерфейс очереди",
+        "en": "Confusing queue interface"
+      }
+    },
+    {
+      "id": "technical_errors",
+      "sort_order": 60,
+      "labels": {
+        "uk": "Технічні помилки",
+        "ru": "Технические ошибки",
+        "en": "Technical errors"
+      }
+    },
+    {
+      "id": "captcha_or_access_challenge",
+      "sort_order": 70,
+      "labels": {
+        "uk": "CAPTCHA або обмеження доступу",
+        "ru": "CAPTCHA или ограничение доступа",
+        "en": "CAPTCHA or access challenge"
+      }
+    },
+    {
+      "id": "preferred_centre_unavailable",
+      "sort_order": 80,
+      "labels": {
+        "uk": "Потрібний центр недоступний",
+        "ru": "Нужный центр недоступен",
+        "en": "Preferred centre unavailable"
+      }
+    },
+    {
+      "id": "travel_to_alternative_centre",
+      "sort_order": 90,
+      "labels": {
+        "uk": "Складно їхати до альтернативного центру",
+        "ru": "Сложно ехать в альтернативный центр",
+        "en": "Travel to an alternative centre is difficult"
+      }
+    },
+    {
+      "id": "other",
+      "sort_order": 900,
+      "kind": "system",
+      "labels": {
+        "uk": "Інша проблема",
+        "ru": "Другая проблема",
+        "en": "Other problem"
+      }
+    },
+    {
+      "id": "none",
+      "sort_order": 910,
+      "kind": "system",
+      "labels": {
+        "uk": "Нічого з переліченого",
+        "ru": "Ничего из перечисленного",
+        "en": "None of these"
+      }
+    }
+  ]
+}

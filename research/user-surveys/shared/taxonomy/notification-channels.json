@@ -1,0 +1,82 @@
+{
+  "taxonomy_id": "survey_notification_channels",
+  "taxonomy_version": "1.0.0",
+  "default_locale": "en",
+  "supported_locales": ["uk", "ru", "en"],
+  "notification_channels": [
+    {
+      "id": "telegram",
+      "sort_order": 10,
+      "labels": {
+        "uk": "Telegram",
+        "ru": "Telegram",
+        "en": "Telegram"
+      }
+    },
+    {
+      "id": "whatsapp",
+      "sort_order": 20,
+      "labels": {
+        "uk": "WhatsApp",
+        "ru": "WhatsApp",
+        "en": "WhatsApp"
+      }
+    },
+    {
+      "id": "email",
+      "sort_order": 30,
+      "labels": {
+        "uk": "Електронна пошта",
+        "ru": "Электронная почта",
+        "en": "Email"
+      }
+    },
+    {
+      "id": "sms",
+      "sort_order": 40,
+      "labels": {
+        "uk": "SMS",
+        "ru": "SMS",
+        "en": "SMS"
+      }
+    },
+    {
+      "id": "browser_push",
+      "sort_order": 50,
+      "labels": {
+        "uk": "Push-повідомлення у браузері",
+        "ru": "Push-уведомления в браузере",
+        "en": "Browser push notifications"
+      }
+    },
+    {
+      "id": "mobile_app",
+      "sort_order": 60,
+      "labels": {
+        "uk": "Окремий мобільний застосунок",
+        "ru": "Отдельное мобильное приложение",
+        "en": "Dedicated mobile app"
+      }
+    },
+    {
+      "id": "other",
+      "sort_order": 900,
+      "kind": "system",
+      "labels": {
+        "uk": "Інший канал",
+        "ru": "Другой канал",
+        "en": "Other channel"
+      }
+    },
+    {
+      "id": "none",
+      "sort_order": 910,
+      "kind": "system",
+      "labels": {
+        "uk": "Не потрібні сповіщення",
+        "ru": "Уведомления не нужны",
+        "en": "No notifications"
+      }
+    }
+  ]
+}

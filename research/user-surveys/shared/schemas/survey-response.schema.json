@@ -1,0 +1,679 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ua-passport-slot-monitor.local/schemas/survey-response/2.0.0",
+  "title": "UA Passport Slot Monitor survey response",
+  "description": "Privacy-minimized voluntary survey submission envelope.",
+  "type": "object",
+  "additionalProperties": false,
+  "x-contract-name": "survey_response",
+  "x-contract-version": "2.0.0",
+  "x-survey-version": "1.0.0",
+  "x-taxonomy-snapshots": {
+    "centres": {
+      "taxonomy_id": "survey_centres",
+      "taxonomy_version": "1.0.0",
+      "path": "../taxonomy/centres.json"
+    },
+    "problem_categories": {
+      "taxonomy_id": "survey_problem_categories",
+      "taxonomy_version": "1.0.0",
+      "path": "../taxonomy/problem-categories.json"
+    },
+    "notification_channels": {
+      "taxonomy_id": "survey_notification_channels",
+      "taxonomy_version": "1.0.0",
+      "path": "../taxonomy/notification-channels.json"
+    }
+  },
+  "required": [
+    "response_id",
+    "survey_version",
+    "contract_version",
+    "source",
+    "locale",
+    "submitted_at",
+    "answers",
+    "consent"
+  ],
+  "properties": {
+    "response_id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "maxLength": 36
+    },
+    "survey_version": {
+      "const": "1.0.0"
+    },
+    "contract_version": {
+      "const": "2.0.0"
+    },
+    "source": {
+      "const": "survey_web_form"
+    },
+    "locale": {
+      "enum": ["uk", "ru", "en"]
+    },
+    "submitted_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$",
+      "maxLength": 30
+    },
+    "answers": {
+      "$ref": "#/$defs/answers"
+    },
+    "consent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["research"],
+      "properties": {
+        "research": {
+          "const": true
+        }
+      }
+    },
+    "client": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "timezone_offset_minutes": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": -840,
+              "maximum": 840
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "$defs": {
+    "piiSafeSingleLine": {
+      "type": "string",
+      "pattern": "^(?!.*(?:https?://|www\\.|[^\\s@]+@[^\\s@]+\\.[^\\s@]+|@[_A-Za-z0-9]{2,}|\\+?[0-9][0-9 ()-]{6,}[0-9]))[^<>\\u0000-\\u001F\\u007F]*$"
+    },
+    "piiSafeMultiline": {
+      "type": "string",
+      "pattern": "^(?![\\s\\S]*(?:https?://|www\\.|[^\\s@]+@[^\\s@]+\\.[^\\s@]+|@[_A-Za-z0-9]{2,}|\\+?[0-9][0-9 ()-]{6,}[0-9]))[^<>\\u0000-\\u0009\\u000B-\\u001F\\u007F]*$"
+    },
+    "otherCentreText": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/piiSafeSingleLine"
+        },
+        {
+          "minLength": 2,
+          "maxLength": 80
+        }
+      ]
+    },
+    "otherServiceText": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/piiSafeSingleLine"
+        },
+        {
+          "minLength": 2,
+          "maxLength": 80
+        }
+      ]
+    },
+    "otherProblemText": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/piiSafeSingleLine"
+        },
+        {
+          "minLength": 2,
+          "maxLength": 160
+        }
+      ]
+    },
+    "otherNotificationChannelText": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/piiSafeSingleLine"
+        },
+        {
+          "minLength": 2,
+          "maxLength": 80
+        }
+      ]
+    },
+    "answers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "residence_region_id",
+        "centre_ids",
+        "other_centre_text",
+        "service_id",
+        "other_service_text",
+        "slot_search_experience",
+        "check_frequency",
+        "search_duration",
+        "appointment_urgency",
+        "problem_category_ids",
+        "other_problem_text",
+        "cross_border_flexibility",
+        "notification_channel_ids",
+        "other_notification_channel_text",
+        "primary_notification_channel_id",
+        "manual_captcha_attitude",
+        "early_testing_interest",
+        "additional_context"
+      ],
+      "properties": {
+        "residence_region_id": {
+          "enum": ["eu", "united_kingdom", "canada", "other_country"]
+        },
+        "centre_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "berlin",
+              "cologne",
+              "munich",
+              "bratislava",
+              "kortrijk",
+              "madrid",
+              "barcelona",
+              "valencia",
+              "milan",
+              "prague",
+              "varna",
+              "warsaw",
+              "krakow",
+              "gdansk",
+              "wroclaw",
+              "london",
+              "toronto",
+              "chisinau",
+              "other_centre",
+              "not_decided"
+            ]
+          }
+        },
+        "other_centre_text": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/otherCentreText"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "service_id": {
+          "enum": [
+            "international_passport",
+            "id_card",
+            "passport_exchange",
+            "id_and_passport",
+            "other"
+          ]
+        },
+        "other_service_text": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/otherServiceText"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "slot_search_experience": {
+          "enum": [
+            "not_started",
+            "searching_now",
+            "searched_before",
+            "booked_before"
+          ]
+        },
+        "check_frequency": {
+          "enum": [
+            "several_times_daily",
+            "daily",
+            "several_times_weekly",
+            "occasionally",
+            "not_checking_yet"
+          ]
+        },
+        "search_duration": {
+          "type": ["string", "null"],
+          "enum": [
+            "under_1_week",
+            "one_to_4_weeks",
+            "one_to_3_months",
+            "over_3_months",
+            "not_sure",
+            null
+          ]
+        },
+        "appointment_urgency": {
+          "type": ["string", "null"],
+          "enum": [
+            "within_2_weeks",
+            "within_1_month",
+            "within_3_months",
+            "later",
+            "not_sure",
+            null
+          ]
+        },
+        "problem_category_ids": {
+          "type": "array",
+          "maxItems": 5,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "no_slots_found",
+              "slots_disappear_quickly",
+              "frequent_manual_checks",
+              "unclear_availability_status",
+              "queue_interface_confusing",
+              "technical_errors",
+              "captcha_or_access_challenge",
+              "preferred_centre_unavailable",
+              "travel_to_alternative_centre",
+              "other",
+              "none"
+            ]
+          }
+        },
+        "other_problem_text": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/otherProblemText"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cross_border_flexibility": {
+          "type": ["string", "null"],
+          "enum": ["yes", "maybe", "no", "not_sure", null]
+        },
+        "notification_channel_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "telegram",
+              "whatsapp",
+              "email",
+              "sms",
+              "browser_push",
+              "mobile_app",
+              "other",
+              "none"
+            ]
+          }
+        },
+        "other_notification_channel_text": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/otherNotificationChannelText"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "primary_notification_channel_id": {
+          "enum": [
+            "telegram",
+            "whatsapp",
+            "email",
+            "sms",
+            "browser_push",
+            "mobile_app",
+            "other",
+            "none"
+          ]
+        },
+        "manual_captcha_attitude": {
+          "enum": [
+            "acceptable",
+            "acceptable_if_rare",
+            "require_full_automation",
+            "not_sure"
+          ]
+        },
+        "early_testing_interest": {
+          "enum": ["yes", "no", "maybe"]
+        },
+        "additional_context": {
+          "anyOf": [
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/piiSafeMultiline"
+                },
+                {
+                  "maxLength": 500
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "centre_ids": {
+                "contains": {
+                  "const": "not_decided"
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "centre_ids": {
+                "maxItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "centre_ids": {
+                "contains": {
+                  "const": "other_centre"
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "other_centre_text": {
+                "$ref": "#/$defs/otherCentreText"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "other_centre_text": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "service_id": {
+                "const": "other"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "other_service_text": {
+                "$ref": "#/$defs/otherServiceText"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "other_service_text": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "problem_category_ids": {
+                "contains": {
+                  "const": "none"
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "problem_category_ids": {
+                "maxItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "problem_category_ids": {
+                "contains": {
+                  "const": "other"
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "other_problem_text": {
+                "$ref": "#/$defs/otherProblemText"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "other_problem_text": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "notification_channel_ids": {
+                "contains": {
+                  "const": "none"
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "notification_channel_ids": {
+                "maxItems": 1
+              },
+              "primary_notification_channel_id": {
+                "const": "none"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "notification_channel_ids": {
+                "contains": {
+                  "const": "other"
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "other_notification_channel_text": {
+                "$ref": "#/$defs/otherNotificationChannelText"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "other_notification_channel_text": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "primary_notification_channel_id": {
+                "const": "telegram"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "notification_channel_ids": {
+                "contains": {
+                  "const": "telegram"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "primary_notification_channel_id": {
+                "const": "whatsapp"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "notification_channel_ids": {
+                "contains": {
+                  "const": "whatsapp"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "primary_notification_channel_id": {
+                "const": "email"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "notification_channel_ids": {
+                "contains": {
+                  "const": "email"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "primary_notification_channel_id": {
+                "const": "sms"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "notification_channel_ids": {
+                "contains": {
+                  "const": "sms"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "primary_notification_channel_id": {
+                "const": "browser_push"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "notification_channel_ids": {
+                "contains": {
+                  "const": "browser_push"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "primary_notification_channel_id": {
+                "const": "mobile_app"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "notification_channel_ids": {
+                "contains": {
+                  "const": "mobile_app"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "primary_notification_channel_id": {
+                "const": "other"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "notification_channel_ids": {
+                "contains": {
+                  "const": "other"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "primary_notification_channel_id": {
+                "const": "none"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "notification_channel_ids": {
+                "contains": {
+                  "const": "none"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
