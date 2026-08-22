@@ -3,12 +3,15 @@
 **Status:** transport feasibility positively observed for one tested configuration;
 not approved for production
 
-This directory measures browser-visible Google Apps Script Web App behavior.
-It is not a backend adapter, production transport, or implementation of
-ADR-0014. It does not accept `SurveyResponse v2`, validate survey fields,
-produce canonical submission outcomes, or persist anything.
+This directory records bounded Google Apps Script transport and disposable
+concurrency experiments. It is not a backend adapter, production transport,
+or implementation of ADR-0014. The retained probe does not accept
+`SurveyResponse v2`, validate survey fields, produce canonical submission
+outcomes, or persist anything.
 
-## Completed live experiment
+## Completed research experiments
+
+### Browser transport
 
 The 2026-08-22 Chrome experiment used the GitHub Pages HTTPS spike origin and
 a temporary Apps Script Web App deployment. In that configuration, valid GET
@@ -21,6 +24,23 @@ or a production-backend decision. See the sanitized
 observations, evidence classifications, limitations, and non-claims. The
 temporary deployment URL and redirect capability parameters are intentionally
 not retained.
+
+### Disposable concurrency and persistence
+
+A second 2026-08-22 experiment used temporary Apps Script code and a disposable
+Google Sheet to compare a ScriptLock-protected duplicate check and append with
+an unlocked negative control. Under the tested 20-request shared-ID bursts,
+the locked path left one physical row and the unlocked path left seven.
+Lock acquisition failures near the configured timeout and contention-related
+latency were also observed.
+
+See the sanitized
+[concurrency and persistence evidence report](2026-08-22-concurrency-persistence-evidence.md)
+for the complete observations, interpretation, and unsupported conclusions.
+The experimental persistence code, Sheet, identifiers, and capability URLs
+are intentionally not retained. These results do not approve production
+persistence or establish exactly-once delivery or universal Apps Script
+behavior.
 
 ## Safety boundary
 

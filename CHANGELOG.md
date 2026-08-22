@@ -21,6 +21,13 @@ This changelog tracks implementation milestones and significant documentation, a
   browser-to-Apps-Script transport in the tested configuration; it does not
   select Apps Script as a production backend, approve persistence or Sheets,
   or establish universal Apps Script CORS behavior.
+- Recorded a bounded disposable Apps Script and Google Sheets concurrency
+  experiment from 2026-08-22. In the tested shared-ID burst, protecting the
+  duplicate check and append with ScriptLock produced one physical row, while
+  the unlocked negative control reproduced a seven-row duplicate-write race;
+  the run also observed lock contention, configured-timeout rejection, and
+  added latency. This is research evidence, not production survey persistence,
+  idempotency, exactly-once delivery, or an Apps Script performance guarantee.
 
 ### Playwright fallback serialization
 
