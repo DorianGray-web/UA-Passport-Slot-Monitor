@@ -1118,3 +1118,87 @@ sanitization.
 - cost and efficiency analysis is reproducible from retained local aggregates;
 - telemetry cannot influence runtime, governance, capabilities, or delivery;
 - architecture guards enforce the isolation boundary.
+
+---
+
+## ADR-0014: Survey Submission Transport and Persistence Boundary
+
+**Status:** Proposed
+
+**Date:** 2026-08-22
+
+### Context
+
+Commit `53b1871` is the client-side checkpoint for the multilingual survey: a
+UI-validated prototype with known contract-integration gaps. Its submission
+adapter is local demo behavior only and performs no network request or
+persistence. Those gaps do not invalidate the checkpoint; they are follow-up
+integration work after this architecture is approved.
+
+The canonical `survey_response/2.0.0` object is defined under
+`research/user-surveys/survey/spec/` and
+`research/user-surveys/shared/schemas/`. Candidate Google Apps Script and
+Google Sheets material must not become the owner of the payload, taxonomy
+identifiers, validation semantics, analytical meaning, or contract versions.
+Production decisions for retention, deletion, idempotency lifetime, automatic
+retry, timeout, HTTP status mapping, allowed origins, Apps Script deployment
+behavior, and infrastructure logging have not been approved.
+
+### Decision
+
+Adopt the following proposed dependency direction:
+
+```text
+Survey UI
+    -> Canonical SurveyResponse v2
+    -> Adapter-neutral submission contract
+    -> Backend adapter
+    -> Storage implementation
+```
+
+The canonical request is exactly one validated `survey_response/2.0.0`
+object. A transport wrapper must not redefine or duplicate that object.
+Submission processing has five adapter-neutral semantic outcomes:
+
+- `ACCEPTED`;
+- `DUPLICATE_ACCEPTED`;
+- `INVALID_REQUEST`;
+- `UNSUPPORTED_CONTRACT`;
+- `TEMPORARY_FAILURE`.
+
+HTTP methods, status codes, content types, redirects, CORS behavior, allowed
+origins, and platform-specific response constraints belong to a reviewed
+deployment or adapter profile. They are not decided by this ADR.
+
+The backend validation boundary independently enforces the supported schema,
+survey and contract versions, consent, taxonomy membership, cardinality,
+exclusivity, conditional fields, and free-text rules before persistence.
+Client-side validation is not an ingestion trust boundary.
+
+`response_id` is the client-generated candidate idempotency key. A repeat of
+the same logical submission may produce `DUPLICATE_ACCEPTED` without a second
+write. Idempotency lifetime, handling of the same identifier with different
+content, retry automation, timeout, and the relationship between deletion and
+deduplication records remain OPEN and require approval before implementation.
+
+A backend adapter may parse, validate, apply approved idempotency behavior,
+map to a storage representation, persist, and translate its result into one of
+the canonical outcomes. It must not redefine survey fields, identifiers,
+taxonomy, analytical semantics, or versions. Google Apps Script and Google
+Sheets remain candidate adapter and storage choices only.
+
+The detailed proposed contract and its implementation gates are maintained in
+[`research/user-surveys/survey/spec/transport-persistence.md`](../research/user-surveys/survey/spec/transport-persistence.md).
+
+### Consequences
+
+- the survey contract remains independent of the first deployment platform;
+- adapters can be replaced without changing survey analytical semantics;
+- server-side validation and explicit semantic outcomes are required before
+  persistence;
+- adapter feasibility cannot silently weaken the canonical contract;
+- no production transport, retry, persistence, retention, deletion, CORS, or
+  deployment behavior is authorized while this ADR remains Proposed;
+- known client/schema mismatches remain separate integration prerequisites,
+  suitable for a later `fix(survey): align web form payload with response
+  contract` change, and are not corrected by this documentation decision.
