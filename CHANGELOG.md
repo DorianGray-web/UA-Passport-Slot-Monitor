@@ -8,6 +8,20 @@ This changelog tracks implementation milestones and significant documentation, a
 
 ## [Unreleased]
 
+### Survey Transport Research
+
+- Validated the bounded GitHub Pages to Apps Script transport spike on
+  2026-08-22. In the tested Chrome configuration, CORS GET and POST requests
+  from the GitHub Pages HTTPS origin returned readable application-level
+  `RECEIVED` acknowledgements through the ContentService redirect; the POST
+  used `fetch()`, `mode: "cors"`, `Content-Type: text/plain`, and a
+  JSON-encoded body whose probe request ID was observed server-side.
+- Retained `no-cors` as opaque dispatch-attempt evidence only. The experiment
+  found that an intermediate proxy was not required solely for readable
+  browser-to-Apps-Script transport in the tested configuration; it does not
+  select Apps Script as a production backend, approve persistence or Sheets,
+  or establish universal Apps Script CORS behavior.
+
 ### Playwright fallback serialization
 
 - Added a provider-agnostic, process-safe `PlaywrightExecutionBudget` that

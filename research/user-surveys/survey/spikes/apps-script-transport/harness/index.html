@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Apps Script transport evidence probe</title>
+  <style>
+    body { font: 16px/1.5 system-ui, sans-serif; max-width: 52rem; margin: 2rem auto; padding: 0 1rem; }
+    label, button { display: block; margin-top: 1rem; }
+    input { box-sizing: border-box; width: 100%; padding: .6rem; }
+    button { padding: .6rem 1rem; }
+    pre { background: #f4f4f4; overflow-wrap: anywhere; padding: 1rem; white-space: pre-wrap; }
+    .warning { border-left: .3rem solid #b45309; padding-left: 1rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Apps Script transport evidence probe</h1>
+    <p class="warning">Feasibility testing only. Do not enter or send survey responses, personal data, secrets, or production endpoints.</p>
+    <p>The endpoint and results remain in this page's memory only. Reloading clears them.</p>
+
+    <label for="endpoint">Temporary Apps Script <code>/exec</code> URL</label>
+    <input id="endpoint" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://script.google.com/macros/s/DEPLOYMENT_ID/exec">
+
+    <button type="button" data-probe="get-cors">GET with readable response requested</button>
+    <button type="button" data-probe="post-cors">POST text/plain with readable response requested</button>
+    <button type="button" data-probe="post-no-cors">POST text/plain in no-cors mode</button>
+
+    <h2>Local evidence</h2>
+    <pre id="result" aria-live="polite">No probe run.</pre>
+  </main>
+  <script type="module" src="probe.js"></script>
+</body>
+</html>
