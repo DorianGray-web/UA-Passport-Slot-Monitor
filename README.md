@@ -1,5 +1,11 @@
 # UA Passport Slot Monitor
 
+You can explore the project in the following languages:
+
+🇬🇧 English | [🇺🇦 Українська](docs/uk/README.md) | [🇷🇺 Русский](docs/ru/README.md)
+
+English is the authoritative version of the technical documentation.
+
 A privacy-focused open-source service for monitoring appointment availability at Ukrainian document service centers abroad.
 
 > 🚧 **Current status:** Research and provider-integration prototyping. Local

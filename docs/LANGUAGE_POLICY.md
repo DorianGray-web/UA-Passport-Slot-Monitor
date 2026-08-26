@@ -23,14 +23,13 @@ served without fragmenting the project's technical documentation.
 
 ## 2. Primary language: English
 
-English is the single primary language for:
+English is the source of truth and the single primary language for:
 
 - source code (identifiers, variables, function and class names);
 - code comments;
 - commit messages and pull request titles/descriptions;
 - issue reports and technical discussion;
-- architecture, security, and privacy documentation (`ARCHITECTURE.md`,
-  `SECURITY.md`, `PRIVACY.md`, `PROJECT_CONCEPT.md`, `ROADMAP.md`, etc.);
+- engineering documentation;
 - API and configuration naming.
 
 Keeping technical documentation and code in one language avoids duplicated,
@@ -38,7 +37,36 @@ diverging copies of documents that define security or privacy guarantees, and
 keeps the project reviewable by international contributors and security
 researchers.
 
-## 3. User-facing content: Ukrainian, Russian, and English
+## 3. Documentation categories
+
+### User documentation
+
+User documentation should have localized Ukrainian and Russian versions. This
+category includes:
+
+- `README.md`;
+- `PRIVACY.md`;
+- `SECURITY.md`.
+
+These documents explain the project and its trust boundaries directly to
+users. The English versions remain the source of truth, while localized
+versions make this information accessible to the project's primary audience.
+
+### Engineering documentation
+
+Engineering documentation remains English-first and normally should not be
+translated. Examples include:
+
+- `ARCHITECTURE.md`;
+- `DECISIONS.md`;
+- `ROADMAP.md`;
+- `PROVIDERS.md`;
+- `CONTRIBUTING.md`.
+
+Keeping engineering documentation in one authoritative language reduces the
+risk of divergent technical contracts and policies.
+
+## 4. User-facing content: Ukrainian, Russian, and English
 
 Because the target users are primarily Ukrainians abroad, user-facing surfaces
 should be usable without English:
@@ -46,15 +74,15 @@ should be usable without English:
 - the web application interface;
 - notification messages (Telegram, email, and future channels);
 - onboarding and help content;
-- the `README.md` (a Ukrainian and/or Russian translation is welcome
-  alongside the English original, e.g. `docs/uk/README.md`, `docs/ru/README.md`).
+- user documentation, including localized versions of `README.md`,
+  `PRIVACY.md`, and `SECURITY.md`.
 
 Ukrainian and Russian translations of user-facing documentation are welcome
 contributions, as already stated in `CONTRIBUTING.md`. Additional languages
 may be added later based on user demand identified through the project's
 feedback channels (see the project survey linked from `README.md`).
 
-## 4. Translations are secondary, not authoritative
+## 5. Translations are secondary, not authoritative
 
 For any document that exists in more than one language:
 
@@ -67,7 +95,7 @@ For any document that exists in more than one language:
 This applies to both documentation and, once implemented, user-facing
 application strings (e.g. via a standard i18n/localization file structure).
 
-## 5. Issues, discussions, and pull requests
+## 6. Issues, discussions, and pull requests
 
 - Technical discussion, code review, and architecture proposals should be in
   English so that all maintainers and contributors can participate.
@@ -78,7 +106,7 @@ application strings (e.g. via a standard i18n/localization file structure).
 - Maintainers may translate or summarize non-English issues for broader
   visibility.
 
-## 6. Localization implementation (future)
+## 7. Localization implementation (future)
 
 Once the application reaches implementation stage, this policy expects:
 
@@ -92,10 +120,10 @@ Once the application reaches implementation stage, this policy expects:
 This section will be expanded with concrete tooling and file structure once
 localization is implemented.
 
-## 7. Changes to this policy
+## 8. Changes to this policy
 
 This policy may be updated as the contributor base grows or as new
 user-facing surfaces are introduced. Material changes should be documented in
 the repository history and, where relevant, in `CHANGELOG.md`.
 
-**Last updated:** 2026-07-30
+**Last updated:** 2026-08-26
