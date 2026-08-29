@@ -236,3 +236,132 @@ This is materially stronger evidence for an architecture review of Apps Script
 and Google Sheets as a candidate first adapter. It is not a production adapter
 selection, persistence approval, or ADR-0014 acceptance. The next gate is
 evidence adjudication against ADR-0014, not an automatic fourth spike.
+
+## Follow-up GitHub Pages live review
+
+- **Date:** 2026-08-29
+- **Purpose:** Resolve selected `NOT PROVEN` boundaries from the initial local
+  Spike 3 run without rewriting its original observations.
+- **Page host:** `doriangray-web.github.io`
+- **Browser:** Chrome 151 on Windows
+- **Deployment type:** Temporary Apps Script Web App
+- **Execute as:** Deploying user
+- **Access selection:** `Everyone` in the deployment UI
+
+No deployment ID, Web App URL, redirect capability URL, `user_content_key`,
+spreadsheet ID, account address, or screenshot is retained. The deployment UI
+displayed an account address; it is intentionally omitted from this sanitized
+record.
+
+### GitHub Pages origin
+
+**OBSERVED:** The reviewed page was loaded from the published
+`doriangray-web.github.io` repository Pages path. The harness loaded its
+synthetic fixture and executed the ten manual cases from that page.
+
+This observation establishes the page origin used for the follow-up run. It
+does not establish an origin allowlist or trustworthy server-side origin
+enforcement.
+
+### Redirect path and readable responses
+
+**OBSERVED:** Chrome DevTools recorded each application request as a POST to
+`script.google.com` `/exec` returning HTTP 302, followed by a GET to
+`script.googleusercontent.com` returning HTTP 200. The harness received
+readable JSON with `response.type = "cors"` and `redirected = true` for all ten
+cases.
+
+The redirected request inspected in DevTools displayed `Origin: null` and a
+GitHub Pages referrer. Therefore this review supports the browser-visible
+Pages-to-Apps-Script flow but does not claim that the redirected request carried
+the GitHub Pages origin header or that Apps Script enforced an allowed origin.
+
+### Repeated matrix
+
+**OBSERVED:** The sanitized follow-up results contained:
+
+| Case | Observed result | Client duration (ms) |
+| ---: | --- | ---: |
+| 1 | `ACCEPTED` | 2917 |
+| 2 | `DUPLICATE_ACCEPTED` | 1566 |
+| 3 | `INVALID_REQUEST` | 1248 |
+| 4 | `INVALID_REQUEST` | 1060 |
+| 5 | `INVALID_REQUEST` | 1081 |
+| 6 | `INVALID_REQUEST` | 831 |
+| 7 | `INVALID_REQUEST` | 1259 |
+| 8 | `UNSUPPORTED_CONTRACT` | 895 |
+| 9 | `TEMPORARY_FAILURE` | 854 |
+| 10 | `OPEN_IDENTITY_CONTENT_CONFLICT` with no canonical outcome | 2049 |
+
+Every case returned HTTP 200 through the readable redirect path. Cases 1–9
+matched the expected canonical outcome. Case 10 remained an explicitly
+non-canonical `OPEN` observation.
+
+### Physical Sheet inspection
+
+**OBSERVED:** A post-matrix inspection of the disposable Sheet found five data
+rows from multiple experiment runs. Four rows predated this follow-up. The
+follow-up Case 1 `response_id` appeared exactly once. The Case 9 response ID was
+absent, as were the follow-up invalid and unsupported case identities.
+
+The single stored hash for the accepted follow-up identity was:
+
+```text
+d8c3e5809d64cf3d6203ff3f54b4e06fd288e42dffb0e15a1fed81bf4015a95b
+```
+
+An offline verification recomputed SHA-256 from the synthetic canonical Case 1
+fixture with the follow-up `response_id` and `submitted_at`, using the spike's
+recursively key-sorted representation, and produced the same value.
+
+**INFERRED:** The final physical state is consistent with Case 1 creating one
+record, Case 2 creating no duplicate, Case 9 creating no record, and Case 10
+neither appending nor replacing the accepted identity/hash record.
+
+Separate physical snapshots were not retained immediately after each
+intermediate case. The conclusion above combines the final Sheet inspection,
+the matching accepted-payload hash, and the sanitized per-case responses; it
+does not claim a transaction log or continuous observation of the Sheet.
+
+### Deployment configuration
+
+**OBSERVED:** The temporary Apps Script deployment UI identified the deployment
+as a Web App, selected execution as the deploying user, and selected `Everyone`
+for access. The account identity displayed by the UI is not retained.
+
+This records the tested configuration label only. It does not establish a
+production-safe access model, authentication semantics, allowed-origin
+enforcement, abuse resistance, deployment lifecycle, processor review, or
+public-deployment approval.
+
+### Boundaries resolved by this follow-up
+
+- GitHub Pages-hosted execution changed from `NOT PROVEN` for the initial run
+  to `OBSERVED` for this separate follow-up run.
+- The browser-visible POST/redirect/readable-response chain was independently
+  observed from the Pages-hosted harness.
+- Final physical Sheet state for the follow-up identity changed from
+  server-reported diagnostic evidence only to direct post-matrix observation.
+- Temporary deployment execute-as and access selections changed from unrecorded
+  to `OBSERVED` for this follow-up deployment.
+
+### Remaining NOT PROVEN and OPEN
+
+- independent physical state after every intermediate case;
+- full Draft 2020-12 validation, production synchronization, crash safety,
+  exactly-once behavior, lost-response recovery, and production concurrency;
+- behavior across other browsers, accounts, deployment configurations, origins,
+  schema/taxonomy versions, or platform changes;
+- reliable origin enforcement, authentication, abuse controls, quotas,
+  availability, production latency, throughput, and scale;
+- infrastructure/access logging and the privacy implications of platform
+  processing;
+- production storage mapping, retention, deletion, withdrawal, correction,
+  aggregation, backup, encryption, secrets, access roles, processor, and data
+  region;
+- retry, timeout, HTTP status mapping, and production response envelope; and
+- canonical semantics for the same `response_id` with non-equivalent content.
+
+This follow-up strengthens the bounded candidate-adapter evidence. It does not
+select Apps Script or Google Sheets for production, clear public deployment,
+accept ADR-0014, or justify an automatic fourth spike.
