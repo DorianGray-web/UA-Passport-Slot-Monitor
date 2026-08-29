@@ -1168,24 +1168,107 @@ Submission processing has five adapter-neutral semantic outcomes:
 
 HTTP methods, status codes, content types, redirects, CORS behavior, allowed
 origins, and platform-specific response constraints belong to a reviewed
-deployment or adapter profile. They are not decided by this ADR.
+deployment or adapter profile. The bounded Google Apps Script candidate
+profile below records one tested compatibility path; it does not make that
+path universal or decide production HTTP mapping, origins, or deployment.
 
-The backend validation boundary independently enforces the supported schema,
-survey and contract versions, consent, taxonomy membership, cardinality,
-exclusivity, conditional fields, and free-text rules before persistence.
-Client-side validation is not an ingestion trust boundary.
+Before an accepted persistence effect, the backend validation boundary parses
+the submitted representation, routes the declared contract version, and
+independently enforces the supported schema, survey and contract versions,
+consent, version-aligned taxonomy membership, cardinality, exclusivity,
+conditional fields, and free-text rules. Client-side validation is not an
+ingestion trust boundary. A candidate adapter implementation technique does
+not become the canonical validator or schema synchronization mechanism.
 
-`response_id` is the client-generated candidate idempotency key. A repeat of
-the same logical submission may produce `DUPLICATE_ACCEPTED` without a second
-write. Idempotency lifetime, handling of the same identifier with different
-content, retry automation, timeout, and the relationship between deletion and
+`response_id` is the client-generated submission and idempotency identity; no
+second `idempotency_key` is introduced. An exact frozen repeat of an accepted
+submission, including the same `response_id` and `submitted_at`, may produce
+`DUPLICATE_ACCEPTED` without a second accepted record. Broader equality rules,
+idempotency lifetime, handling of the same identifier with different content,
+retry automation, timeout, and the relationship between deletion and
 deduplication records remain OPEN and require approval before implementation.
 
 A backend adapter may parse, validate, apply approved idempotency behavior,
 map to a storage representation, persist, and translate its result into one of
 the canonical outcomes. It must not redefine survey fields, identifiers,
-taxonomy, analytical semantics, or versions. Google Apps Script and Google
-Sheets remain candidate adapter and storage choices only.
+taxonomy, analytical semantics, or versions. Google Apps Script is the
+candidate first adapter profile for the current survey transport evaluation.
+Google Sheets remains a candidate storage choice. Neither is selected for
+production or approved for public deployment.
+
+### Bounded Google Apps Script candidate profile
+
+The candidate profile consumes the unchanged canonical `SurveyResponse v2`
+object with `contract_version: "2.0.0"`. For this profile only, the tested
+browser representation is POST with serialized SurveyResponse JSON under
+`Content-Type: text/plain`. Other adapters are not required to use that media
+type.
+
+The recorded GitHub Pages follow-up observed the published harness POST to
+`script.google.com`, receive HTTP 302, follow a redirected request to
+`script.googleusercontent.com`, and read an HTTP 200 JSON response with Fetch
+`response.type = "cors"` and `redirected = true`. The inspected redirected
+request carried `Origin: null` and a GitHub Pages referrer. This establishes a
+browser-readable result for the tested profile; it does not establish that the
+Pages Origin header survived the redirect, that Apps Script can enforce an
+allowed-origin policy, or that CORS behavior is universal. HTTP 200 alone does
+not establish survey acceptance: the client must inspect the application-level
+canonical outcome. Concrete HTTP status and production response-envelope
+mapping remain OPEN.
+
+For the candidate Google Sheets read/check/append design, duplicate lookup and
+conditional append form one protected critical section. ScriptLock is the
+synchronization mechanism demonstrated by the tested Apps Script/Sheets
+implementation, not a requirement for other adapters or storage systems.
+Failure to establish the synchronization boundary required for safe
+persistence is a candidate `TEMPORARY_FAILURE` condition for this profile; it
+does not authorize automatic retry or select `tryLock`, `waitLock`, or a
+production timeout.
+
+The follow-up physically observed one row for the accepted Case 1/2/10
+identity, a stored hash matching an independently calculated hash of the exact
+accepted Case 1 payload, and no row for Case 9 or the inspected invalid and
+unsupported identities. These final-state observations support the candidate
+invariant that an established duplicate must not create a second accepted
+record. They do not reconstruct unobserved intermediate Sheet states or
+establish exactly-once delivery, processing, or persistence, production
+durability, retention, or scale.
+
+The same-`response_id`/different-content case remains OPEN. Its experimental
+`OPEN_IDENTITY_CONTENT_CONFLICT` diagnostic is not a sixth canonical outcome
+and is not mapped here to `DUPLICATE_ACCEPTED`, `INVALID_REQUEST`, or
+`TEMPORARY_FAILURE`. Prior probe statuses are likewise non-canonical.
+
+The adapter must not add IP address, User-Agent, referrer, cookies,
+fingerprinting identifiers, or deployment identifiers to the survey data
+model. Application logs must not contain full SurveyResponse bodies or
+rejected free-text values. These constraints do not claim control over Google
+or other infrastructure logging, which remains subject to separate privacy and
+security review.
+
+Evidence for this bounded candidate profile is recorded in:
+
+- transport feasibility: commit `70eceb6`,
+  [`2026-08-22-live-browser-evidence.md`](../research/user-surveys/survey/spikes/apps-script-transport/2026-08-22-live-browser-evidence.md);
+- concurrency behavior: commit `391d52b`,
+  [`2026-08-22-concurrency-persistence-evidence.md`](../research/user-surveys/survey/spikes/apps-script-transport/2026-08-22-concurrency-persistence-evidence.md);
+- architecture synthesis: commit `ab0153e`,
+  [`2026-08-22-multi-agent-architecture-synthesis.md`](../research/user-surveys/survey/spikes/apps-script-transport/reviews/2026-08-22-multi-agent-architecture-synthesis.md); and
+- contract validation and Pages follow-up: commits `ca2b441` and `9e808a5`,
+  [`2026-08-29-live-contract-validation-evidence.md`](../research/user-surveys/survey/spikes/apps-script-contract-validation/2026-08-29-live-contract-validation-evidence.md).
+
+Still OPEN are equality beyond an exact frozen repeat; same-ID/different-content
+semantics; idempotency lifetime; unknown acceptance after a lost response;
+failure after persistence but before acknowledgement; retry, backoff, jitter,
+attempt limits, and retryable outcomes; client and lock timeout policy; HTTP
+mapping and production response envelope; origin trust, allowed-origin
+enforcement, authentication, abuse controls, execute-as/access choices, and
+deployment lifecycle; platform logging; production persisted representation;
+retention, deletion, correction, withdrawal, backups, processor/region, access,
+encryption, and secrets; performance, fairness, throughput, row-count, request
+rate, latency, and capacity thresholds; production storage selection; and GAS,
+Sheets, and public-deployment readiness. No arbitrary operational default is
+selected by this candidate decision.
 
 The detailed proposed contract and its implementation gates are maintained in
 [`research/user-surveys/survey/spec/transport-persistence.md`](../research/user-surveys/survey/spec/transport-persistence.md).
