@@ -2,7 +2,13 @@
 
 You can explore the project in the following languages:
 
-🇬🇧 English | [🇺🇦 Українська](docs/uk/README.md) | [🇷🇺 Русский](docs/ru/README.md)
+<p align="center"><strong>🌍 Documentation languages</strong></p>
+
+<p align="center">
+  <picture><img src="assets/flags/gb.svg" width="48" alt="English (current)" title="English (current)" style="opacity: 0.45;"></picture> &nbsp;&nbsp;
+  <a href="docs/uk/README.md"><img src="assets/flags/ua.svg" width="48" alt="Українська" title="Українська"></a> &nbsp;&nbsp;
+  <a href="docs/ru/README.md"><img src="assets/flags/ru.svg" width="48" alt="Русский" title="Русский"></a>
+</p>
 
 English is the authoritative version of the technical documentation.
 

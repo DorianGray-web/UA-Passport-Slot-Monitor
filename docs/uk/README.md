@@ -2,7 +2,13 @@
 
 Ви можете ознайомитися з проєктом доступними мовами:
 
-[🇬🇧 English](../../README.md) | 🇺🇦 Українська | [🇷🇺 Русский](../ru/README.md)
+<p align="center"><strong>🌍 Documentation languages</strong></p>
+
+<p align="center">
+  <a href="../../README.md"><img src="../../assets/flags/gb.svg" width="48" alt="English" title="English"></a> &nbsp;&nbsp;
+  <picture><img src="../../assets/flags/ua.svg" width="48" alt="Українська (current)" title="Українська (current)" style="opacity: 0.45;"></picture> &nbsp;&nbsp;
+  <a href="../ru/README.md"><img src="../../assets/flags/ru.svg" width="48" alt="Русский" title="Русский"></a>
+</p>
 
 Англійська версія є авторитетною для технічної документації.
 
