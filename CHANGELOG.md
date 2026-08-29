@@ -28,6 +28,14 @@ This changelog tracks implementation milestones and significant documentation, a
   the run also observed lock contention, configured-timeout rejection, and
   added latency. This is research evidence, not production survey persistence,
   idempotency, exactly-once delivery, or an Apps Script performance guarantee.
+- Completed the bounded Apps Script adapter-profile contract-validation spike
+  on 2026-08-29. A local Chrome harness exercised canonical
+  `survey_response/2.0.0` validation, all five existing semantic outcomes,
+  exact-repeat duplicate handling, a controlled transient failure, and an
+  explicitly OPEN same-identity/different-content conflict through readable
+  CORS responses. This is research evidence, not selection of Apps Script or
+  Google Sheets, production persistence, a final response envelope, or an
+  ADR-0014 decision.
 
 ### Playwright fallback serialization
 

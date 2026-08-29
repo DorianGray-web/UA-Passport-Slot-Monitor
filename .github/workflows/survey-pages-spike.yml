@@ -11,6 +11,8 @@ on:
       - research/user-surveys/shared/taxonomy/centres.json
       - research/user-surveys/shared/taxonomy/problem-categories.json
       - research/user-surveys/shared/taxonomy/notification-channels.json
+      - research/user-surveys/survey/spikes/apps-script-contract-validation/harness/**
+      - research/user-surveys/survey/spikes/apps-script-contract-validation/fixtures/**
 
 permissions:
   contents: read
@@ -42,7 +44,8 @@ jobs:
           set -euo pipefail
           form_target="_site/research/user-surveys/survey/web-form"
           taxonomy_target="_site/research/user-surveys/shared/taxonomy"
-          mkdir -p "$form_target" "$taxonomy_target"
+          contract_spike_target="_site/research/user-surveys/survey/spikes/apps-script-contract-validation"
+          mkdir -p "$form_target" "$taxonomy_target" "$contract_spike_target/harness" "$contract_spike_target/fixtures"
           cp research/user-surveys/survey/web-form/index.html "$form_target/"
           cp -R research/user-surveys/survey/web-form/css "$form_target/"
           cp -R research/user-surveys/survey/web-form/config "$form_target/"
@@ -50,6 +53,9 @@ jobs:
           cp research/user-surveys/shared/taxonomy/centres.json "$taxonomy_target/"
           cp research/user-surveys/shared/taxonomy/problem-categories.json "$taxonomy_target/"
           cp research/user-surveys/shared/taxonomy/notification-channels.json "$taxonomy_target/"
+          cp research/user-surveys/survey/spikes/apps-script-contract-validation/harness/index.html "$contract_spike_target/harness/"
+          cp research/user-surveys/survey/spikes/apps-script-contract-validation/harness/probe.js "$contract_spike_target/harness/"
+          cp research/user-surveys/survey/spikes/apps-script-contract-validation/fixtures/valid-survey-response.json "$contract_spike_target/fixtures/"
           touch _site/.nojekyll
 
       - name: Upload GitHub Pages artifact
