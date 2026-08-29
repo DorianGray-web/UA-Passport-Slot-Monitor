@@ -228,4 +228,37 @@ must fail closed without an external call. A delivery failure must never
 trigger a provider check, change monitoring cadence, or alter trusted
 capabilities.
 
-**Last updated:** 2026-08-02
+## 14. Restricted data and operational security
+
+Access to production systems and restricted data must use documented,
+revocable, least-privilege roles. Developer, contributor, or researcher status
+alone grants no production-system or restricted-data access. Any privileged
+operational role requires separate approval and must remain distinct from
+ordinary development and research access.
+
+Project-controlled logs must not contain secrets, capability URLs,
+unnecessary tracking or device identifiers, or unnecessary deployment or
+storage identifiers. Survey-specific application logs must not contain
+complete `SurveyResponse` bodies or raw, accepted, or rejected survey free
+text. These requirements do not claim control over provider or platform logs;
+their fields, access, and retention require a separate deployment-profile
+review.
+
+Components permitted to validate, inspect, redact, minimise, normalize, or
+classify restricted survey content must receive only the data and access
+required for that operation. Such access must not be repurposed for tracking,
+profiling, or unrelated analytics. Any future AI-assisted processing requires
+separate review and approval of its processing and provider profile.
+
+Operational copies and backups containing restricted data must remain
+inventoried, access-controlled, protected, and governed by an approved
+lifecycle. Backup creation, retention, recovery, and deletion propagation are
+not selected by this policy and require separate approval.
+
+Secrets, administrative credentials, storage identifiers, capability URLs,
+and equivalent sensitive deployment material must not be exposed through
+public code, project-controlled logs, or ordinary developer access. These
+requirements do not approve a production hosting, storage, or public-access
+profile.
+
+**Last updated:** 2026-08-29

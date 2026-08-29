@@ -121,6 +121,11 @@ The project should collect the smallest amount of information reasonably necessa
 
 A new feature should not be accepted merely because collecting additional data would make implementation easier.
 
+Project-controlled collection must not introduce unnecessary technical
+identifiers to identify, fingerprint, profile, or track users or survey
+respondents. Developer, contributor, or researcher convenience is not a valid
+purpose for collecting such identifiers.
+
 ## 7. Data storage and retention
 
 Personal data must not be stored longer than necessary for its stated purpose.
@@ -136,6 +141,34 @@ Before production release, the project must define:
 
 Temporary data should be deleted automatically when it is no longer needed. Where local-only storage is sufficient, server-side storage should be avoided.
 
+### Voluntary survey data boundary
+
+The voluntary survey must not intentionally add device or browser
+fingerprints, hardware or device identifiers, advertising identifiers, IP
+addresses, User-Agent, referrer, cookies, or hidden tracking identifiers to
+`SurveyResponse` or the research dataset.
+
+Raw survey free text is restricted data because respondents may accidentally
+include personal information despite instructions not to do so. Ordinary
+developers, analysts, research consumers, and standard research exports must
+not receive raw survey free text. Normal downstream research and analysis
+should use an approved minimised and de-identified derived representation
+rather than raw survey storage. Pseudonymised or hashed data must not be
+described as anonymous without a separate assessment.
+
+`response_id`, payload hashes, and combinations of them must not be assumed to
+be anonymous merely because they do not directly identify a natural person.
+This does not make `response_id` a person identifier; it remains the survey's
+submission and idempotency identity. Its retention and treatment after a
+deletion request remain subject to a separate lifecycle decision.
+
+Research and analysis exports should contain approved de-identified derived
+data by default. Any operational copy or backup containing restricted or
+source data inherits the applicable privacy, access, retention, deletion, and
+lifecycle requirements of that source data. Concrete retention periods,
+deletion propagation, aggregate treatment, and exceptional raw-data access or
+export remain subject to separate approval.
+
 ## 8. Third-party services
 
 The project may rely on external services for notifications, hosting, error reporting, or infrastructure.
@@ -145,6 +178,13 @@ Before a third-party service is introduced, the project should evaluate what dat
 Third-party services must be documented in this policy before they are used in a public production version.
 
 The project will not sell personal data or share it with data brokers or advertising networks.
+
+Project-controlled collection is distinct from processing performed by
+hosting, browser, CDN, or other infrastructure providers while operating their
+services. The absence of IP addresses, User-Agent, cookies, or request metadata
+from a project data model does not establish that infrastructure providers do
+not process such information. Provider-specific fields, purposes, retention,
+and access require a separate platform-profile review.
 
 The evidence-first notification Output Pipeline is documented in
 [`docs/NOTIFICATION_ARCHITECTURE.md`](docs/NOTIFICATION_ARCHITECTURE.md). Its
@@ -164,6 +204,12 @@ require a separate review before public notifications are enabled.
 ## 9. Analytics and telemetry
 
 Privacy-invasive analytics should not be enabled by default.
+
+The project must not introduce optional advertising, cross-site tracking,
+device fingerprinting, or unnecessary analytics identifiers without separate
+privacy and security review and approval. This project policy does not make a
+claim about provider-generated cookies or determine legal notice, consent, or
+cookie-banner requirements.
 
 If analytics or diagnostic telemetry is introduced:
 
@@ -254,6 +300,10 @@ Participation in the open-source project does not grant access to user data.
 
 Access to production systems or personal data, if such systems later exist, must be necessary for a defined role, limited to the minimum required level, documented, revocable, and protected by appropriate security measures.
 
+Developer, contributor, or researcher status alone does not grant access to
+restricted user data. Production administration and ordinary development or
+research access are separate roles.
+
 **Open-source code does not mean open user data.**
 
 ## 14. Independent project status
@@ -294,4 +344,4 @@ At the time of this draft, UA Passport Slot Monitor is in the design and validat
 
 This document defines the intended privacy boundaries of the project. It does not claim that every described feature has already been implemented.
 
-**Last updated:** 2026-08-02
+**Last updated:** 2026-08-29
