@@ -2,4 +2,5 @@
   <path fill="#fff" d="M0 0h640v160H0z"/>
   <path fill="#0039a6" d="M0 160h640v160H0z"/>
   <path fill="#d52b1e" d="M0 320h640v160H0z"/>
+  <rect width="639" height="479" x=".5" y=".5" fill="none" stroke="#d0d7de"/>
 </svg>
