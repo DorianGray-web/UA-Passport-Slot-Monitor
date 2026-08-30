@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="title">UA Passport Slot Monitor survey</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <main id="app-shell">
+    <header class="site-header">
+      <div>
+        <p class="eyebrow">UA Passport Slot Monitor</p>
+        <h1 data-i18n="title">UA Passport Slot Monitor survey</h1>
+      </div>
+      <label class="language-picker">
+        <span data-i18n="language">Language</span>
+        <select id="locale-picker" aria-label="Language">
+          <option value="uk">Українська</option>
+          <option value="ru">Русский</option>
+          <option value="en" selected>English</option>
+        </select>
+      </label>
+    </header>
+    <section class="intro" aria-labelledby="intro-heading">
+      <h2 id="intro-heading" data-i18n="intro.heading">Help improve the queue experience</h2>
+      <p data-i18n="intro.body">This voluntary research survey takes about 3-5 minutes.</p>
+      <p class="notice" data-i18n="privacyNotice">Please do not include names, contact details, passport data, appointment numbers, or exact addresses.</p>
+      <p class="notice" data-i18n="notOfficial">This is an independent research form, not the official DP “Dokument” website. Submitting it does not book an appointment, create a subscription, or guarantee availability.</p>
+    </section>
+    <form id="survey-form" novalidate aria-describedby="form-status"></form>
+    <div id="form-status" class="form-status" role="status" aria-live="polite"></div>
+    <section id="debug-panel" class="debug-panel" hidden aria-labelledby="debug-heading">
+      <h2 id="debug-heading" data-i18n="debug.heading">Developer demo payload</h2>
+      <p data-i18n="debug.help">Visible only when the page is opened with debug=1. This payload is not saved or sent.</p>
+      <p><strong data-i18n="debug.responseId">Response ID</strong>: <code id="debug-response-id"></code></p>
+      <pre id="debug-payload" tabindex="0"></pre>
+    </section>
+    <noscript>
+      <section class="noscript-fallback" aria-labelledby="noscript-heading">
+        <h2 id="noscript-heading">Survey questions</h2>
+        <p>This form needs JavaScript to provide validation, translations, canonical centre choices, and safe demo submission.</p>
+        <ol>
+          <li>Research consent and residence region</li>
+          <li>Document service, queue experience, checking frequency, search duration, and urgency</li>
+          <li>Desired service centres</li>
+          <li>Problems, other-country flexibility, and optional context</li>
+          <li>Notification preferences, primary channel, and manual CAPTCHA hand-off attitude</li>
+          <li>Early testing interest and optional additional context</li>
+        </ol>
+      </section>
+    </noscript>
+  </main>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -6,6 +6,8 @@ Research artifacts are not production implementations. A documented observation 
 
 ## Current studies
 
+- [Invalid 2026-08-09 existing-local headed monitoring series](dp-document/2026-08-09-invalid-existing-local-headed-series.md)
+- [Invalid 2026-08-05 monitoring series](dp-document/2026-08-05-invalid-monitoring-series.md)
 - [DP Document queue workflow](dp-document/queue-workflow.md)
 - [Valencia live observation](dp-document/2026-08-01-valencia-live-observation.md)
 - [Berlin public discovery live observation](dp-document/2026-08-01-berlin-live-observation.md)

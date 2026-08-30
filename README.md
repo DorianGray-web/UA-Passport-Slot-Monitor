@@ -1,5 +1,17 @@
 # UA Passport Slot Monitor
 
+You can explore the project in the following languages:
+
+<p align="center"><strong>🌍 Documentation languages</strong></p>
+
+<p align="center">
+  <picture><img src="assets/flags/gb.svg" width="48" alt="English (current)" title="English (current)" style="opacity: 0.45;"></picture> &nbsp;&nbsp;
+  <a href="docs/uk/README.md"><img src="assets/flags/ua.svg" width="48" alt="Українська" title="Українська"></a> &nbsp;&nbsp;
+  <a href="docs/ru/README.md"><img src="assets/flags/ru.svg" width="48" alt="Русский" title="Русский"></a>
+</p>
+
+English is the authoritative version of the technical documentation.
+
 A privacy-focused open-source service for monitoring appointment availability at Ukrainian document service centers abroad.
 
 > 🚧 **Current status:** Research and provider-integration prototyping. Local
@@ -239,9 +251,22 @@ interact with CAPTCHA, identity, or booking.
 The lease is local runtime state and is Git-ignored. Its timeout, TTL, and
 path can be configured with `PLAYWRIGHT_FALLBACK_LEASE_TIMEOUT_SECONDS`,
 `PLAYWRIGHT_FALLBACK_LEASE_TTL_SECONDS`, and
-`PLAYWRIGHT_FALLBACK_LEASE_PATH` respectively. The configured TTL must cover
+`PLAYWRIGHT_FALLBACK_LEASE_PATH` respectively. A separate process-safe
+`PlaywrightExecutionBudget` enforces a random 60-120 second global interval
+between browser discovery sessions. Its local SQLite path is configurable with
+`PLAYWRIGHT_EXECUTION_BUDGET_PATH`; override the bounded interval with
+`PLAYWRIGHT_FALLBACK_MIN_INTERVAL_SECONDS` and
+`PLAYWRIGHT_FALLBACK_MAX_INTERVAL_SECONDS`, and its maximum wait with
+`PLAYWRIGHT_BUDGET_WAIT_TIMEOUT_SECONDS`. The configured lease TTL must cover
 one bounded public discovery lifecycle; it is a crash-recovery bound, not a
 heartbeat protocol.
+
+The browser executable remains Playwright's bundled browser by default. A
+bounded diagnostic comparison may select an installed branded browser with
+`PLAYWRIGHT_BROWSER_CHANNEL` or the provider-specific
+`<PROVIDER>_PLAYWRIGHT_BROWSER_CHANNEL` (for example, `chrome`). This changes
+only the executable channel; it does not change the discovery boundary,
+browser pacing, CAPTCHA policy, or launch-argument policy.
 
 The 2026-08-01 seven-centre research run originally treated Berlin and
 Kortrijk as candidate landing probes. Berlin's public discovery contract was

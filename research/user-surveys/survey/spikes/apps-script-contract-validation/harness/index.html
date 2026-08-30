@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>Apps Script canonical contract-validation spike</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, sans-serif; }
+    body { margin: 0; background: #f7f7f8; color: #1f2937; }
+    main { box-sizing: border-box; margin: 0 auto; max-width: 72rem; padding: 1.25rem; }
+    h1, h2 { line-height: 1.2; }
+    .warning { border-left: .35rem solid #b45309; background: #fffbeb; padding: .8rem 1rem; }
+    label { display: block; font-weight: 650; margin-top: 1.25rem; }
+    input { box-sizing: border-box; font: inherit; padding: .7rem; width: 100%; }
+    .controls { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1rem 0; }
+    button { cursor: pointer; font: inherit; padding: .65rem .9rem; }
+    button:disabled { cursor: not-allowed; opacity: .55; }
+    .matrix { display: grid; gap: .8rem; }
+    .case { background: white; border: 1px solid #d1d5db; border-radius: .4rem; padding: 1rem; min-width: 0; }
+    .case h3 { margin: 0 0 .4rem; }
+    .case p { margin: .35rem 0; }
+    .case pre, #copy-output { background: #f3f4f6; overflow-wrap: anywhere; padding: .75rem; white-space: pre-wrap; }
+    .status { font-weight: 700; }
+    .status[data-state="PASS"] { color: #166534; }
+    .status[data-state="FAIL"], .status[data-state="NETWORK_ERROR"] { color: #991b1b; }
+    .status[data-state="OPEN"] { color: #92400e; }
+    code { overflow-wrap: anywhere; }
+    @media (max-width: 420px) {
+      main { padding: .8rem; }
+      button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Apps Script canonical contract-validation spike</h1>
+    <p class="warning"><strong>Research only.</strong> Use a temporary deployment and disposable Sheet. Send synthetic fixtures only. This is not a production adapter, response contract, retry policy, or persistence design.</p>
+    <p>The endpoint, accepted fixture, and results remain in page memory only. No adapter request runs automatically.</p>
+
+    <label for="endpoint">Temporary Apps Script <code>/exec</code> endpoint</label>
+    <input id="endpoint" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="/macros/s/&lt;deployment&gt;/exec">
+
+    <div class="controls">
+      <button id="copy-results" type="button">Copy sanitized results</button>
+      <button id="clear-results" type="button">Clear local results</button>
+    </div>
+    <p id="fixture-status" aria-live="polite">Loading the synthetic canonical fixture…</p>
+
+    <h2>Manual matrix</h2>
+    <div id="matrix" class="matrix"></div>
+
+    <h2>Sanitized copy output</h2>
+    <pre id="copy-output">No results yet.</pre>
+  </main>
+  <script type="module" src="probe.js"></script>
+</body>
+</html>

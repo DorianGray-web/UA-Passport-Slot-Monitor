@@ -1,0 +1,395 @@
+{
+  "taxonomy_id": "survey_centres",
+  "taxonomy_version": "1.0.0",
+  "normalization_version": "centre_aliases/1.0.0",
+  "default_locale": "en",
+  "supported_locales": ["uk", "ru", "en"],
+  "macro_regions": [
+    {
+      "macro_region_id": "schengen_area",
+      "sort_order": 10,
+      "labels": {
+        "uk": "Шенгенська зона",
+        "ru": "Шенгенская зона",
+        "en": "Schengen Area"
+      }
+    },
+    {
+      "macro_region_id": "united_kingdom",
+      "sort_order": 20,
+      "labels": {
+        "uk": "Велика Британія",
+        "ru": "Великобритания",
+        "en": "United Kingdom"
+      }
+    },
+    {
+      "macro_region_id": "canada",
+      "sort_order": 30,
+      "labels": {
+        "uk": "Канада",
+        "ru": "Канада",
+        "en": "Canada"
+      }
+    },
+    {
+      "macro_region_id": "other_europe_outside_schengen",
+      "sort_order": 40,
+      "labels": {
+        "uk": "Інша Європа поза Шенгенською зоною",
+        "ru": "Другая Европа вне Шенгенской зоны",
+        "en": "Other Europe / Outside Schengen"
+      }
+    }
+  ],
+  "countries": [
+    {
+      "country_code": "BE",
+      "macro_region_id": "schengen_area",
+      "sort_order": 10,
+      "labels": {
+        "uk": "Бельгія",
+        "ru": "Бельгия",
+        "en": "Belgium"
+      }
+    },
+    {
+      "country_code": "BG",
+      "macro_region_id": "schengen_area",
+      "sort_order": 20,
+      "labels": {
+        "uk": "Болгарія",
+        "ru": "Болгария",
+        "en": "Bulgaria"
+      }
+    },
+    {
+      "country_code": "CA",
+      "macro_region_id": "canada",
+      "sort_order": 10,
+      "labels": {
+        "uk": "Канада",
+        "ru": "Канада",
+        "en": "Canada"
+      }
+    },
+    {
+      "country_code": "CZ",
+      "macro_region_id": "schengen_area",
+      "sort_order": 30,
+      "labels": {
+        "uk": "Чехія",
+        "ru": "Чехия",
+        "en": "Czechia"
+      }
+    },
+    {
+      "country_code": "DE",
+      "macro_region_id": "schengen_area",
+      "sort_order": 40,
+      "labels": {
+        "uk": "Німеччина",
+        "ru": "Германия",
+        "en": "Germany"
+      }
+    },
+    {
+      "country_code": "ES",
+      "macro_region_id": "schengen_area",
+      "sort_order": 50,
+      "labels": {
+        "uk": "Іспанія",
+        "ru": "Испания",
+        "en": "Spain"
+      }
+    },
+    {
+      "country_code": "GB",
+      "macro_region_id": "united_kingdom",
+      "sort_order": 10,
+      "labels": {
+        "uk": "Велика Британія",
+        "ru": "Великобритания",
+        "en": "United Kingdom"
+      }
+    },
+    {
+      "country_code": "IT",
+      "macro_region_id": "schengen_area",
+      "sort_order": 60,
+      "labels": {
+        "uk": "Італія",
+        "ru": "Италия",
+        "en": "Italy"
+      }
+    },
+    {
+      "country_code": "MD",
+      "macro_region_id": "other_europe_outside_schengen",
+      "sort_order": 10,
+      "labels": {
+        "uk": "Молдова",
+        "ru": "Молдова",
+        "en": "Moldova"
+      }
+    },
+    {
+      "country_code": "PL",
+      "macro_region_id": "schengen_area",
+      "sort_order": 70,
+      "labels": {
+        "uk": "Польща",
+        "ru": "Польша",
+        "en": "Poland"
+      }
+    },
+    {
+      "country_code": "SK",
+      "macro_region_id": "schengen_area",
+      "sort_order": 80,
+      "labels": {
+        "uk": "Словаччина",
+        "ru": "Словакия",
+        "en": "Slovakia"
+      }
+    }
+  ],
+  "centres": [
+    {
+      "centre_id": "berlin",
+      "country_code": "DE",
+      "provider_service_center_id": "2",
+      "sort_order": 10,
+      "labels": {
+        "uk": "Берлін",
+        "ru": "Берлин",
+        "en": "Berlin"
+      },
+      "aliases": ["Berlin", "Берлін", "Берлин"]
+    },
+    {
+      "centre_id": "cologne",
+      "country_code": "DE",
+      "provider_service_center_id": "3",
+      "sort_order": 20,
+      "labels": {
+        "uk": "Кельн",
+        "ru": "Кёльн",
+        "en": "Cologne"
+      },
+      "aliases": ["Cologne", "Köln", "Кёльн", "Кельн"]
+    },
+    {
+      "centre_id": "munich",
+      "country_code": "DE",
+      "provider_service_center_id": null,
+      "sort_order": 30,
+      "labels": {
+        "uk": "Мюнхен",
+        "ru": "Мюнхен",
+        "en": "Munich"
+      },
+      "aliases": ["Munich", "München", "Мюнхен"]
+    },
+    {
+      "centre_id": "bratislava",
+      "country_code": "SK",
+      "provider_service_center_id": "9",
+      "sort_order": 10,
+      "labels": {
+        "uk": "Братислава",
+        "ru": "Братислава",
+        "en": "Bratislava"
+      },
+      "aliases": ["Bratislava", "Братислава"]
+    },
+    {
+      "centre_id": "kortrijk",
+      "country_code": "BE",
+      "provider_service_center_id": "48",
+      "sort_order": 10,
+      "labels": {
+        "uk": "Кортрейк",
+        "ru": "Кортрейк",
+        "en": "Kortrijk"
+      },
+      "aliases": ["Kortrijk", "Courtrai", "Кортрейк"]
+    },
+    {
+      "centre_id": "madrid",
+      "country_code": "ES",
+      "provider_service_center_id": "6",
+      "sort_order": 10,
+      "labels": {
+        "uk": "Мадрид",
+        "ru": "Мадрид",
+        "en": "Madrid"
+      },
+      "aliases": ["Madrid", "Мадрид"]
+    },
+    {
+      "centre_id": "barcelona",
+      "country_code": "ES",
+      "provider_service_center_id": "41",
+      "sort_order": 20,
+      "labels": {
+        "uk": "Барселона",
+        "ru": "Барселона",
+        "en": "Barcelona"
+      },
+      "aliases": ["Barcelona", "Барселона"]
+    },
+    {
+      "centre_id": "valencia",
+      "country_code": "ES",
+      "provider_service_center_id": "7",
+      "sort_order": 30,
+      "labels": {
+        "uk": "Валенсія",
+        "ru": "Валенсия",
+        "en": "Valencia"
+      },
+      "aliases": ["Valencia", "València", "Валенсія", "Валенсия"]
+    },
+    {
+      "centre_id": "milan",
+      "country_code": "IT",
+      "provider_service_center_id": "4",
+      "sort_order": 10,
+      "labels": {
+        "uk": "Мілан",
+        "ru": "Милан",
+        "en": "Milan"
+      },
+      "aliases": ["Milan", "Milano", "Мілан", "Милан"]
+    },
+    {
+      "centre_id": "prague",
+      "country_code": "CZ",
+      "provider_service_center_id": "8",
+      "sort_order": 10,
+      "labels": {
+        "uk": "Прага",
+        "ru": "Прага",
+        "en": "Prague"
+      },
+      "aliases": ["Prague", "Praha", "Прага"]
+    },
+    {
+      "centre_id": "varna",
+      "country_code": "BG",
+      "provider_service_center_id": "43",
+      "sort_order": 10,
+      "labels": {
+        "uk": "Варна",
+        "ru": "Варна",
+        "en": "Varna"
+      },
+      "aliases": ["Varna", "Варна"]
+    },
+    {
+      "centre_id": "warsaw",
+      "country_code": "PL",
+      "provider_service_center_id": "10",
+      "sort_order": 10,
+      "labels": {
+        "uk": "Варшава",
+        "ru": "Варшава",
+        "en": "Warsaw"
+      },
+      "aliases": ["Warsaw", "Warszawa", "Варшава"]
+    },
+    {
+      "centre_id": "krakow",
+      "country_code": "PL",
+      "provider_service_center_id": "11",
+      "sort_order": 20,
+      "labels": {
+        "uk": "Краків",
+        "ru": "Краков",
+        "en": "Krakow"
+      },
+      "aliases": ["Krakow", "Kraków", "Краків", "Краков"]
+    },
+    {
+      "centre_id": "gdansk",
+      "country_code": "PL",
+      "provider_service_center_id": "12",
+      "sort_order": 30,
+      "labels": {
+        "uk": "Гданськ",
+        "ru": "Гданьск",
+        "en": "Gdansk"
+      },
+      "aliases": ["Gdansk", "Gdańsk", "Гданськ", "Гданьск"]
+    },
+    {
+      "centre_id": "wroclaw",
+      "country_code": "PL",
+      "provider_service_center_id": "13",
+      "sort_order": 40,
+      "labels": {
+        "uk": "Вроцлав",
+        "ru": "Вроцлав",
+        "en": "Wroclaw"
+      },
+      "aliases": ["Wroclaw", "Wrocław", "Вроцлав"]
+    },
+    {
+      "centre_id": "london",
+      "country_code": "GB",
+      "provider_service_center_id": "47",
+      "sort_order": 10,
+      "labels": {
+        "uk": "Лондон",
+        "ru": "Лондон",
+        "en": "London"
+      },
+      "aliases": ["London", "Лондон"]
+    },
+    {
+      "centre_id": "toronto",
+      "country_code": "CA",
+      "provider_service_center_id": "46",
+      "sort_order": 10,
+      "labels": {
+        "uk": "Торонто",
+        "ru": "Торонто",
+        "en": "Toronto"
+      },
+      "aliases": ["Toronto", "Торонто"]
+    },
+    {
+      "centre_id": "chisinau",
+      "country_code": "MD",
+      "provider_service_center_id": "45",
+      "sort_order": 10,
+      "labels": {
+        "uk": "Кишинів",
+        "ru": "Кишинёв",
+        "en": "Chisinau"
+      },
+      "aliases": ["Chisinau", "Chișinău", "Chişinău", "Кишинів", "Кишинёв", "Кишинев"]
+    }
+  ],
+  "system_options": [
+    {
+      "centre_id": "other_centre",
+      "sort_order": 900,
+      "labels": {
+        "uk": "Інший центр",
+        "ru": "Другой центр",
+        "en": "Other centre"
+      }
+    },
+    {
+      "centre_id": "not_decided",
+      "sort_order": 910,
+      "labels": {
+        "uk": "Ще не визначився",
+        "ru": "Ещё не определился",
+        "en": "Not decided yet"
+      }
+    }
+  ]
+}

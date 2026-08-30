@@ -1,9 +1,17 @@
 # UA Passport Slot Monitor
 
-[English](../../README.md) | [Українська](../uk/README.md) | **Русский**
+Вы можете ознакомиться с проектом на доступных языках:
 
-> **Официальной документацией проекта является англоязычная версия.**
->
+<p align="center"><strong>🌍 Documentation languages</strong></p>
+
+<p align="center">
+  <a href="../../README.md"><img src="../../assets/flags/gb.svg" width="48" alt="English" title="English"></a> &nbsp;&nbsp;
+  <a href="../uk/README.md"><img src="../../assets/flags/ua.svg" width="48" alt="Українська" title="Українська"></a> &nbsp;&nbsp;
+  <picture><img src="../../assets/flags/ru.svg" width="48" alt="Русский (current)" title="Русский (current)" style="opacity: 0.45;"></picture>
+</p>
+
+Английская версия является основной для технической документации.
+
 > Этот документ подготовлен для удобства русскоязычных пользователей. В случае расхождений приоритет имеет [английская документация](../../README.md).
 >
 > **Состояние перевода:** основные пользовательские и исследовательские факты

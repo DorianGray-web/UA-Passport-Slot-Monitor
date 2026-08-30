@@ -21,6 +21,7 @@ if str(PROJECT_DIR) not in sys.path:
 from diagnostics.domain import RequestTraceEntry, make_run_id
 from diagnostics.event_store import SQLiteEventStore
 from diagnostics.monitoring import ObservationService
+from playwright_execution_budget import PlaywrightExecutionBudget
 from playwright_lease import SQLitePlaywrightLease
 from browser_discovery import PlaywrightDiscoveryTransport
 from candidate_evidence import CandidateEvidenceStore
@@ -42,8 +43,11 @@ MIN_INTERVAL_SECONDS = 7 * 60
 MAX_INTERVAL_SECONDS = 12 * 60
 REQUEST_TIMEOUT_SECONDS = 30
 DEFAULT_BLOCKED_COOLDOWN_SECONDS = 60 * 60
-DEFAULT_PLAYWRIGHT_FALLBACK_LEASE_TIMEOUT_SECONDS = 120
+DEFAULT_PLAYWRIGHT_FALLBACK_LEASE_TIMEOUT_SECONDS = 3600
 DEFAULT_PLAYWRIGHT_FALLBACK_LEASE_TTL_SECONDS = 600
+DEFAULT_PLAYWRIGHT_FALLBACK_MIN_INTERVAL_SECONDS = 60
+DEFAULT_PLAYWRIGHT_FALLBACK_MAX_INTERVAL_SECONDS = 120
+DEFAULT_PLAYWRIGHT_BUDGET_WAIT_TIMEOUT_SECONDS = 600
 DEFAULT_DIAGNOSTIC_EVENTS = {
     "BLOCKED",
     "UNKNOWN",
@@ -142,6 +146,14 @@ class CityMonitor:
                 )
             )
         )
+        self.playwright_budget = PlaywrightExecutionBudget(
+            Path(
+                os.getenv(
+                    "PLAYWRIGHT_EXECUTION_BUDGET_PATH",
+                    project_dir / "data" / "playwright-execution-budget.sqlite3",
+                )
+            )
+        )
         self.landing_classifier = LandingPageClassifier(
             os.getenv(f"{config.env_prefix}_CSRF_FIELD") or None
         )
@@ -214,6 +226,13 @@ class CityMonitor:
             int(os.getenv("CANDIDATE_EVIDENCE_PROBE_COOLDOWN_SECONDS", "21600")),
         )
 
+    def playwright_browser_channel(self) -> str | None:
+        value = os.getenv(
+            f"{self.config.env_prefix}_PLAYWRIGHT_BROWSER_CHANNEL",
+            os.getenv("PLAYWRIGHT_BROWSER_CHANNEL", ""),
+        ).strip()
+        return value or None
+
     def collect_candidate_evidence(
         self,
         *,
@@ -243,6 +262,38 @@ class CityMonitor:
         self,
         http_state: QueueState,
     ) -> tuple[QueueState, int | None]:
+        min_interval_seconds = float(
+            os.getenv(
+                "PLAYWRIGHT_FALLBACK_MIN_INTERVAL_SECONDS",
+                str(DEFAULT_PLAYWRIGHT_FALLBACK_MIN_INTERVAL_SECONDS),
+            )
+        )
+        max_interval_seconds = float(
+            os.getenv(
+                "PLAYWRIGHT_FALLBACK_MAX_INTERVAL_SECONDS",
+                str(DEFAULT_PLAYWRIGHT_FALLBACK_MAX_INTERVAL_SECONDS),
+            )
+        )
+        if min_interval_seconds < 0:
+            raise ValueError(
+                "PLAYWRIGHT_FALLBACK_MIN_INTERVAL_SECONDS must be non-negative"
+            )
+        if max_interval_seconds < min_interval_seconds:
+            raise ValueError(
+                "PLAYWRIGHT_FALLBACK_MAX_INTERVAL_SECONDS must be greater than "
+                "or equal to PLAYWRIGHT_FALLBACK_MIN_INTERVAL_SECONDS"
+            )
+        budget_wait_timeout_seconds = float(
+            os.getenv(
+                "PLAYWRIGHT_BUDGET_WAIT_TIMEOUT_SECONDS",
+                str(DEFAULT_PLAYWRIGHT_BUDGET_WAIT_TIMEOUT_SECONDS),
+            )
+        )
+        if budget_wait_timeout_seconds < 0:
+            raise ValueError(
+                "PLAYWRIGHT_BUDGET_WAIT_TIMEOUT_SECONDS must be non-negative"
+            )
+        lease_wait_started = time.monotonic()
         lease = self.playwright_lease.acquire(
             float(
                 os.getenv(
@@ -257,6 +308,7 @@ class CityMonitor:
                 )
             ),
         )
+        lease_wait_seconds = time.monotonic() - lease_wait_started
         if lease is None:
             return (
                 QueueState(
@@ -275,6 +327,17 @@ class CityMonitor:
                 ),
                 None,
             )
+        budget_wait_seconds = self.playwright_budget.wait_until_allowed(
+            budget_wait_timeout_seconds
+        )
+        if budget_wait_seconds is None:
+            self.playwright_lease.release(lease)
+            logging.warning(
+                "Playwright execution budget wait elapsed; no browser "
+                "operation was started. lease_wait_time=%.3f",
+                lease_wait_seconds,
+            )
+            return http_state, None
         centre = self.config.service_center_id
         service = self.config.service_id
         profile_dir = self.config.env_path(
@@ -284,6 +347,7 @@ class CityMonitor:
         headless_value = os.getenv(
             "PLAYWRIGHT_DISCOVERY_HEADLESS", "false"
         )
+        browser_started_at = utc_timestamp()
         try:
             transport = PlaywrightDiscoveryTransport(
                 city=self.config.city,
@@ -293,11 +357,34 @@ class CityMonitor:
                 profile_dir=profile_dir,
                 headless=headless_value.strip().lower()
                 in {"1", "true", "yes", "on"},
+                browser_channel=self.playwright_browser_channel(),
             )
             result = transport.discover()
         finally:
-            if not self.playwright_lease.release(lease):
-                logging.warning("Playwright fallback lease was already expired.")
+            browser_finished_at = utc_timestamp()
+            try:
+                next_budget_at = self.playwright_budget.defer_next(
+                    min_interval_seconds=min_interval_seconds,
+                    max_interval_seconds=max_interval_seconds,
+                )
+                next_budget_after = next_budget_at.isoformat()
+            finally:
+                if not self.playwright_lease.release(lease):
+                    logging.warning(
+                        "Playwright fallback lease was already expired."
+                    )
+            logging.info(
+                "Playwright discovery timing: browser_channel=%s "
+                "lease_wait_time=%.3f "
+                "browser_budget_wait_time=%.3f browser_started_at=%s "
+                "browser_finished_at=%s next_budget_after=%s",
+                self.playwright_browser_channel() or "bundled",
+                lease_wait_seconds,
+                budget_wait_seconds,
+                browser_started_at,
+                browser_finished_at,
+                next_budget_after,
+            )
         return (
             QueueState(
                 result.state,
@@ -335,6 +422,7 @@ class CityMonitor:
             profile_dir=profile_dir,
             headless=headless_value.strip().lower()
             in {"1", "true", "yes", "on"},
+            browser_channel=self.playwright_browser_channel(),
         )
         result = transport.probe_landing()
         state = QueueState(

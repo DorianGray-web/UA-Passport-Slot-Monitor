@@ -1,0 +1,68 @@
+name: Survey GitHub Pages spike
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - spike/survey-pages-transport
+    paths:
+      - .github/workflows/survey-pages-spike.yml
+      - research/user-surveys/survey/web-form/**
+      - research/user-surveys/shared/taxonomy/centres.json
+      - research/user-surveys/shared/taxonomy/problem-categories.json
+      - research/user-surveys/shared/taxonomy/notification-channels.json
+      - research/user-surveys/survey/spikes/apps-script-contract-validation/harness/**
+      - research/user-surveys/survey/spikes/apps-script-contract-validation/fixtures/**
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: survey-pages-spike
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}research/user-surveys/survey/web-form/
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Assemble static survey artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          form_target="_site/research/user-surveys/survey/web-form"
+          taxonomy_target="_site/research/user-surveys/shared/taxonomy"
+          contract_spike_target="_site/research/user-surveys/survey/spikes/apps-script-contract-validation"
+          mkdir -p "$form_target" "$taxonomy_target" "$contract_spike_target/harness" "$contract_spike_target/fixtures"
+          cp research/user-surveys/survey/web-form/index.html "$form_target/"
+          cp -R research/user-surveys/survey/web-form/css "$form_target/"
+          cp -R research/user-surveys/survey/web-form/config "$form_target/"
+          cp -R research/user-surveys/survey/web-form/js "$form_target/"
+          cp research/user-surveys/shared/taxonomy/centres.json "$taxonomy_target/"
+          cp research/user-surveys/shared/taxonomy/problem-categories.json "$taxonomy_target/"
+          cp research/user-surveys/shared/taxonomy/notification-channels.json "$taxonomy_target/"
+          cp research/user-surveys/survey/spikes/apps-script-contract-validation/harness/index.html "$contract_spike_target/harness/"
+          cp research/user-surveys/survey/spikes/apps-script-contract-validation/harness/probe.js "$contract_spike_target/harness/"
+          cp research/user-surveys/survey/spikes/apps-script-contract-validation/fixtures/valid-survey-response.json "$contract_spike_target/fixtures/"
+          touch _site/.nojekyll
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+      - name: Deploy GitHub Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -8,8 +8,44 @@ This changelog tracks implementation milestones and significant documentation, a
 
 ## [Unreleased]
 
+### Survey Transport Research
+
+- Validated the bounded GitHub Pages to Apps Script transport spike on
+  2026-08-22. In the tested Chrome configuration, CORS GET and POST requests
+  from the GitHub Pages HTTPS origin returned readable application-level
+  `RECEIVED` acknowledgements through the ContentService redirect; the POST
+  used `fetch()`, `mode: "cors"`, `Content-Type: text/plain`, and a
+  JSON-encoded body whose probe request ID was observed server-side.
+- Retained `no-cors` as opaque dispatch-attempt evidence only. The experiment
+  found that an intermediate proxy was not required solely for readable
+  browser-to-Apps-Script transport in the tested configuration; it does not
+  select Apps Script as a production backend, approve persistence or Sheets,
+  or establish universal Apps Script CORS behavior.
+- Recorded a bounded disposable Apps Script and Google Sheets concurrency
+  experiment from 2026-08-22. In the tested shared-ID burst, protecting the
+  duplicate check and append with ScriptLock produced one physical row, while
+  the unlocked negative control reproduced a seven-row duplicate-write race;
+  the run also observed lock contention, configured-timeout rejection, and
+  added latency. This is research evidence, not production survey persistence,
+  idempotency, exactly-once delivery, or an Apps Script performance guarantee.
+- Completed the bounded Apps Script adapter-profile contract-validation spike
+  on 2026-08-29. A local Chrome harness exercised canonical
+  `survey_response/2.0.0` validation, all five existing semantic outcomes,
+  exact-repeat duplicate handling, a controlled transient failure, and an
+  explicitly OPEN same-identity/different-content conflict through readable
+  CORS responses. This is research evidence, not selection of Apps Script or
+  Google Sheets, production persistence, a final response envelope, or an
+  ADR-0014 decision.
+
 ### Playwright fallback serialization
 
+- Added a provider-agnostic, process-safe `PlaywrightExecutionBudget` that
+  persists a random 60-120 second interval between browser discovery sessions.
+  Lease and pacing responsibilities remain separate, and the default FIFO
+  wait timeout now allows a full provider cohort to remain serialized.
+- Added sanitized timing logs for lease wait, execution-budget wait, browser
+  start and finish, and the next permitted budget timestamp. Observation
+  contracts remain unchanged.
 - Added an anonymous process-safe SQLite FIFO lease for bounded Playwright
   fallback operations. One lease authorizes one persistent-context discovery
   lifecycle and expires by absolute TTL; no provider, browser profile, or
@@ -32,6 +68,13 @@ This changelog tracks implementation milestones and significant documentation, a
   overwriting one another.
 - Recorded the 2026-08-05 invalid monitoring series as diagnostic evidence
   excluded from Discovery Quality analysis.
+- Recorded `RUN-20260809-101949-existing-local-headed-24h` as an invalid
+  availability experiment while retaining its aggregate transport-health
+  statistics, synchronized `BLOCKED @ LANDING` evidence, and sanitized
+  comparison with contemporaneous live review.
+- Defined explicit `VALID`, `INVALID`, and `UNKNOWN` run status semantics so
+  invalid runs remain visible in research history without contaminating
+  availability baselines or comparative Discovery Quality metrics.
 - Research summaries now display discovery progression separately from
   availability classification, preventing `LANDING -> BLOCKED` from being
   misread as a no-availability result.
